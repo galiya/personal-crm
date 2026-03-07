@@ -25,34 +25,41 @@ def envelope(data: object, error: str | None = None, meta: dict | None = None) -
 # ---------------------------------------------------------------------------
 
 
-async def _suggestion_with_contact(
-    suggestion: FollowUpSuggestion, db: AsyncSession
-) -> dict:
-    """Attach basic contact info to a serialised suggestion."""
-    contact_result = await db.execute(
-        select(Contact).where(Contact.id == suggestion.contact_id)
+async def _enrich_suggestions_with_contacts(
+    suggestions: list[FollowUpSuggestion], db: AsyncSession
+) -> list[dict]:
+    """Batch-load contacts and attach to serialised suggestions."""
+    if not suggestions:
+        return []
+    contact_ids = list({s.contact_id for s in suggestions})
+    result = await db.execute(
+        select(Contact).where(Contact.id.in_(contact_ids))
     )
-    contact = contact_result.scalar_one_or_none()
+    contacts_by_id = {c.id: c for c in result.scalars().all()}
 
-    data = FollowUpResponse.model_validate(suggestion).model_dump()
-    data["contact"] = (
-        {
-            "id": str(contact.id),
-            "full_name": contact.full_name,
-            "given_name": contact.given_name,
-            "family_name": contact.family_name,
-            "company": contact.company,
-            "title": contact.title,
-            "last_interaction_at": (
-                contact.last_interaction_at.isoformat()
-                if contact.last_interaction_at
-                else None
-            ),
-        }
-        if contact
-        else None
-    )
-    return data
+    items = []
+    for s in suggestions:
+        data = FollowUpResponse.model_validate(s).model_dump()
+        contact = contacts_by_id.get(s.contact_id)
+        data["contact"] = (
+            {
+                "id": str(contact.id),
+                "full_name": contact.full_name,
+                "given_name": contact.given_name,
+                "family_name": contact.family_name,
+                "company": contact.company,
+                "title": contact.title,
+                "last_interaction_at": (
+                    contact.last_interaction_at.isoformat()
+                    if contact.last_interaction_at
+                    else None
+                ),
+            }
+            if contact
+            else None
+        )
+        items.append(data)
+    return items
 
 
 # ---------------------------------------------------------------------------
@@ -85,7 +92,7 @@ async def list_suggestions(
     )
     suggestions = result.scalars().all()
 
-    items = [await _suggestion_with_contact(s, db) for s in suggestions]
+    items = await _enrich_suggestions_with_contacts(suggestions, db)
     return envelope(items, meta={"count": len(items)})
 
 
@@ -103,7 +110,7 @@ async def get_digest(
     from app.services.followup_engine import get_weekly_digest
 
     suggestions = await get_weekly_digest(current_user.id, db)
-    items = [await _suggestion_with_contact(s, db) for s in suggestions]
+    items = await _enrich_suggestions_with_contacts(suggestions, db)
     return envelope(items, meta={"count": len(items)})
 
 
@@ -112,16 +119,18 @@ async def get_digest(
 # ---------------------------------------------------------------------------
 
 
-class SnoozeBody(BaseModel):
+class SuggestionUpdateBody(BaseModel):
     status: str
     scheduled_for: datetime | None = None
     snooze_until: datetime | None = None
+    suggested_message: str | None = None
+    suggested_channel: str | None = None
 
 
 @router.put("/{suggestion_id}", response_model=dict)
 async def update_suggestion(
     suggestion_id: uuid.UUID,
-    update_in: SnoozeBody,
+    update_in: SuggestionUpdateBody,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -149,6 +158,12 @@ async def update_suggestion(
         )
 
     suggestion.status = update_in.status
+
+    # Persist edited message/channel if provided
+    if update_in.suggested_message is not None:
+        suggestion.suggested_message = update_in.suggested_message
+    if update_in.suggested_channel is not None:
+        suggestion.suggested_channel = update_in.suggested_channel
 
     if update_in.status == "snoozed":
         snooze_dt = update_in.snooze_until or update_in.scheduled_for
@@ -194,7 +209,53 @@ async def generate_suggestions(
     from app.services.followup_engine import generate_suggestions as _generate
 
     suggestions = await _generate(current_user.id, db)
-    await db.commit()
+    await db.flush()
 
     items = [FollowUpResponse.model_validate(s).model_dump() for s in suggestions]
     return envelope(items, meta={"generated": len(items)})
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/suggestions/{suggestion_id}/regenerate
+# ---------------------------------------------------------------------------
+
+
+class RegenerateBody(BaseModel):
+    channel: str | None = None
+
+
+@router.post("/{suggestion_id}/regenerate", response_model=dict)
+async def regenerate_suggestion(
+    suggestion_id: uuid.UUID,
+    body: RegenerateBody | None = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Re-generate the AI-drafted message for an existing suggestion."""
+    result = await db.execute(
+        select(FollowUpSuggestion).where(
+            FollowUpSuggestion.id == suggestion_id,
+            FollowUpSuggestion.user_id == current_user.id,
+        )
+    )
+    suggestion = result.scalar_one_or_none()
+    if not suggestion:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Suggestion not found")
+
+    channel = (body.channel if body and body.channel else suggestion.suggested_channel)
+
+    from app.services.message_composer import compose_followup_message
+
+    new_message = await compose_followup_message(
+        contact_id=suggestion.contact_id,
+        trigger_type=suggestion.trigger_type,
+        event_summary=None,
+        db=db,
+    )
+
+    suggestion.suggested_message = new_message
+    suggestion.suggested_channel = channel
+    await db.flush()
+    await db.refresh(suggestion)
+
+    return envelope({"suggested_message": new_message, "suggested_channel": channel})

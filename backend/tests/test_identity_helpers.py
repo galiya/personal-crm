@@ -266,3 +266,83 @@ async def test_probabilistic_matches_cross_source_name_only(
     assert len(matches) >= 1
     # Name-only match is capped at 0.85 → pending_review (not auto-merged)
     assert matches[0].status == "pending_review"
+
+
+# ---------------------------------------------------------------------------
+# Merge audit trail tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_merge_creates_audit_record(db: AsyncSession, test_user: User):
+    """merge_contacts creates a ContactMerge audit record."""
+    from app.models.contact_merge import ContactMerge
+    from sqlalchemy import select
+
+    c1 = Contact(id=uuid.uuid4(), user_id=test_user.id, full_name="Primary")
+    c2 = Contact(id=uuid.uuid4(), user_id=test_user.id, full_name="Secondary")
+    db.add_all([c1, c2])
+    await db.commit()
+
+    await merge_contacts(c1.id, c2.id, db)
+    await db.commit()
+
+    result = await db.execute(select(ContactMerge))
+    merges = result.scalars().all()
+    assert len(merges) == 1
+    assert merges[0].primary_contact_id == c1.id
+    assert merges[0].merged_contact_id == c2.id
+    assert merges[0].match_method == "deterministic"
+
+
+@pytest.mark.asyncio
+async def test_merge_audit_survives_contact_deletion(db: AsyncSession, test_user: User):
+    """ContactMerge record persists after the merged contact is deleted."""
+    from app.models.contact_merge import ContactMerge
+    from sqlalchemy import select
+
+    c1 = Contact(id=uuid.uuid4(), user_id=test_user.id, full_name="Keeper")
+    c2 = Contact(id=uuid.uuid4(), user_id=test_user.id, full_name="Deleted")
+    db.add_all([c1, c2])
+    await db.commit()
+
+    c2_id = c2.id
+    await merge_contacts(c1.id, c2.id, db)
+    await db.commit()
+
+    # Verify c2 is deleted
+    contact_result = await db.execute(select(Contact).where(Contact.id == c2_id))
+    assert contact_result.scalar_one_or_none() is None
+
+    # Verify audit record still exists
+    merge_result = await db.execute(select(ContactMerge))
+    merges = merge_result.scalars().all()
+    assert len(merges) == 1
+    assert merges[0].merged_contact_id == c2_id
+
+
+@pytest.mark.asyncio
+async def test_identity_match_survives_contact_deletion(db: AsyncSession, test_user: User):
+    """IdentityMatch record has contact_b_id set to NULL (not cascaded) after merge."""
+    from app.models.identity_match import IdentityMatch
+    from sqlalchemy import select
+
+    c1 = Contact(id=uuid.uuid4(), user_id=test_user.id, full_name="Alpha")
+    c2 = Contact(id=uuid.uuid4(), user_id=test_user.id, full_name="Beta")
+    db.add_all([c1, c2])
+    await db.commit()
+
+    match = await merge_contacts(c1.id, c2.id, db)
+    match_id = match.id
+    await db.commit()
+
+    # Use a raw text query to bypass SQLAlchemy's identity map cache
+    from sqlalchemy import text
+    row = (await db.execute(
+        text("SELECT contact_a_id, contact_b_id, status FROM identity_matches WHERE id = :id"),
+        {"id": match_id},
+    )).one()
+    assert row.status == "merged"
+    assert row.contact_a_id == c1.id
+    # contact_b_id is SET NULL after contact deletion
+    assert row.contact_b_id is None

@@ -49,14 +49,17 @@ def _contact_to_dict(contact: Contact) -> dict:
 async def _match_to_dict(match: IdentityMatch, db: AsyncSession) -> dict:
     # Load both contacts to include full data in the response
     res_a = await db.execute(select(Contact).where(Contact.id == match.contact_a_id))
-    res_b = await db.execute(select(Contact).where(Contact.id == match.contact_b_id))
     contact_a = res_a.scalar_one_or_none()
-    contact_b = res_b.scalar_one_or_none()
+
+    contact_b = None
+    if match.contact_b_id is not None:
+        res_b = await db.execute(select(Contact).where(Contact.id == match.contact_b_id))
+        contact_b = res_b.scalar_one_or_none()
 
     return {
         "id": str(match.id),
         "contact_a_id": str(match.contact_a_id),
-        "contact_b_id": str(match.contact_b_id),
+        "contact_b_id": str(match.contact_b_id) if match.contact_b_id else None,
         "contact_a": _contact_to_dict(contact_a) if contact_a else None,
         "contact_b": _contact_to_dict(contact_b) if contact_b else None,
         "match_score": match.match_score,
@@ -67,31 +70,58 @@ async def _match_to_dict(match: IdentityMatch, db: AsyncSession) -> dict:
     }
 
 
+async def _batch_matches_to_dicts(matches: list[IdentityMatch], db: AsyncSession) -> list[dict]:
+    """Serialize matches with batch-loaded contacts (avoids N+1)."""
+    if not matches:
+        return []
+    contact_ids: set[uuid.UUID] = set()
+    for m in matches:
+        contact_ids.add(m.contact_a_id)
+        if m.contact_b_id is not None:
+            contact_ids.add(m.contact_b_id)
+
+    result = await db.execute(select(Contact).where(Contact.id.in_(list(contact_ids))))
+    contacts_by_id = {c.id: c for c in result.scalars().all()}
+
+    items = []
+    for match in matches:
+        contact_a = contacts_by_id.get(match.contact_a_id)
+        contact_b = contacts_by_id.get(match.contact_b_id) if match.contact_b_id else None
+        items.append({
+            "id": str(match.id),
+            "contact_a_id": str(match.contact_a_id),
+            "contact_b_id": str(match.contact_b_id) if match.contact_b_id else None,
+            "contact_a": _contact_to_dict(contact_a) if contact_a else None,
+            "contact_b": _contact_to_dict(contact_b) if contact_b else None,
+            "match_score": match.match_score,
+            "match_method": match.match_method,
+            "status": match.status,
+            "created_at": match.created_at.isoformat(),
+            "resolved_at": match.resolved_at.isoformat() if match.resolved_at else None,
+        })
+    return items
+
+
 @router.get("/matches", response_model=dict)
 async def list_pending_matches(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """List all pending identity matches for the authenticated user's contacts."""
-    # Fetch contact ids belonging to this user.
-    contact_ids_result = await db.execute(
-        select(Contact.id).where(Contact.user_id == current_user.id)
-    )
-    contact_ids = set(contact_ids_result.scalars().all())
+    user_contacts_sq = select(Contact.id).where(Contact.user_id == current_user.id)
 
     result = await db.execute(
-        select(IdentityMatch).where(IdentityMatch.status == "pending_review")
+        select(IdentityMatch).where(
+            IdentityMatch.status == "pending_review",
+            IdentityMatch.contact_a_id.in_(user_contacts_sq),
+            IdentityMatch.contact_b_id.isnot(None),
+            IdentityMatch.contact_b_id.in_(user_contacts_sq),
+        )
     )
-    matches = result.scalars().all()
-
-    # Filter to only matches where both contacts belong to this user.
-    user_matches = [
-        m for m in matches
-        if m.contact_a_id in contact_ids and m.contact_b_id in contact_ids
-    ]
+    user_matches = result.scalars().all()
 
     return envelope(
-        [await _match_to_dict(m, db) for m in user_matches],
+        await _batch_matches_to_dicts(user_matches, db),
         meta={"count": len(user_matches)},
     )
 
@@ -130,7 +160,6 @@ async def confirm_merge(
     await db.flush()
 
     merged = await merge_contacts(contact_a_id, contact_b_id, db)
-    await db.commit()
 
     return envelope(await _match_to_dict(merged, db))
 
@@ -161,7 +190,6 @@ async def reject_match(
     match.status = "rejected"
     match.resolved_at = datetime.now(UTC)
     await db.flush()
-    await db.commit()
 
     return envelope(await _match_to_dict(match, db))
 
@@ -174,7 +202,7 @@ async def trigger_scan(
     """Trigger a full identity resolution scan for the current user's contacts."""
     deterministic = await find_deterministic_matches(current_user.id, db)
     probabilistic = await find_probabilistic_matches(current_user.id, db)
-    await db.commit()
+    await db.flush()
 
     pending = [m for m in probabilistic if m.status == "pending_review"]
     auto = [m for m in probabilistic if m.status == "merged"]

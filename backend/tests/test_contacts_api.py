@@ -196,39 +196,40 @@ async def test_refresh_bios_rate_limited(
     client: AsyncClient, auth_headers: dict, test_contact: Contact
 ):
     """POST /contacts/{id}/refresh-bios returns changes on first call, skipped on second."""
-    import app.api.contacts as contacts_module
+    from unittest.mock import patch
+    import fakeredis.aioredis
 
-    # Clear rate-limit cache for this contact
-    contacts_module._bio_check_cache.pop(str(test_contact.id), None)
+    fr = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    with patch("app.api.contacts.get_redis", return_value=fr):
+        resp = await client.post(
+            f"/api/v1/contacts/{test_contact.id}/refresh-bios", headers=auth_headers
+        )
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        # First call should not be skipped
+        assert "skipped" not in data or data.get("skipped") is not True
 
-    resp = await client.post(
-        f"/api/v1/contacts/{test_contact.id}/refresh-bios", headers=auth_headers
-    )
-    assert resp.status_code == 200
-    data = resp.json()["data"]
-    # First call should not be skipped
-    assert "skipped" not in data or data.get("skipped") is not True
-
-    # Second immediate call should be rate-limited
-    resp2 = await client.post(
-        f"/api/v1/contacts/{test_contact.id}/refresh-bios", headers=auth_headers
-    )
-    assert resp2.status_code == 200
-    assert resp2.json()["data"]["skipped"] is True
+        # Second immediate call should be rate-limited
+        resp2 = await client.post(
+            f"/api/v1/contacts/{test_contact.id}/refresh-bios", headers=auth_headers
+        )
+        assert resp2.status_code == 200
+        assert resp2.json()["data"]["skipped"] is True
 
 
 @pytest.mark.asyncio
 async def test_refresh_bios_not_found(client: AsyncClient, auth_headers: dict):
     """POST /contacts/{id}/refresh-bios returns 404 for non-existent contact."""
-    import app.api.contacts as contacts_module
+    from unittest.mock import patch
+    import fakeredis.aioredis
 
+    fr = fakeredis.aioredis.FakeRedis(decode_responses=True)
     fake_id = uuid.uuid4()
-    contacts_module._bio_check_cache.pop(str(fake_id), None)
-
-    resp = await client.post(
-        f"/api/v1/contacts/{fake_id}/refresh-bios", headers=auth_headers
-    )
-    assert resp.status_code == 404
+    with patch("app.api.contacts.get_redis", return_value=fr):
+        resp = await client.post(
+            f"/api/v1/contacts/{fake_id}/refresh-bios", headers=auth_headers
+        )
+        assert resp.status_code == 404
 
 
 @pytest.mark.asyncio

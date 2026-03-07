@@ -357,7 +357,7 @@ async def merge_contact_pair(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Contact {cid} not found")
 
     match_record = await merge_contacts(contact_id, other_id, db)
-    await db.commit()
+    await db.flush()
 
     # Re-fetch the surviving contact
     result = await db.execute(select(Contact).where(Contact.id == match_record.contact_a_id))
@@ -687,12 +687,12 @@ async def recalculate_scores(
         await calculate_score(contact_id, db)
         updated += 1
 
-    await db.commit()
+    await db.flush()
     return envelope({"updated": updated})
 
 
-# In-memory cache: contact_id -> last_bio_check timestamp
-_bio_check_cache: dict[str, float] = {}
+from app.core.redis import get_redis
+
 _BIO_CHECK_TTL = 86400  # 24 hours
 
 
@@ -706,20 +706,17 @@ async def refresh_contact_bios(
 
     Rate-limited to once per 24 hours per contact.
     """
-    import time as _time
-
-    cache_key = str(contact_id)
-    now = _time.time()
-    last_check = _bio_check_cache.get(cache_key, 0)
-    if now - last_check < _BIO_CHECK_TTL:
-        return envelope({"skipped": True, "reason": "checked_recently"})
-
     result = await db.execute(
         select(Contact).where(Contact.id == contact_id, Contact.user_id == current_user.id)
     )
     contact = result.scalar_one_or_none()
     if not contact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
+
+    r = get_redis()
+    cache_key = f"bio_check:{contact_id}"
+    if await r.exists(cache_key):
+        return envelope({"skipped": True, "reason": "checked_recently"})
 
     changes: dict[str, Any] = {"twitter_bio_changed": False, "telegram_bio_changed": False}
 
@@ -781,6 +778,6 @@ async def refresh_contact_bios(
         except Exception:
             logger.warning("refresh_contact_bios: Telegram bio fetch failed for contact %s", contact_id)
 
-    _bio_check_cache[cache_key] = now
-    await db.commit()
+    await r.setex(cache_key, _BIO_CHECK_TTL, "1")
+    await db.flush()
     return envelope(changes)

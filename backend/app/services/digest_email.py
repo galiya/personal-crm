@@ -143,12 +143,19 @@ async def send_weekly_digest(user_id: uuid.UUID, db: AsyncSession) -> dict:
     suggestions = await get_weekly_digest(user_id, db)
     suggestions = suggestions[:5]  # cap at 5
 
+    # Batch-load contacts
+    contact_ids = [s.contact_id for s in suggestions]
+    if contact_ids:
+        contacts_result = await db.execute(
+            select(Contact).where(Contact.id.in_(contact_ids))
+        )
+        contacts_by_id = {c.id: c for c in contacts_result.scalars().all()}
+    else:
+        contacts_by_id = {}
+
     items: list[dict] = []
     for suggestion in suggestions:
-        contact_result = await db.execute(
-            select(Contact).where(Contact.id == suggestion.contact_id)
-        )
-        contact = contact_result.scalar_one_or_none()
+        contact = contacts_by_id.get(suggestion.contact_id)
         contact_name = (
             contact.full_name or contact.given_name or "Unknown"
         ) if contact else "Unknown"

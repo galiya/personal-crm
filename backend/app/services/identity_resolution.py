@@ -1,12 +1,15 @@
 """Identity Resolution Service — Tier 1 (deterministic) + Tier 4 (probabilistic)."""
 from __future__ import annotations
 
+import logging
 import re
 import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from app.models.contact import Contact
 from app.models.identity_match import IdentityMatch
@@ -239,6 +242,16 @@ async def merge_contacts(
 
     await db.flush()
 
+    # Record in audit trail (survives contact deletion).
+    from app.models.contact_merge import ContactMerge
+    db.add(ContactMerge(
+        primary_contact_id=contact_a_id,
+        merged_contact_id=contact_b_id,
+        match_score=1.0,
+        match_method="deterministic",
+    ))
+    await db.flush()
+
     # Create IdentityMatch record.
     match = IdentityMatch(
         contact_a_id=contact_a_id,
@@ -251,12 +264,13 @@ async def merge_contacts(
     db.add(match)
     await db.flush()
 
-    # Delete secondary contact (CASCADE will also delete the match FK).
-    # We must expunge the match before deleting contact_b to keep it in memory.
-    await db.flush()
-    db.expunge(match)
+    # Delete secondary contact. contact_b_id FK is SET NULL so the
+    # IdentityMatch record survives with contact_b_id=NULL.
     await db.delete(contact_b)
     await db.flush()
+
+    # Refresh to pick up the SET NULL side-effect from the DB.
+    await db.refresh(match)
 
     return match
 
@@ -273,61 +287,83 @@ async def find_probable_matches(user_id: uuid.UUID, db: AsyncSession) -> list[Id
     - Similar names (Levenshtein similarity >= 0.8).
     - Same company (case-insensitive).
 
+    Uses blocking keys to avoid O(n²) full comparison.
     Skips pairs that already have an existing IdentityMatch record.
 
     Returns newly created IdentityMatch records with status="pending_review".
     """
+    from collections import defaultdict
+
     result = await db.execute(select(Contact).where(Contact.user_id == user_id))
     contacts: list[Contact] = list(result.scalars().all())
 
-    # Load existing match pairs to avoid duplicates.
+    # Load existing match pairs scoped to this user's contacts.
+    user_contact_ids = select(Contact.id).where(Contact.user_id == user_id)
     existing_result = await db.execute(
-        select(IdentityMatch.contact_a_id, IdentityMatch.contact_b_id)
+        select(IdentityMatch.contact_a_id, IdentityMatch.contact_b_id).where(
+            IdentityMatch.contact_a_id.in_(user_contact_ids)
+        )
     )
     existing_pairs: set[frozenset] = {
         frozenset([row[0], row[1]]) for row in existing_result.all()
     }
 
+    # Build blocking index
+    block_index: dict[str, list[int]] = defaultdict(list)
+    contact_by_idx: dict[int, Contact] = {}
+    for idx, contact in enumerate(contacts):
+        contact_by_idx[idx] = contact
+        for bk in _build_blocking_keys(contact):
+            block_index[bk].append(idx)
+
+    # Collect candidate pairs from blocking (deduplicated)
+    candidate_pairs: set[tuple[int, int]] = set()
+    for indices in block_index.values():
+        if len(indices) > 500:
+            continue
+        for ii in range(len(indices)):
+            for jj in range(ii + 1, len(indices)):
+                a, b = indices[ii], indices[jj]
+                candidate_pairs.add((min(a, b), max(a, b)))
+
     new_matches: list[IdentityMatch] = []
 
-    for i in range(len(contacts)):
-        for j in range(i + 1, len(contacts)):
-            ca, cb = contacts[i], contacts[j]
-            pair = frozenset([ca.id, cb.id])
-            if pair in existing_pairs:
-                continue
+    for i, j in candidate_pairs:
+        ca, cb = contact_by_idx[i], contact_by_idx[j]
+        pair = frozenset([ca.id, cb.id])
+        if pair in existing_pairs:
+            continue
 
-            name_a = ca.full_name or f"{ca.given_name or ''} {ca.family_name or ''}".strip()
-            name_b = cb.full_name or f"{cb.given_name or ''} {cb.family_name or ''}".strip()
+        name_a = ca.full_name or f"{ca.given_name or ''} {ca.family_name or ''}".strip()
+        name_b = cb.full_name or f"{cb.given_name or ''} {cb.family_name or ''}".strip()
 
-            name_match = _names_similar(name_a, name_b)
-            company_match = (
-                bool(ca.company)
-                and bool(cb.company)
-                and ca.company.strip().lower() == cb.company.strip().lower()
+        name_match = _names_similar(name_a, name_b)
+        company_match = (
+            bool(ca.company)
+            and bool(cb.company)
+            and ca.company.strip().lower() == cb.company.strip().lower()
+        )
+
+        if name_match or company_match:
+            score = 0.0
+            if name_match:
+                score += 0.6
+            if company_match:
+                score += 0.4
+            score = min(score, 0.99)
+
+            match = IdentityMatch(
+                contact_a_id=ca.id,
+                contact_b_id=cb.id,
+                match_score=score,
+                match_method="probabilistic",
+                status="pending_review",
             )
-
-            if name_match or company_match:
-                # Compute a blended score.
-                score = 0.0
-                if name_match:
-                    score += 0.6
-                if company_match:
-                    score += 0.4
-                score = min(score, 0.99)
-
-                match = IdentityMatch(
-                    contact_a_id=ca.id,
-                    contact_b_id=cb.id,
-                    match_score=score,
-                    match_method="probabilistic",
-                    status="pending_review",
-                )
-                db.add(match)
-                await db.flush()
-                await db.refresh(match)
-                new_matches.append(match)
-                existing_pairs.add(pair)
+            db.add(match)
+            await db.flush()
+            await db.refresh(match)
+            new_matches.append(match)
+            existing_pairs.add(pair)
 
     return new_matches
 
@@ -547,8 +583,12 @@ async def find_probabilistic_matches(user_id: uuid.UUID, db: AsyncSession) -> li
     result = await db.execute(select(Contact).where(Contact.user_id == user_id))
     contacts: list[Contact] = list(result.scalars().all())
 
+    # Scope existing pairs query to this user's contacts.
+    user_contact_ids = select(Contact.id).where(Contact.user_id == user_id)
     existing_result = await db.execute(
-        select(IdentityMatch.contact_a_id, IdentityMatch.contact_b_id)
+        select(IdentityMatch.contact_a_id, IdentityMatch.contact_b_id).where(
+            IdentityMatch.contact_a_id.in_(user_contact_ids)
+        )
     )
     existing_pairs: set[frozenset] = {
         frozenset([row[0], row[1]]) for row in existing_result.all()
@@ -601,7 +641,7 @@ async def find_probabilistic_matches(user_id: uuid.UUID, db: AsyncSession) -> li
                 deleted_ids.add(cb.id)
                 existing_pairs.add(pair)
             except Exception:
-                pass  # Skip if merge fails
+                logger.warning("Auto-merge failed for contacts %s + %s", ca.id, cb.id, exc_info=True)
         else:
             # Pending review
             match = IdentityMatch(

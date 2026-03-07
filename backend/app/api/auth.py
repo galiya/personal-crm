@@ -11,11 +11,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import create_access_token, get_current_user, hash_password, verify_password
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.redis import get_redis
 from app.integrations.google_auth import build_oauth_url, exchange_code
 from app.models.user import User
 from app.schemas.user import Token, UserCreate, UserResponse
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+
+_GOOGLE_STATE_TTL_SECONDS = 600  # 10 minutes
+
+
+async def _store_google_state(state: str, user_id: str | None) -> None:
+    r = get_redis()
+    await r.setex(f"oauth_state:{state}", _GOOGLE_STATE_TTL_SECONDS, user_id or "__anonymous__")
+
+
+async def _pop_google_state(state: str) -> str | None:
+    r = get_redis()
+    val = await r.getdel(f"oauth_state:{state}")
+    return val  # None if not found/expired
 
 
 @router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED)
@@ -138,11 +152,13 @@ async def google_oauth_url(
             detail="Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env",
         )
     url, state = build_oauth_url(redirect_uri=settings.GOOGLE_REDIRECT_URI)
+    await _store_google_state(state, str(current_user.id))
     return {"data": {"url": url, "state": state}, "error": None}
 
 
 class GoogleCallbackRequest(BaseModel):
     code: str
+    state: str | None = None
 
 
 @router.post("/google/callback", response_model=dict)
@@ -152,9 +168,23 @@ async def google_callback(
 ) -> dict:
     """Exchange a Google authorization code for a JWT access token.
 
+    - Validates the ``state`` parameter against the server-side nonce store
+      to prevent CSRF attacks.
     - If a user with the returned email already exists, update their refresh token.
     - Otherwise create a new account from the Google profile information.
     """
+    if not payload.state:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OAuth state parameter",
+        )
+    popped = await _pop_google_state(payload.state)
+    if popped is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OAuth state parameter",
+        )
+
     try:
         tokens = exchange_code(payload.code)
     except Exception as exc:

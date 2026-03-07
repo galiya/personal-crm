@@ -85,7 +85,7 @@ async def telegram_connect(
             detail=detail,
         ) from exc
 
-    await db.commit()
+    await db.flush()
     return {"data": {"phone_code_hash": phone_code_hash}, "error": None}
 
 
@@ -124,7 +124,7 @@ async def telegram_verify(
         from telethon.errors import SessionPasswordNeededError
 
         if isinstance(exc, SessionPasswordNeededError):
-            await db.commit()
+            await db.flush()
             return {"data": {"connected": False, "requires_2fa": True}, "error": None}
         logger.exception("telegram_verify failed for user %s.", current_user.id)
         raise HTTPException(
@@ -141,7 +141,7 @@ async def telegram_verify(
         link="/settings",
     ))
 
-    await db.commit()
+    await db.flush()
     return {"data": {"connected": True, "username": current_user.telegram_username}, "error": None}
 
 
@@ -197,7 +197,7 @@ async def telegram_verify_2fa(
         link="/settings",
     ))
 
-    await db.commit()
+    await db.flush()
     return {"data": {"connected": True, "username": current_user.telegram_username}, "error": None}
 
 
@@ -295,6 +295,5 @@ async def get_common_groups(
     contact.telegram_common_groups = groups
     contact.telegram_groups_fetched_at = now
     await db.flush()
-    await db.commit()
 
     return {"data": groups, "error": None}

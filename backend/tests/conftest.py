@@ -25,6 +25,7 @@ from app.models.google_account import GoogleAccount
 from app.models.identity_match import IdentityMatch
 from app.models.interaction import Interaction
 from app.models.notification import Notification
+from app.models.contact_merge import ContactMerge
 from app.models.user import User
 
 

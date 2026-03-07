@@ -11,6 +11,7 @@ function GoogleCallbackInner() {
 
   useEffect(() => {
     const code = searchParams.get("code");
+    const state = searchParams.get("state");
 
     if (!code) {
       setError("Missing authorization code from Google.");
@@ -18,7 +19,7 @@ function GoogleCallbackInner() {
     }
 
     api
-      .post("/auth/google/callback", { code })
+      .post("/auth/google/callback", { code, state })
       .then((resp) => {
         const token = resp.data?.data?.access_token;
         if (token) {

@@ -1,7 +1,7 @@
 """Twitter OAuth 2.0 PKCE auth endpoints."""
+import json
 import logging
 import secrets
-import time
 import uuid as _uuid_mod
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import create_access_token, get_current_user
 from app.core.database import get_db
+from app.core.redis import get_redis
 from app.integrations.twitter import (
     build_twitter_oauth2_url,
     exchange_twitter_code,
@@ -21,17 +22,21 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/auth/twitter", tags=["twitter-auth"])
 
-# In-memory store for PKCE verifiers (production: use Redis)
-# Maps state -> (verifier, user_id, created_at)
 _PKCE_TTL_SECONDS = 600  # 10 minutes
-_pkce_store: dict[str, tuple[str, str, float]] = {}
 
 
-def _prune_expired_pkce() -> None:
-    now = time.time()
-    expired = [k for k, (_, _, ts) in _pkce_store.items() if now - ts > _PKCE_TTL_SECONDS]
-    for k in expired:
-        del _pkce_store[k]
+async def _store_pkce(state: str, verifier: str, user_id: str) -> None:
+    r = get_redis()
+    await r.setex(f"pkce:{state}", _PKCE_TTL_SECONDS, json.dumps({"verifier": verifier, "user_id": user_id}))
+
+
+async def _pop_pkce(state: str) -> tuple[str, str] | None:
+    r = get_redis()
+    raw = await r.getdel(f"pkce:{state}")
+    if raw is None:
+        return None
+    data = json.loads(raw)
+    return data["verifier"], data["user_id"]
 
 
 @router.get("/url", response_model=dict)
@@ -39,10 +44,9 @@ async def get_twitter_auth_url(
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """Return a Twitter OAuth 2.0 authorization URL."""
-    _prune_expired_pkce()
     state = secrets.token_urlsafe(32)
     verifier, challenge = generate_pkce_pair()
-    _pkce_store[state] = (verifier, str(current_user.id), time.time())
+    await _store_pkce(state, verifier, str(current_user.id))
 
     url = build_twitter_oauth2_url(state=state, code_challenge=challenge)
     return {"data": {"url": url, "state": state}, "error": None}
@@ -60,15 +64,14 @@ async def twitter_callback(
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """Exchange Twitter authorization code for tokens and store on user."""
-    _prune_expired_pkce()
-    entry = _pkce_store.pop(body.state, None)
+    entry = await _pop_pkce(body.state)
     if not entry:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired state parameter",
         )
 
-    verifier, bound_user_id, created_at = entry
+    verifier, bound_user_id = entry
 
     # Verify the state belongs to the authenticated user
     if bound_user_id != str(current_user.id):
