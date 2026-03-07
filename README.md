@@ -227,7 +227,7 @@ Guided 4-step setup flow for new users:
 | **Telegram** | Telethon (MTProto client) |
 | **Google APIs** | google-api-python-client + google-auth-oauthlib |
 | **Auth** | python-jose (JWT) + passlib (bcrypt) |
-| **HTTP Client** | httpx (async) + axios (frontend) |
+| **HTTP Client** | httpx (async) + openapi-fetch (frontend) |
 | **Testing** | pytest (backend, 227 tests) + Vitest (frontend) |
 
 ---
@@ -434,8 +434,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `SECRET_KEY` | **Yes** | JWT signing key. Generate with: `python -c "import secrets; print(secrets.token_urlsafe(64))"` |
 | `DATABASE_URL` | **Yes** | PostgreSQL connection string (asyncpg format) |
 | `REDIS_URL` | No | Redis URL for Celery (default: `redis://localhost:6379/0`) |
+| `ALGORITHM` | No | JWT signing algorithm (default: `HS256`) |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | No | JWT token lifetime in minutes (default: `1440`, i.e. 24 hours) |
+| `ENCRYPTION_KEY` | No | Fernet key for encrypting stored OAuth tokens. Generate with: `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` |
+| `CORS_ORIGINS` | No | JSON array of allowed CORS origins (default: `["http://localhost:3000","http://127.0.0.1:3000"]`) |
 | `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret |
+| `GOOGLE_REDIRECT_URI` | No | Google OAuth callback URL (default: `http://localhost:3000/auth/google/callback`) |
 | `TWITTER_API_KEY` | No | Twitter API v2 key |
 | `TWITTER_API_SECRET` | No | Twitter API v2 secret |
 | `TWITTER_CLIENT_ID` | No | Twitter OAuth 2.0 client ID |
@@ -445,6 +450,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `TELEGRAM_API_ID` | No | Telegram MTProto API ID (integer) |
 | `TELEGRAM_API_HASH` | No | Telegram MTProto API hash |
 | `ANTHROPIC_API_KEY` | No | Anthropic API key for Claude AI features |
+| `NEXT_PUBLIC_API_URL` | No | Backend base URL used by the Next.js frontend (default: `http://localhost:8000`). Set this when deploying frontend and backend to different hosts. |
 
 ---
 

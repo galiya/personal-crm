@@ -154,3 +154,36 @@
 - [x] `cc:完了` Define typed response schemas for interactions + telegram + twitter + auth endpoints (12 → typed)
 - [x] `cc:完了` Add OpenAPI client generation script (`openapi-typescript` + `openapi-fetch`) and generate typed frontend API client
 - [x] `cc:完了` Replace manual frontend `fetch`/`apiClient` calls with generated typed client
+
+---
+
+## Phase 7: Async I/O, Dead Code Cleanup & Config Hygiene
+
+作成日: 2026-03-07
+
+### 7.1 Blocking LLM Calls → Async (P1 — worker throughput)
+
+**Problem**: `event_classifier.py` uses sync `anthropic.Anthropic` inside Celery async tasks. Blocking the event loop degrades worker throughput when processing contact activity.
+
+- [x] `cc:完了` Convert `classify_tweet()` and `classify_bio_change()` from sync `Anthropic` to `AsyncAnthropic` with `asyncio.wait_for` timeout (match `message_composer.py` pattern)
+- [x] `cc:完了` Add concurrency semaphore (`asyncio.Semaphore(5)`) to cap parallel LLM calls in `process_contact_activity` batch processing
+- [x] `cc:完了` Add exponential backoff + jitter on transient Anthropic API errors (429, 500, 529) in both `event_classifier.py` and `message_composer.py`
+- [x] `cc:完了` Update `test_event_classifier.py` tests for async signatures
+
+### 7.2 Dead/Legacy Code Removal (P2 — maintenance hygiene)
+
+**Problem**: Unused components and legacy API client create confusion and maintenance drag.
+
+- [x] `cc:完了` Remove `frontend/src/components/contact-card.tsx` (zero imports — unused component)
+- [x] `cc:完了` Remove `frontend/src/components/error-boundary.tsx` (zero imports — unused component)
+- [x] `cc:完了` Remove `frontend/src/lib/api.ts` (old axios client) and migrate 2 test files (`contacts/page.test.tsx`, `settings/page.test.tsx`) to mock `@/lib/api-client` instead
+- [x] `cc:完了` Audit and remove any other unreferenced frontend components or hooks
+
+### 7.3 Docs/Config Drift — Externalize Hosts (P3 — deployment friction)
+
+**Problem**: Hardcoded `localhost` URLs in `next.config.ts`, `main.py` CORS, `contacts/[id]/page.tsx` avatar URL, and config defaults create friction for non-local deployment.
+
+- [x] `cc:完了` Externalize backend proxy URL in `next.config.ts` via `NEXT_PUBLIC_API_URL` env var (default `http://localhost:8000`)
+- [x] `cc:完了` Externalize CORS origins in `main.py` via `settings.CORS_ORIGINS: list[str]` config field
+- [x] `cc:完了` Fix avatar URL construction in `contacts/[id]/page.tsx` to use the same `NEXT_PUBLIC_API_URL` env var consistently
+- [x] `cc:完了` Sync `README.md` environment variables table with actual `config.py` fields (ENCRYPTION_KEY, CORS_ORIGINS, any missing vars)

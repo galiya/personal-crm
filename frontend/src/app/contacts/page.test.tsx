@@ -2,17 +2,15 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ContactsPage from "./page";
-import apiClient from "@/lib/api";
 
-// Mock apiClient
-vi.mock("@/lib/api", () => ({
-  default: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
+// Mock api-client
+vi.mock("@/lib/api-client", () => ({
+  client: {
+    GET: vi.fn(),
+    POST: vi.fn(),
+    PUT: vi.fn(),
+    DELETE: vi.fn(),
   },
-  __esModule: true,
 }));
 
 // Mock useContacts hook
@@ -38,8 +36,6 @@ vi.mock("next/navigation", async () => {
     useParams: () => ({}),
   };
 });
-
-const mockedApiGet = vi.mocked(apiClient.get);
 
 function makeContact(overrides: Record<string, unknown> = {}) {
   return {
@@ -82,7 +78,6 @@ describe("ContactsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     currentParams = new URLSearchParams();
-    mockedApiGet.mockResolvedValue({ data: { data: [], error: null } } as never);
   });
 
   it("renders page title and Add Contact button", () => {

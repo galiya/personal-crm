@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from app.core.config import settings
 from app.api.auth import router as auth_router
 from app.api.contacts import router as contacts_router
 from app.api.identity import router as identity_router
@@ -23,8 +24,6 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    from app.core.config import settings
-
     if not settings.SECRET_KEY or settings.SECRET_KEY == "change-me-in-production":
         raise RuntimeError(
             "SECRET_KEY is not set or uses the insecure default. "
@@ -44,7 +43,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

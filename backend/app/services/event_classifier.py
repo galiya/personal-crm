@@ -1,8 +1,10 @@
 """LLM-based event classifier using Anthropic Claude."""
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import random
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -31,11 +33,21 @@ _SYSTEM_PROMPT = (
     "Your job is to classify signals from contact activity into structured events."
 )
 
+# Semaphore to cap parallel LLM calls at 5.
+_llm_semaphore = asyncio.Semaphore(5)
+
+# Retry configuration for transient Anthropic API errors.
+_RETRY_TRANSIENT_STATUS_CODES = {429, 500, 529}
+_RETRY_MAX_ATTEMPTS = 3
+_RETRY_BASE_DELAY = 1.0  # seconds
+_RETRY_BACKOFF_FACTOR = 2.0
+_RETRY_JITTER = 0.5  # ± seconds
+
 
 def _get_anthropic_client():
-    """Return an Anthropic client.  Imported lazily to avoid import-time side-effects."""
-    import anthropic  # noqa: PLC0415
-    return anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+    """Return an AsyncAnthropic client.  Imported lazily to avoid import-time side-effects."""
+    from anthropic import AsyncAnthropic  # noqa: PLC0415
+    return AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
 
 
 def _parse_classifier_response(raw: str) -> dict[str, Any]:
@@ -75,12 +87,48 @@ def _parse_classifier_response(raw: str) -> dict[str, Any]:
     return {"event_type": event_type, "confidence": confidence, "summary": summary}
 
 
+async def _call_anthropic_with_retry(client, **kwargs) -> Any:
+    """Call client.messages.create with exponential backoff on transient errors.
+
+    Retries on APIStatusError with status codes in _RETRY_TRANSIENT_STATUS_CODES.
+    Raises the last exception if all attempts are exhausted.
+    """
+    from anthropic import APIStatusError  # noqa: PLC0415
+
+    last_exc: Exception | None = None
+    for attempt in range(_RETRY_MAX_ATTEMPTS):
+        try:
+            return await asyncio.wait_for(
+                client.messages.create(**kwargs),
+                timeout=30,
+            )
+        except APIStatusError as exc:
+            if exc.status_code not in _RETRY_TRANSIENT_STATUS_CODES:
+                raise
+            last_exc = exc
+        except asyncio.TimeoutError as exc:
+            last_exc = exc
+
+        if attempt < _RETRY_MAX_ATTEMPTS - 1:
+            delay = _RETRY_BASE_DELAY * (_RETRY_BACKOFF_FACTOR ** attempt)
+            jitter = random.uniform(-_RETRY_JITTER, _RETRY_JITTER)
+            sleep_time = max(0.0, delay + jitter)
+            logger.warning(
+                "_call_anthropic_with_retry: transient error on attempt %d/%d, "
+                "retrying in %.2fs: %s",
+                attempt + 1, _RETRY_MAX_ATTEMPTS, sleep_time, last_exc,
+            )
+            await asyncio.sleep(sleep_time)
+
+    raise last_exc  # type: ignore[misc]
+
+
 # ---------------------------------------------------------------------------
 # Public classifier functions
 # ---------------------------------------------------------------------------
 
 
-def classify_tweet(tweet_text: str, contact_name: str) -> dict[str, Any]:
+async def classify_tweet(tweet_text: str, contact_name: str) -> dict[str, Any]:
     """Classify a single tweet using Anthropic Claude.
 
     Args:
@@ -108,7 +156,8 @@ def classify_tweet(tweet_text: str, contact_name: str) -> dict[str, Any]:
 
     try:
         client = _get_anthropic_client()
-        message = client.messages.create(
+        message = await _call_anthropic_with_retry(
+            client,
             model="claude-3-5-haiku-20241022",
             max_tokens=256,
             system=_SYSTEM_PROMPT,
@@ -121,7 +170,7 @@ def classify_tweet(tweet_text: str, contact_name: str) -> dict[str, Any]:
         return {"event_type": "none", "confidence": 0.0, "summary": ""}
 
 
-def classify_bio_change(
+async def classify_bio_change(
     old_bio: str,
     new_bio: str,
     contact_name: str,
@@ -159,7 +208,8 @@ def classify_bio_change(
 
     try:
         client = _get_anthropic_client()
-        message = client.messages.create(
+        message = await _call_anthropic_with_retry(
+            client,
             model="claude-3-5-haiku-20241022",
             max_tokens=256,
             system=_SYSTEM_PROMPT,
@@ -204,7 +254,8 @@ async def process_contact_activity(
         if not text:
             continue
 
-        classification = classify_tweet(text, contact_name)
+        async with _llm_semaphore:
+            classification = await classify_tweet(text, contact_name)
 
         if (
             classification["event_type"] != "none"
@@ -233,7 +284,9 @@ async def process_contact_activity(
     if bio_change and bio_change.get("new_bio"):
         old_bio = bio_change.get("old_bio", "")
         new_bio = bio_change.get("new_bio", "")
-        classification = classify_bio_change(old_bio, new_bio, contact_name)
+
+        async with _llm_semaphore:
+            classification = await classify_bio_change(old_bio, new_bio, contact_name)
 
         if (
             classification["event_type"] != "none"

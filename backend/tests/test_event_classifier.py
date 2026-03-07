@@ -1,5 +1,5 @@
 """Tests for event classifier service."""
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -44,41 +44,46 @@ def test_parse_classifier_response_clamps_confidence():
     assert result["confidence"] == 1.0
 
 
-def test_classify_tweet_no_api_key():
+@pytest.mark.asyncio
+async def test_classify_tweet_no_api_key():
     with patch("app.services.event_classifier.settings") as mock_settings:
         mock_settings.ANTHROPIC_API_KEY = ""
-        result = classify_tweet("Hello world", "testuser")
+        result = await classify_tweet("Hello world", "testuser")
         assert result["event_type"] == "none"
 
 
-def test_classify_tweet_with_mock_api():
+@pytest.mark.asyncio
+async def test_classify_tweet_with_mock_api():
+    mock_content = MagicMock()
+    mock_content.text = '{"event_type": "job_change", "confidence": 0.9, "summary": "Started new role"}'
+
     mock_response = MagicMock()
-    mock_response.content = [
-        MagicMock(text='{"event_type": "job_change", "confidence": 0.9, "summary": "Started new role"}')
-    ]
+    mock_response.content = [mock_content]
 
     mock_client = MagicMock()
-    mock_client.messages.create.return_value = mock_response
+    mock_client.messages.create = AsyncMock(return_value=mock_response)
 
     with patch("app.services.event_classifier.settings") as mock_settings:
         mock_settings.ANTHROPIC_API_KEY = "test-key"
         with patch("app.services.event_classifier._get_anthropic_client", return_value=mock_client):
-            result = classify_tweet("Excited to announce I'm joining Google!", "testuser")
+            result = await classify_tweet("Excited to announce I'm joining Google!", "testuser")
             assert result["event_type"] == "job_change"
             assert result["confidence"] == 0.9
 
 
-def test_classify_bio_change_with_mock_api():
+@pytest.mark.asyncio
+async def test_classify_bio_change_with_mock_api():
+    mock_content = MagicMock()
+    mock_content.text = '{"event_type": "job_change", "confidence": 0.85, "summary": "Changed role"}'
+
     mock_response = MagicMock()
-    mock_response.content = [
-        MagicMock(text='{"event_type": "job_change", "confidence": 0.85, "summary": "Changed role"}')
-    ]
+    mock_response.content = [mock_content]
 
     mock_client = MagicMock()
-    mock_client.messages.create.return_value = mock_response
+    mock_client.messages.create = AsyncMock(return_value=mock_response)
 
     with patch("app.services.event_classifier.settings") as mock_settings:
         mock_settings.ANTHROPIC_API_KEY = "test-key"
         with patch("app.services.event_classifier._get_anthropic_client", return_value=mock_client):
-            result = classify_bio_change("Engineer at Startup", "CTO at BigCo", "testuser")
+            result = await classify_bio_change("Engineer at Startup", "CTO at BigCo", "testuser")
             assert result["event_type"] == "job_change"
