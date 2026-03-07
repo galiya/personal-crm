@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import apiClient, { type ApiResponse } from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 export interface IdentityMatchContact {
   id: string;
@@ -32,9 +32,7 @@ export function useIdentityMatches() {
   return useQuery({
     queryKey: ["identity", "matches"],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<IdentityMatch[]>>(
-        "/identity/matches"
-      );
+      const { data } = await client.GET("/api/v1/identity/matches");
       return data;
     },
   });
@@ -44,8 +42,9 @@ export function useMergeMatch() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (matchId: string) => {
-      const { data } = await apiClient.post<ApiResponse<{ merged_contact_id: string }>>(
-        `/identity/matches/${matchId}/merge`
+      const { data } = await client.POST(
+        "/api/v1/identity/matches/{match_id}/merge",
+        { params: { path: { match_id: matchId } } }
       );
       return data;
     },
@@ -60,8 +59,9 @@ export function useRejectMatch() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (matchId: string) => {
-      const { data } = await apiClient.post<ApiResponse<IdentityMatch>>(
-        `/identity/matches/${matchId}/reject`
+      const { data } = await client.POST(
+        "/api/v1/identity/matches/{match_id}/reject",
+        { params: { path: { match_id: matchId } } }
       );
       return data;
     },
@@ -75,13 +75,7 @@ export function useScanIdentity() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { data } = await apiClient.post<ApiResponse<{
-        matches_found: number;
-        auto_merged: number;
-        pending_review: number;
-      }>>(
-        "/identity/scan"
-      );
+      const { data } = await client.POST("/api/v1/identity/scan");
       return data;
     },
     onSuccess: () => {

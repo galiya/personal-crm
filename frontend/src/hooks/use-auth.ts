@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import apiClient from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 export interface User {
   id: string;
@@ -21,10 +21,13 @@ export function useAuth() {
       return;
     }
     try {
-      const { data } = await apiClient.get<{ data: User; error: string | null }>(
-        "/auth/me"
-      );
-      setUser(data.data);
+      const { data } = await client.GET("/api/v1/auth/me");
+      if (data?.data) {
+        setUser(data.data as User);
+      } else {
+        localStorage.removeItem("access_token");
+        setUser(null);
+      }
     } catch {
       localStorage.removeItem("access_token");
       setUser(null);
@@ -42,23 +45,26 @@ export function useAuth() {
     params.set("username", email);
     params.set("password", password);
 
-    const { data } = await apiClient.post<{ access_token: string }>(
-      "/auth/login",
-      params,
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-    );
-    localStorage.setItem("access_token", data.access_token);
+    const { data } = await client.POST("/api/v1/auth/login", {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      body: params as any,
+      bodySerializer: () => params,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    });
+    if (!data) throw new Error("Login failed");
+    localStorage.setItem("access_token", (data as { access_token: string }).access_token);
 
-    const { data: meData } = await apiClient.get<{
-      data: User;
-      error: string | null;
-    }>("/auth/me");
-    setUser(meData.data);
+    const { data: meData } = await client.GET("/api/v1/auth/me");
+    if (meData?.data) {
+      setUser(meData.data as User);
+    }
   }, []);
 
   const register = useCallback(
     async (email: string, password: string, full_name: string) => {
-      await apiClient.post("/auth/register", { email, password, full_name });
+      await client.POST("/api/v1/auth/register", {
+        body: { email, password, full_name },
+      });
       await login(email, password);
     },
     [login]

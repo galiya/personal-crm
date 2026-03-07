@@ -207,7 +207,7 @@ export default function SuggestionsPage() {
 
   const allSuggestions = data?.data ?? [];
   const pendingSuggestions = allSuggestions.filter(
-    (s) => s.status === "pending"
+    (s) => (s as Suggestion).status === "pending"
   );
 
   const genResult = generateSuggestions.data?.data;
@@ -296,7 +296,7 @@ export default function SuggestionsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {pendingSuggestions.map((suggestion) => (
+            {(pendingSuggestions as Suggestion[]).map((suggestion) => (
               <SuggestionCard key={suggestion.id} suggestion={suggestion} />
             ))}
           </div>

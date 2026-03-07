@@ -2,7 +2,7 @@
 
 import { useState, useRef, type DragEvent, type ChangeEvent } from "react";
 import { Upload, FileText, X, AlertCircle, CheckCircle } from "lucide-react";
-import apiClient from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 interface PreviewRow {
   [key: string]: string;
@@ -83,19 +83,19 @@ export function CsvImport() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const { data } = await apiClient.post<{
-        data: ImportResult;
-        error: string | null;
-      }>("/contacts/import/csv", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const { data, error } = await client.POST("/api/v1/contacts/import/csv", {
+        body: formData as unknown as { file: string },
+        bodySerializer: () => formData,
       });
-      setResult(data.data);
-      setFile(null);
-      setPreview(null);
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Import failed. Please try again.";
-      setUploadError(message);
+      if (error || !data?.data) {
+        setUploadError((error as { detail?: string })?.detail ?? "Import failed. Please try again.");
+      } else {
+        setResult(data.data as unknown as ImportResult);
+        setFile(null);
+        setPreview(null);
+      }
+    } catch {
+      setUploadError("Import failed. Please try again.");
     } finally {
       setIsUploading(false);
     }

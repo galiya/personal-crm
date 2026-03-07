@@ -8,7 +8,7 @@ import { Search, Plus, UserCircle, X, Filter } from "lucide-react";
 import { useContacts } from "@/hooks/use-contacts";
 import { ScoreBadge } from "@/components/score-badge";
 import { formatDistanceToNow } from "date-fns";
-import apiClient, { type ApiResponse } from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 const scoreTierLabels: Record<string, string> = {
   strong: "Strong (8+)",
@@ -67,8 +67,8 @@ export default function ContactsPage() {
   const { data: allTags = [] } = useQuery({
     queryKey: ["tags"],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<string[]>>("/contacts/tags");
-      return data?.data ?? [];
+      const { data } = await client.GET("/api/v1/contacts/tags");
+      return (data?.data as string[]) ?? [];
     },
   });
 

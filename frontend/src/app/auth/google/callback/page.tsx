@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 function GoogleCallbackInner() {
   const searchParams = useSearchParams();
@@ -18,20 +18,20 @@ function GoogleCallbackInner() {
       return;
     }
 
-    api
-      .post("/auth/google/callback", { code, state })
-      .then((resp) => {
-        const token = resp.data?.data?.access_token;
+    (async () => {
+      const { data, error } = await client.POST("/api/v1/auth/google/callback", {
+        body: { code, state: state ?? undefined },
+      });
+      if (error) {
+        setError((error as { detail?: string })?.detail ?? "Google authentication failed.");
+      } else {
+        const token = (data?.data as { access_token?: string })?.access_token;
         if (token) {
           localStorage.setItem("token", token);
         }
         router.replace("/settings?connected=google");
-      })
-      .catch((err) => {
-        const detail =
-          err?.response?.data?.detail || "Google authentication failed.";
-        setError(detail);
-      });
+      }
+    })();
   }, [searchParams, router]);
 
   if (error) {

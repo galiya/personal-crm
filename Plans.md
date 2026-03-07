@@ -152,5 +152,5 @@
 - [x] `cc:完了` Define typed response schemas for contacts endpoints (18 `response_model=dict` → typed Pydantic via `Envelope[T]`)
 - [x] `cc:完了` Define typed response schemas for suggestions + identity + notifications endpoints (14 → typed)
 - [x] `cc:完了` Define typed response schemas for interactions + telegram + twitter + auth endpoints (12 → typed)
-- [ ] `cc:TODO` Add OpenAPI client generation script (`openapi-typescript` + `openapi-fetch`) and generate typed frontend API client
-- [ ] `cc:TODO` Replace manual frontend `fetch`/`apiClient` calls with generated typed client
+- [x] `cc:完了` Add OpenAPI client generation script (`openapi-typescript` + `openapi-fetch`) and generate typed frontend API client
+- [x] `cc:完了` Replace manual frontend `fetch`/`apiClient` calls with generated typed client

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import apiClient, { type ApiResponse } from "@/lib/api";
+import { client } from "@/lib/api-client";
 import type { Contact } from "@/hooks/use-contacts";
 import type { Suggestion } from "@/hooks/use-suggestions";
 
@@ -25,9 +25,7 @@ export function useDashboardStats() {
   const suggestionsQuery = useQuery({
     queryKey: ["suggestions"],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Suggestion[]>>(
-        "/suggestions"
-      );
+      const { data } = await client.GET("/api/v1/suggestions");
       return data;
     },
   });
@@ -35,8 +33,8 @@ export function useDashboardStats() {
   const contactsQuery = useQuery({
     queryKey: ["contacts", { page: 1, page_size: 5 }],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Contact[]>>("/contacts", {
-        params: { page: 1, page_size: 5 },
+      const { data } = await client.GET("/api/v1/contacts", {
+        params: { query: { page: 1, page_size: 5 } },
       });
       return data;
     },
@@ -45,17 +43,16 @@ export function useDashboardStats() {
   const statsQuery = useQuery({
     queryKey: ["contacts", "stats"],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<ContactStats>>(
-        "/contacts/stats"
-      );
+      const { data } = await client.GET("/api/v1/contacts/stats");
       return data;
     },
   });
 
-  const suggestions = suggestionsQuery.data?.data ?? [];
-  const allContacts = contactsQuery.data?.data ?? [];
-  const stats = statsQuery.data?.data;
-  const totalContacts = stats?.total ?? contactsQuery.data?.meta?.total ?? 0;
+  const suggestions = (suggestionsQuery.data?.data ?? []) as Suggestion[];
+  const allContacts = (contactsQuery.data?.data ?? []) as Contact[];
+  const stats = statsQuery.data?.data as ContactStats | undefined;
+  const totalContacts =
+    stats?.total ?? (contactsQuery.data?.meta as { total?: number } | undefined)?.total ?? 0;
 
   const recentContacts = [...allContacts]
     .sort((a, b) => {

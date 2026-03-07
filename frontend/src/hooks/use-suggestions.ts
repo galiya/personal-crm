@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import apiClient, { type ApiResponse } from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 export interface SuggestionContact {
   id: string;
@@ -35,9 +35,7 @@ export function useSuggestions() {
   return useQuery({
     queryKey: ["suggestions"],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Suggestion[]>>(
-        "/suggestions"
-      );
+      const { data } = await client.GET("/api/v1/suggestions");
       return data;
     },
   });
@@ -53,9 +51,13 @@ export function useUpdateSuggestion() {
       id: string;
       input: UpdateSuggestionInput;
     }) => {
-      const { data } = await apiClient.put<ApiResponse<Suggestion>>(
-        `/suggestions/${id}`,
-        input
+      const { data } = await client.PUT(
+        "/api/v1/suggestions/{suggestion_id}",
+        {
+          params: { path: { suggestion_id: id } },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          body: input as any,
+        }
       );
       return data;
     },
@@ -69,9 +71,7 @@ export function useGenerateSuggestions() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { data } = await apiClient.post<ApiResponse<Suggestion[]>>(
-        "/suggestions/generate"
-      );
+      const { data } = await client.POST("/api/v1/suggestions/generate");
       return data;
     },
     onSuccess: () => {

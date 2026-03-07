@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { Mail, MessageCircle, Twitter, RefreshCw, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
-import apiClient from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 type Channel = "email" | "telegram" | "twitter";
 
@@ -61,12 +61,16 @@ export function MessageEditor({
   const handleRegenerate = async () => {
     setIsRegenerating(true);
     try {
-      const { data } = await apiClient.post<{
-        data: { suggested_message: string };
-        error: string | null;
-      }>(`/suggestions/${suggestionId}/regenerate`, { channel });
-      if (data.data?.suggested_message) {
-        setMessage(data.data.suggested_message);
+      const { data } = await client.POST(
+        "/api/v1/suggestions/{suggestion_id}/regenerate",
+        {
+          params: { path: { suggestion_id: suggestionId } },
+          body: { channel },
+        }
+      );
+      const msg = (data?.data as { suggested_message?: string })?.suggested_message;
+      if (msg) {
+        setMessage(msg);
       }
     } catch {
       // Keep existing message if regeneration fails

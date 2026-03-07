@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import apiClient, { type ApiResponse } from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 export interface Contact {
   id: string;
@@ -61,9 +61,9 @@ export function useContacts(params: ContactsParams = {}) {
   return useQuery({
     queryKey: ["contacts", params],
     queryFn: async () => {
-      const { data } = await apiClient.get<
-        ApiResponse<Contact[]>
-      >("/contacts", { params });
+      const { data } = await client.GET("/api/v1/contacts", {
+        params: { query: params },
+      });
       return data;
     },
   });
@@ -73,9 +73,9 @@ export function useContact(id: string) {
   return useQuery({
     queryKey: ["contacts", id],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<Contact>>(
-        `/contacts/${id}`
-      );
+      const { data } = await client.GET("/api/v1/contacts/{contact_id}", {
+        params: { path: { contact_id: id } },
+      });
       return data;
     },
     enabled: Boolean(id),
@@ -86,10 +86,10 @@ export function useCreateContact() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ContactCreateInput) => {
-      const { data } = await apiClient.post<ApiResponse<Contact>>(
-        "/contacts",
-        input
-      );
+      const { data } = await client.POST("/api/v1/contacts", {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        body: input as any,
+      });
       return data;
     },
     onSuccess: () => {
@@ -102,9 +102,9 @@ export function useDeleteContact() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { data } = await apiClient.delete<ApiResponse<{ id: string; deleted: boolean }>>(
-        `/contacts/${id}`
-      );
+      const { data } = await client.DELETE("/api/v1/contacts/{contact_id}", {
+        params: { path: { contact_id: id } },
+      });
       return data;
     },
     onSuccess: () => {
@@ -117,19 +117,10 @@ export function useContactDuplicates(id: string, enabled: boolean) {
   return useQuery({
     queryKey: ["contact-duplicates", id],
     queryFn: async () => {
-      const { data } = await apiClient.get<ApiResponse<{
-        id: string;
-        full_name: string | null;
-        given_name: string | null;
-        family_name: string | null;
-        emails: string[];
-        phones: string[];
-        company: string | null;
-        title: string | null;
-        twitter_handle: string | null;
-        telegram_username: string | null;
-        score: number;
-      }[]>>(`/contacts/${id}/duplicates`);
+      const { data } = await client.GET(
+        "/api/v1/contacts/{contact_id}/duplicates",
+        { params: { path: { contact_id: id } } }
+      );
       return data;
     },
     enabled: Boolean(id) && enabled,
@@ -139,9 +130,16 @@ export function useContactDuplicates(id: string, enabled: boolean) {
 export function useMergeContacts() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ contactId, otherId }: { contactId: string; otherId: string }) => {
-      const { data } = await apiClient.post<ApiResponse<{ id: string; full_name: string | null; merged_contact_id: string }>>(
-        `/contacts/${contactId}/merge/${otherId}`
+    mutationFn: async ({
+      contactId,
+      otherId,
+    }: {
+      contactId: string;
+      otherId: string;
+    }) => {
+      const { data } = await client.POST(
+        "/api/v1/contacts/{contact_id}/merge/{other_id}",
+        { params: { path: { contact_id: contactId, other_id: otherId } } }
       );
       return data;
     },
@@ -162,10 +160,11 @@ export function useUpdateContact() {
       id: string;
       input: Partial<ContactCreateInput>;
     }) => {
-      const { data } = await apiClient.put<ApiResponse<Contact>>(
-        `/contacts/${id}`,
-        input
-      );
+      const { data } = await client.PUT("/api/v1/contacts/{contact_id}", {
+        params: { path: { contact_id: id } },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        body: input as any,
+      });
       return data;
     },
     onSuccess: (_data, variables) => {

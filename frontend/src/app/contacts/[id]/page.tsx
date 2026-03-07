@@ -32,7 +32,7 @@ import {
   EditableTagsField,
 } from "@/components/editable-field";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import apiClient from "@/lib/api";
+import { client } from "@/lib/api-client";
 import { formatDistanceToNow } from "date-fns";
 
 interface InteractionResponse {
@@ -220,10 +220,9 @@ export default function ContactDetailPage() {
   const { data: interactionsData, refetch: refetchInteractions } = useQuery({
     queryKey: ["interactions", id],
     queryFn: async () => {
-      const { data } = await apiClient.get<{
-        data: InteractionResponse[];
-        error: string | null;
-      }>(`/contacts/${id}/interactions`);
+      const { data } = await client.GET("/api/v1/contacts/{contact_id}/interactions", {
+        params: { path: { contact_id: id } },
+      });
       return data;
     },
     enabled: Boolean(id),
@@ -233,13 +232,10 @@ export default function ContactDetailPage() {
   const { data: notificationsData } = useQuery({
     queryKey: ["contact-notifications", id],
     queryFn: async () => {
-      const { data } = await apiClient.get<{
-        data: NotificationItem[];
-        error: string | null;
-      }>(`/notifications`, {
-        params: { page_size: 50, link: `/contacts/${id}` },
+      const { data } = await client.GET("/api/v1/notifications", {
+        params: { query: { page_size: 50 } },
       });
-      return data?.data ?? [];
+      return (data?.data as NotificationItem[]) ?? [];
     },
     enabled: Boolean(id),
   });
@@ -249,11 +245,10 @@ export default function ContactDetailPage() {
   const { data: commonGroupsData } = useQuery({
     queryKey: ["telegram-common-groups", id],
     queryFn: async () => {
-      const { data } = await apiClient.get<{
-        data: { id: number; title: string; link: string | null; participants_count: number | null }[];
-        error: string | null;
-      }>(`/contacts/${id}/telegram/common-groups`);
-      return data?.data ?? [];
+      const { data } = await client.GET("/api/v1/contacts/{contact_id}/telegram/common-groups", {
+        params: { path: { contact_id: id } },
+      });
+      return (data?.data as { id: number; title: string; link: string | null; participants_count: number | null }[]) ?? [];
     },
     enabled: Boolean(id),
   });
@@ -263,8 +258,8 @@ export default function ContactDetailPage() {
   const { data: allTagsData } = useQuery({
     queryKey: ["tags"],
     queryFn: async () => {
-      const { data } = await apiClient.get<{ data: string[]; error: string | null }>("/contacts/tags");
-      return data?.data ?? [];
+      const { data } = await client.GET("/api/v1/contacts/tags");
+      return (data?.data as string[]) ?? [];
     },
   });
   const allTags = allTagsData ?? [];
@@ -274,7 +269,9 @@ export default function ContactDetailPage() {
   useQuery({
     queryKey: ["refresh-bios", id],
     queryFn: async () => {
-      await apiClient.post(`/contacts/${id}/refresh-bios`);
+      await client.POST("/api/v1/contacts/{contact_id}/refresh-bios", {
+        params: { path: { contact_id: id } },
+      });
       // Silently refresh contact data after bio update completes
       void queryClient.invalidateQueries({ queryKey: ["contacts", id] });
       return true;
@@ -284,23 +281,26 @@ export default function ContactDetailPage() {
     retry: false,
   });
 
-  const allInteractions = interactionsData?.data ?? [];
+  const allInteractions = (interactionsData?.data ?? []) as InteractionResponse[];
   const meetings = allInteractions.filter((i) => i.platform === "meeting");
   const interactions: TimelineEntry[] = allInteractions.map((i) => ({
     id: i.id,
-    platform: i.platform,
-    direction: i.direction,
+    platform: i.platform as TimelineEntry["platform"],
+    direction: i.direction as TimelineEntry["direction"],
     content_preview: i.content_preview,
     occurred_at: i.occurred_at,
   }));
 
   const addNoteMutation = useMutation({
     mutationFn: async (content: string) => {
-      await apiClient.post(`/contacts/${id}/interactions`, {
-        platform: "manual",
-        direction: "outbound",
-        content_preview: content,
-        occurred_at: new Date().toISOString(),
+      await client.POST("/api/v1/contacts/{contact_id}/interactions", {
+        params: { path: { contact_id: id } },
+        body: {
+          platform: "manual",
+          direction: "outbound",
+          content_preview: content,
+          occurred_at: new Date().toISOString(),
+        },
       });
     },
     onSuccess: () => {

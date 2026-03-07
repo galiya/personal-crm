@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CsvImport } from "@/components/csv-import";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 const TOTAL_STEPS = 4;
 
@@ -18,12 +18,16 @@ export default function OnboardingPage() {
 
   const handleConnectGoogle = async () => {
     try {
-      const { data } = await api.get("/auth/google/url");
-      if (data?.data?.url) {
-        window.location.href = data.data.url;
+      const { data, error } = await client.GET("/api/v1/auth/google/url");
+      if (error || !data?.data) {
+        setSyncError("Google OAuth not configured yet. Add GOOGLE_CLIENT_ID to .env");
+        return;
+      }
+      const url = (data.data as { url?: string })?.url;
+      if (url) {
+        window.location.href = url;
       }
     } catch {
-      // If no Google OAuth URL endpoint, open the callback flow
       setSyncError("Google OAuth not configured yet. Add GOOGLE_CLIENT_ID to .env");
     }
   };
@@ -32,11 +36,14 @@ export default function OnboardingPage() {
     setGoogleSyncing(true);
     setSyncError(null);
     try {
-      const { data } = await api.post("/contacts/sync/google");
-      setGoogleResult(data?.data ?? null);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to sync Google Contacts";
-      setSyncError(msg);
+      const { data, error } = await client.POST("/api/v1/contacts/sync/google");
+      if (error) {
+        setSyncError("Failed to sync Google Contacts");
+      } else {
+        setGoogleResult((data?.data as unknown as { created: number; updated: number }) ?? null);
+      }
+    } catch {
+      setSyncError("Failed to sync Google Contacts");
     } finally {
       setGoogleSyncing(false);
     }

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 export interface AppNotification {
   id: string;
@@ -18,21 +18,23 @@ interface NotificationsResponse {
 }
 
 export function useNotifications(page = 1) {
-  return useQuery<NotificationsResponse>({
+  return useQuery<NotificationsResponse | undefined>({
     queryKey: ["notifications", page],
     queryFn: async () => {
-      const { data } = await api.get("/notifications", { params: { page, page_size: 20 } });
-      return data;
+      const { data } = await client.GET("/api/v1/notifications", {
+        params: { query: { page, page_size: 20 } },
+      });
+      return data as NotificationsResponse | undefined;
     },
   });
 }
 
 export function useUnreadCount() {
-  return useQuery<{ data: { count: number } }>({
+  return useQuery<{ data: { count: number } } | undefined>({
     queryKey: ["notifications", "unread-count"],
     queryFn: async () => {
-      const { data } = await api.get("/notifications/unread-count");
-      return data;
+      const { data } = await client.GET("/api/v1/notifications/unread-count");
+      return data as { data: { count: number } } | undefined;
     },
     staleTime: 30_000,
     refetchInterval: 60_000,
@@ -43,7 +45,10 @@ export function useMarkRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { data } = await api.put(`/notifications/${id}/read`);
+      const { data } = await client.PUT(
+        "/api/v1/notifications/{notification_id}/read",
+        { params: { path: { notification_id: id } } }
+      );
       return data;
     },
     onSuccess: () => {
@@ -56,7 +61,7 @@ export function useMarkAllRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { data } = await api.put("/notifications/read-all");
+      const { data } = await client.PUT("/api/v1/notifications/read-all");
       return data;
     },
     onSuccess: () => {

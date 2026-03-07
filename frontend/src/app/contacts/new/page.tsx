@@ -42,7 +42,7 @@ export default function NewContactPage() {
           : [],
         notes: notes || undefined,
       });
-      router.push(`/contacts/${result.data.id}`);
+      router.push(`/contacts/${result?.data?.id}`);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to create contact.";

@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Mail, MessageCircle, Twitter, RefreshCw, Check, AlertCircle, CheckCircle2, X, Clock, Calendar } from "lucide-react";
 import { Upload } from "lucide-react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api-client";
 import { CsvImport } from "@/components/csv-import";
 
 type SyncStatus = "idle" | "loading" | "success" | "error";
@@ -255,14 +255,19 @@ function LinkedInImport() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const { data } = await api.post("/contacts/import/linkedin", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const { data, error } = await client.POST("/api/v1/contacts/import/linkedin", {
+        body: formData as unknown as { file: string },
+        bodySerializer: () => formData,
       });
-      setResult(data.data);
-      setStatus("success");
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(detail || "Import failed");
+      if (error) {
+        setError((error as { detail?: string })?.detail ?? "Import failed");
+        setStatus("error");
+      } else {
+        setResult(data?.data as { created: number; skipped: number; errors: string[] });
+        setStatus("success");
+      }
+    } catch {
+      setError("Import failed");
       setStatus("error");
     }
     if (inputRef.current) inputRef.current.value = "";
@@ -310,14 +315,19 @@ function LinkedInMessagesImport() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const { data } = await api.post("/contacts/import/linkedin-messages", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const { data, error } = await client.POST("/api/v1/contacts/import/linkedin-messages", {
+        body: formData as unknown as { file: string },
+        bodySerializer: () => formData,
       });
-      setResult(data.data);
-      setStatus("success");
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(detail || "Import failed");
+      if (error) {
+        setError((error as { detail?: string })?.detail ?? "Import failed");
+        setStatus("error");
+      } else {
+        setResult(data?.data as { new_interactions: number; skipped: number; unmatched: number; unmatched_names: string[] });
+        setStatus("success");
+      }
+    } catch {
+      setError("Import failed");
       setStatus("error");
     }
     if (inputRef.current) inputRef.current.value = "";
@@ -393,26 +403,31 @@ function SettingsPageInner() {
 
   const fetchConnectionStatus = useCallback(async () => {
     try {
-      const { data } = await api.get("/auth/me");
-      const user = data?.data;
-      if (user) {
-        const accounts: GoogleAccountInfo[] = user.google_accounts || [];
-        setConnected({
-          google: !!user.google_connected || accounts.length > 0,
-          google_email: user.google_email || null,
-          google_accounts: accounts,
-          telegram: !!user.telegram_connected,
-          telegram_username: user.telegram_username || null,
-          twitter: !!user.twitter_connected,
-          twitter_username: user.twitter_username || null,
-        });
-      }
-    } catch (err: unknown) {
-      const s = (err as { response?: { status?: number } })?.response?.status;
-      if (s === 401) {
-        window.location.href = "/auth/login";
+      const result = await client.GET("/api/v1/auth/me");
+      if (result.error) {
+        // Only redirect on 401; ignore other errors (e.g. network, 500)
+        const status = (result as { response?: { status?: number } }).response?.status;
+        if (status === 401) {
+          window.location.href = "/auth/login";
+        }
         return;
       }
+      const { data } = result;
+      const user = data?.data as Record<string, unknown> | undefined;
+      if (user) {
+        const accounts: GoogleAccountInfo[] = (user.google_accounts as GoogleAccountInfo[]) || [];
+        setConnected({
+          google: !!user.google_connected || accounts.length > 0,
+          google_email: (user.google_email as string) || null,
+          google_accounts: accounts,
+          telegram: !!user.telegram_connected,
+          telegram_username: (user.telegram_username as string) || null,
+          twitter: !!user.twitter_connected,
+          twitter_username: (user.twitter_username as string) || null,
+        });
+      }
+    } catch {
+      // network error
     } finally {
       setIsLoading(false);
     }
@@ -439,9 +454,14 @@ function SettingsPageInner() {
   const handleGoogleConnect = async () => {
     setGoogleConnect({ status: "loading", message: "" });
     try {
-      const { data } = await api.get("/auth/google/url");
-      if (data?.data?.url) {
-        window.location.href = data.data.url;
+      const { data, error } = await client.GET("/api/v1/auth/google/url");
+      if (error || !data?.data) {
+        setGoogleConnect({ status: "error", message: "Google OAuth not configured. Set GOOGLE_CLIENT_ID in .env" });
+        return;
+      }
+      const url = (data.data as { url?: string })?.url;
+      if (url) {
+        window.location.href = url;
       } else {
         setGoogleConnect({ status: "error", message: "Google OAuth not configured" });
       }
@@ -452,34 +472,32 @@ function SettingsPageInner() {
 
   const handleGoogleContactsSync = async () => {
     setGoogleSync({ status: "loading", message: "" });
-    try {
-      await api.post("/contacts/sync/google");
+    const { error } = await client.POST("/api/v1/contacts/sync/google");
+    if (error) {
+      setGoogleSync({
+        status: "error",
+        message: (error as { detail?: string })?.detail ?? "Sync failed. Connect Google account first.",
+      });
+    } else {
       setGoogleSync({
         status: "success",
         message: "Sync started. You'll be notified when it completes.",
-      });
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setGoogleSync({
-        status: "error",
-        message: detail || "Sync failed. Connect Google account first.",
       });
     }
   };
 
   const handleGoogleCalendarSync = async () => {
     setCalendarSync({ status: "loading", message: "" });
-    try {
-      await api.post("/contacts/sync/google-calendar");
+    const { error } = await client.POST("/api/v1/contacts/sync/google-calendar");
+    if (error) {
+      setCalendarSync({
+        status: "error",
+        message: (error as { detail?: string })?.detail ?? "Calendar sync failed. Connect Google account first.",
+      });
+    } else {
       setCalendarSync({
         status: "success",
         message: "Sync started. You'll be notified when it completes.",
-      });
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setCalendarSync({
-        status: "error",
-        message: detail || "Calendar sync failed. Connect Google account first.",
       });
     }
   };
@@ -503,66 +521,69 @@ function SettingsPageInner() {
 
   const handleTelegramSendCode = async () => {
     setTelegramConnect({ status: "loading", message: "" });
-    try {
-      const { data } = await api.post("/auth/telegram/connect", { phone: telegramPhone });
-      setTelegramPhoneCodeHash(data?.data?.phone_code_hash ?? "");
+    const { data, error } = await client.POST("/api/v1/auth/telegram/connect", {
+      body: { phone: telegramPhone },
+    });
+    if (error) {
+      setTelegramConnect({ status: "error", message: (error as { detail?: string })?.detail ?? "Failed to send code. Check phone number and Telegram API config." });
+    } else {
+      setTelegramPhoneCodeHash((data?.data as { phone_code_hash?: string })?.phone_code_hash ?? "");
       setTelegramStep("code");
       setTelegramConnect({ status: "idle", message: "Code sent to your Telegram app" });
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setTelegramConnect({ status: "error", message: detail || "Failed to send code. Check phone number and Telegram API config." });
     }
   };
 
   const handleTelegramVerify = async () => {
     setTelegramConnect({ status: "loading", message: "" });
-    try {
-      const { data } = await api.post("/auth/telegram/verify", { phone: telegramPhone, code: telegramCode, phone_code_hash: telegramPhoneCodeHash });
-      if (data?.data?.requires_2fa) {
-        setTelegramStep("password");
-        setTelegramConnect({ status: "idle", message: "Two-step verification is enabled. Enter your Telegram password." });
-        return;
-      }
-      setTelegramStep("done");
-      setTelegramCode("");
-      closeTelegramModal();
-      setTelegramConnect({ status: "success", message: "" });
-      await showSuccess("Telegram", data?.data?.username);
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setTelegramConnect({ status: "error", message: detail || "Invalid code. Try again." });
+    const { data, error } = await client.POST("/api/v1/auth/telegram/verify", {
+      body: { phone: telegramPhone, code: telegramCode, phone_code_hash: telegramPhoneCodeHash },
+    });
+    if (error) {
+      setTelegramConnect({ status: "error", message: (error as { detail?: string })?.detail ?? "Invalid code. Try again." });
+      return;
     }
+    const respData = data?.data as { requires_2fa?: boolean; username?: string } | undefined;
+    if (respData?.requires_2fa) {
+      setTelegramStep("password");
+      setTelegramConnect({ status: "idle", message: "Two-step verification is enabled. Enter your Telegram password." });
+      return;
+    }
+    setTelegramStep("done");
+    setTelegramCode("");
+    closeTelegramModal();
+    setTelegramConnect({ status: "success", message: "" });
+    await showSuccess("Telegram", respData?.username);
   };
 
   const handleTelegram2FA = async () => {
     setTelegramConnect({ status: "loading", message: "" });
-    try {
-      const { data } = await api.post("/auth/telegram/verify-2fa", { password: telegramPassword });
-      setTelegramStep("done");
+    const { data, error } = await client.POST("/api/v1/auth/telegram/verify-2fa", {
+      body: { password: telegramPassword },
+    });
+    if (error) {
       setTelegramPassword("");
-      closeTelegramModal();
-      setTelegramConnect({ status: "success", message: "" });
-      await showSuccess("Telegram", data?.data?.username);
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setTelegramPassword("");
-      setTelegramConnect({ status: "error", message: detail || "Incorrect password. Try again." });
+      setTelegramConnect({ status: "error", message: (error as { detail?: string })?.detail ?? "Incorrect password. Try again." });
+      return;
     }
+    setTelegramStep("done");
+    setTelegramPassword("");
+    closeTelegramModal();
+    setTelegramConnect({ status: "success", message: "" });
+    await showSuccess("Telegram", (data?.data as { username?: string })?.username);
   };
 
   const handleTelegramSync = async () => {
     setTelegramSync({ status: "loading", message: "" });
-    try {
-      await api.post("/contacts/sync/telegram");
+    const { error } = await client.POST("/api/v1/contacts/sync/telegram");
+    if (error) {
+      setTelegramSync({
+        status: "error",
+        message: (error as { detail?: string })?.detail ?? "Telegram sync failed. Please try again.",
+      });
+    } else {
       setTelegramSync({
         status: "success",
         message: "Sync started. You'll be notified when it completes.",
-      });
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setTelegramSync({
-        status: "error",
-        message: detail || "Telegram sync failed. Please try again.",
       });
     }
   };
@@ -570,31 +591,31 @@ function SettingsPageInner() {
   // Twitter
   const handleTwitterConnect = async () => {
     setTwitterConnect({ status: "loading", message: "" });
-    try {
-      const { data } = await api.get("/auth/twitter/url");
-      if (data?.data?.url) {
-        window.location.href = data.data.url;
-      } else {
-        setTwitterConnect({ status: "error", message: "Twitter OAuth not configured" });
-      }
-    } catch {
+    const { data, error } = await client.GET("/api/v1/auth/twitter/url");
+    if (error || !data?.data) {
       setTwitterConnect({ status: "error", message: "Twitter OAuth not configured. Set TWITTER_CLIENT_ID in .env" });
+      return;
+    }
+    const url = (data.data as { url?: string })?.url;
+    if (url) {
+      window.location.href = url;
+    } else {
+      setTwitterConnect({ status: "error", message: "Twitter OAuth not configured" });
     }
   };
 
   const handleTwitterSync = async () => {
     setTwitterSync({ status: "loading", message: "" });
-    try {
-      await api.post("/contacts/sync/twitter");
+    const { error } = await client.POST("/api/v1/contacts/sync/twitter");
+    if (error) {
+      setTwitterSync({
+        status: "error",
+        message: (error as { detail?: string })?.detail ?? "Sync failed. Connect Twitter first.",
+      });
+    } else {
       setTwitterSync({
         status: "success",
         message: "Sync started. You'll be notified when it completes.",
-      });
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setTwitterSync({
-        status: "error",
-        message: detail || "Sync failed. Connect Twitter first.",
       });
     }
   };
@@ -690,10 +711,10 @@ function SettingsPageInner() {
                     </span>
                     <button
                       onClick={async () => {
-                        try {
-                          await api.delete(`/auth/google/accounts/${ga.id}`);
-                          await fetchConnectionStatus();
-                        } catch { /* ignore */ }
+                        await client.DELETE("/api/v1/auth/google/accounts/{account_id}", {
+                          params: { path: { account_id: ga.id } },
+                        });
+                        await fetchConnectionStatus();
                       }}
                       className="text-gray-400 hover:text-red-500 transition-colors"
                       title="Remove account"

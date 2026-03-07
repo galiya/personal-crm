@@ -180,7 +180,7 @@ export default function IdentityPage() {
   const matches = data?.data ?? [];
   const pendingMatches = matches
     .filter((m) => m.status === "pending_review")
-    .sort((a, b) => b.match_score - a.match_score);
+    .sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0));
 
   const scanResult = scanIdentity.data?.data;
 
@@ -283,12 +283,12 @@ export default function IdentityPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-gray-900">
-                      {Math.round(match.match_score * 100)}% match
+                      {Math.round((match.match_score ?? 0) * 100)}% match
                     </p>
                     <div className="w-24 h-1.5 rounded-full bg-gray-100 mt-1 ml-auto">
                       <div
                         className="h-1.5 rounded-full bg-blue-500"
-                        style={{ width: `${Math.round(match.match_score * 100)}%` }}
+                        style={{ width: `${Math.round((match.match_score ?? 0) * 100)}%` }}
                       />
                     </div>
                   </div>
@@ -296,11 +296,11 @@ export default function IdentityPage() {
 
                 {/* Side-by-side comparison */}
                 <div className="flex gap-3 mb-4">
-                  <ContactPanel contact={match.contact_a} />
+                  <ContactPanel contact={match.contact_a as IdentityMatchContact} />
                   <div className="flex items-center text-gray-300 flex-shrink-0">
                     <span className="text-lg font-light">vs</span>
                   </div>
-                  <ContactPanel contact={match.contact_b} />
+                  <ContactPanel contact={match.contact_b as IdentityMatchContact} />
                 </div>
 
                 {/* Actions */}

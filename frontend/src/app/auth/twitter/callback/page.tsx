@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api-client";
 
 function TwitterCallbackInner() {
   const searchParams = useSearchParams();
@@ -18,16 +18,16 @@ function TwitterCallbackInner() {
       return;
     }
 
-    api
-      .post("/auth/twitter/callback", { code, state })
-      .then(() => {
-        router.replace("/settings?connected=twitter");
-      })
-      .catch((err) => {
-        const detail =
-          err?.response?.data?.detail || "Twitter authentication failed.";
-        setError(detail);
+    (async () => {
+      const { error } = await client.POST("/api/v1/auth/twitter/callback", {
+        body: { code, state },
       });
+      if (error) {
+        setError((error as { detail?: string })?.detail ?? "Twitter authentication failed.");
+      } else {
+        router.replace("/settings?connected=twitter");
+      }
+    })();
   }, [searchParams, router]);
 
   if (error) {
