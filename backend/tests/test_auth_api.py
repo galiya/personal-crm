@@ -51,9 +51,10 @@ async def test_login_success(client: AsyncClient):
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
     assert resp.status_code == 200
-    data = resp.json()
-    assert "access_token" in data
-    assert data["token_type"] == "bearer"
+    body = resp.json()
+    assert body["error"] is None
+    assert "access_token" in body["data"]
+    assert body["data"]["token_type"] == "bearer"
 
 
 @pytest.mark.asyncio
@@ -82,7 +83,7 @@ async def test_me_authenticated(client: AsyncClient):
         data={"username": "me@example.com", "password": "securepass123"},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-    token = login_resp.json()["access_token"]
+    token = login_resp.json()["data"]["access_token"]
     resp = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert resp.status_code == 200
     data = resp.json()

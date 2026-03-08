@@ -90,7 +90,9 @@ def _thread_to_metadata(thread_data: dict) -> dict | None:
     internal_date_ms = int(last_msg.get("internalDate", 0))
     occurred_at = datetime.fromtimestamp(internal_date_ms / 1000, tz=UTC)
 
-    snippet = last_msg.get("snippet", "")
+    # With format="metadata", individual messages may lack a snippet.
+    # Fall back to the thread-level snippet which is always present.
+    snippet = last_msg.get("snippet", "") or thread_data.get("snippet", "")
 
     return {
         "thread_id": thread_data.get("id", ""),
@@ -140,6 +142,9 @@ async def _upsert_interaction(
     )
     existing = result.scalar_one_or_none()
     if existing:
+        # Backfill content_preview if it was missing from a previous sync
+        if not existing.content_preview and snippet:
+            existing.content_preview = snippet[:500]
         return existing
 
     interaction = Interaction(

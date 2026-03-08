@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CsvImport } from "@/components/csv-import";
 import { client } from "@/lib/api-client";
 
 const TOTAL_STEPS = 4;
 
-export default function OnboardingPage() {
-  const [step, setStep] = useState(1);
+function OnboardingInner() {
+  const searchParams = useSearchParams();
+  const initialStep = Number(searchParams.get("step") ?? "1") || 1;
+  const googleConnected = searchParams.get("connected") === "google";
+  const [step, setStep] = useState(Math.min(Math.max(initialStep, 1), TOTAL_STEPS));
   const [googleSyncing, setGoogleSyncing] = useState(false);
   const [googleResult, setGoogleResult] = useState<{ created: number; updated: number } | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -25,6 +29,7 @@ export default function OnboardingPage() {
       }
       const url = (data.data as { url?: string })?.url;
       if (url) {
+        localStorage.setItem("google_oauth_return", "/onboarding?step=2&connected=google");
         window.location.href = url;
       }
     } catch {
@@ -119,6 +124,10 @@ export default function OnboardingPage() {
                   Connect Google account
                 </span>
               </button>
+
+              {googleConnected && !syncError && (
+                <p className="text-xs text-green-600 mb-2">Google account connected successfully!</p>
+              )}
 
               {syncError && (
                 <p className="text-xs text-red-500 mb-2">{syncError}</p>
@@ -220,5 +229,13 @@ export default function OnboardingPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <OnboardingInner />
+    </Suspense>
   );
 }

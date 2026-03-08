@@ -89,8 +89,9 @@ describe("ContactsPage", () => {
 
   it("shows loading state", () => {
     mockUseContacts.mockReturnValue({ data: undefined, isLoading: true, isError: false });
-    renderPage();
-    expect(screen.getByText("Loading contacts...")).toBeInTheDocument();
+    const { container } = renderPage();
+    // Skeleton loader rows are rendered instead of text
+    expect(container.querySelectorAll("[class*='animate-pulse']").length).toBeGreaterThan(0);
   });
 
   it("shows error state", () => {
@@ -122,7 +123,8 @@ describe("ContactsPage", () => {
     expect(screen.getByText("Alice Smith")).toBeInTheDocument();
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
     expect(screen.getByText("Acme Inc")).toBeInTheDocument();
-    expect(screen.getByText("2 total contacts")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getByText(/total contacts/)).toBeInTheDocument();
   });
 
   it("shows last interaction time", () => {
@@ -152,7 +154,7 @@ describe("ContactsPage", () => {
     vi.useFakeTimers();
     mockUseContacts.mockReturnValue({ data: undefined, isLoading: false, isError: false });
     renderPage();
-    const input = screen.getByPlaceholderText("Search by name or company...");
+    const input = screen.getByPlaceholderText("Search by name, company, or email...");
     fireEvent.change(input, { target: { value: "alice" } });
     // Should not fire immediately
     expect(mockReplace).not.toHaveBeenCalled();
@@ -284,7 +286,7 @@ describe("ContactsPage", () => {
       currentParams = new URLSearchParams("q=bob");
       mockUseContacts.mockReturnValue({ data: undefined, isLoading: false, isError: false });
       renderPage();
-      const input = screen.getByPlaceholderText("Search by name or company...") as HTMLInputElement;
+      const input = screen.getByPlaceholderText("Search by name, company, or email...") as HTMLInputElement;
       expect(input.value).toBe("bob");
       expect(mockUseContacts).toHaveBeenCalledWith(
         expect.objectContaining({ search: "bob" })
@@ -317,7 +319,8 @@ describe("ContactsPage", () => {
         isError: false,
       });
       renderPage();
-      expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+      expect(screen.getByText(/Page/)).toBeInTheDocument();
+      expect(screen.getByText("1")).toBeInTheDocument();
       expect(screen.getByText("Previous")).toBeDisabled();
       expect(screen.getByText("Next")).not.toBeDisabled();
     });

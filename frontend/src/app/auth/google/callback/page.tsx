@@ -29,7 +29,9 @@ function GoogleCallbackInner() {
         if (token) {
           localStorage.setItem("access_token", token);
         }
-        router.replace("/settings?connected=google");
+        const returnTo = localStorage.getItem("google_oauth_return");
+        localStorage.removeItem("google_oauth_return");
+        router.replace(returnTo || "/settings?connected=google");
       }
     })();
   }, [searchParams, router]);

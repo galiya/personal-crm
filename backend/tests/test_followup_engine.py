@@ -272,8 +272,8 @@ async def test_generate_suggestions_event_based_boundary_confidence(
 async def test_generate_suggestions_scheduled_created(
     db: AsyncSession, test_user, test_contact
 ):
-    """last_followup_at older than 30 days triggers a scheduled suggestion."""
-    test_contact.last_followup_at = datetime.now(UTC) - timedelta(days=35)
+    """last_followup_at older than the medium-priority interval (60 days) triggers a scheduled suggestion."""
+    test_contact.last_followup_at = datetime.now(UTC) - timedelta(days=65)
     db.add(test_contact)
     await db.commit()
     await db.refresh(test_contact)
