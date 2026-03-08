@@ -47,10 +47,10 @@ export function useDashboardStats() {
   });
 
   const newContactsQuery = useQuery({
-    queryKey: ["contacts", { page: 1, page_size: 5, sort: "created" }],
+    queryKey: ["contacts", { page: 1, page_size: 5, sort: "created", interaction_days: 30 }],
     queryFn: async () => {
       const { data } = await client.GET("/api/v1/contacts", {
-        params: { query: { page: 1, page_size: 5, sort: "created" } as Record<string, unknown> },
+        params: { query: { page: 1, page_size: 5, sort: "created", interaction_days: 30 } as Record<string, unknown> },
       });
       return data;
     },

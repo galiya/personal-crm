@@ -214,6 +214,7 @@ export default function ContactDetailPage() {
   const [isEnriching, setIsEnriching] = useState(false);
   const [isAutoTagging, setIsAutoTagging] = useState(false);
   const [autoTagResult, setAutoTagResult] = useState<string | null>(null);
+  const [enrichResult, setEnrichResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu on outside click
@@ -363,11 +364,22 @@ export default function ContactDetailPage() {
   const handleEnrich = async () => {
     if (!id || isEnriching) return;
     setIsEnriching(true);
+    setEnrichResult(null);
     try {
-      await client.POST("/api/v1/contacts/{contact_id}/enrich" as any, {
+      const res = await client.POST("/api/v1/contacts/{contact_id}/enrich" as any, {
         params: { path: { contact_id: id } },
       });
+      const data = (res.data as any)?.data;
+      const fields: string[] = data?.fields_updated ?? [];
+      if (fields.length > 0) {
+        setEnrichResult({ type: "success", text: `Updated: ${fields.join(", ")}` });
+      } else {
+        setEnrichResult({ type: "success", text: "No new data found on Apollo" });
+      }
       void queryClient.invalidateQueries({ queryKey: ["contacts", id] });
+    } catch (err: any) {
+      const detail = err?.message || "Enrichment failed";
+      setEnrichResult({ type: "error", text: detail });
     } finally {
       setIsEnriching(false);
     }
@@ -599,6 +611,21 @@ export default function ContactDetailPage() {
         {/* Duplicates modal */}
         {showDuplicates && (
           <DuplicatesModal contactId={id} contactName={displayName} onClose={() => setShowDuplicates(false)} />
+        )}
+
+        {/* Enrich result toast */}
+        {enrichResult && (
+          <div className={`mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2 ${
+            enrichResult.type === "success"
+              ? "bg-amber-50 border border-amber-200 text-amber-700"
+              : "bg-red-50 border border-red-200 text-red-700"
+          }`}>
+            <Sparkles className="w-4 h-4 flex-shrink-0" />
+            {enrichResult.text}
+            <button onClick={() => setEnrichResult(null)} className="ml-auto p-0.5 hover:opacity-70">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         )}
 
         {/* Auto-tag result toast */}

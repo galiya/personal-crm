@@ -38,6 +38,9 @@ export interface ContactsParams {
   source?: string;
   date_from?: string;
   date_to?: string;
+  has_interactions?: boolean;
+  interaction_days?: number;
+  has_birthday?: boolean;
   sort?: string;
 }
 

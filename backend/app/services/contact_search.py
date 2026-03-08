@@ -21,6 +21,9 @@ def build_contact_filter_query(
     score: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    has_interactions: bool | None = None,
+    interaction_days: int | None = None,
+    has_birthday: bool | None = None,
 ) -> object:
     """Build a SQLAlchemy select query for contacts with optional filters.
 
@@ -32,6 +35,8 @@ def build_contact_filter_query(
         score: Score tier filter: 'strong' (8-10), 'active' (4-7), 'dormant' (0-3).
         date_from: ISO date string (YYYY-MM-DD) — include contacts created on/after.
         date_to: ISO date string (YYYY-MM-DD) — include contacts created on/before.
+        has_interactions: Filter to contacts with (True) or without (False) any interactions.
+        interaction_days: Filter to contacts with last_interaction_at within N days.
 
     Returns:
         A SQLAlchemy select statement (not yet executed).
@@ -90,6 +95,25 @@ def build_contact_filter_query(
         except ValueError:
             pass
 
+    if has_interactions is True:
+        base_query = base_query.where(Contact.last_interaction_at.isnot(None))
+    elif has_interactions is False:
+        base_query = base_query.where(Contact.last_interaction_at.is_(None))
+
+    if interaction_days is not None and interaction_days > 0:
+        cutoff = datetime.now(UTC) - timedelta(days=interaction_days)
+        base_query = base_query.where(Contact.last_interaction_at >= cutoff)
+
+    if has_birthday is True:
+        base_query = base_query.where(
+            Contact.birthday.isnot(None),
+            Contact.birthday != "",
+        )
+    elif has_birthday is False:
+        base_query = base_query.where(
+            or_(Contact.birthday.is_(None), Contact.birthday == ""),
+        )
+
     if score == "strong":
         base_query = base_query.where(Contact.relationship_score >= 8)
     elif score == "active":
@@ -114,6 +138,9 @@ async def list_contacts_paginated(
     score: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    has_interactions: bool | None = None,
+    interaction_days: int | None = None,
+    has_birthday: bool | None = None,
     sort_by: str = "score",
 ) -> ContactListResponse:
     """Execute a filtered, paginated contact query and return the response model."""
@@ -125,6 +152,9 @@ async def list_contacts_paginated(
         score=score,
         date_from=date_from,
         date_to=date_to,
+        has_interactions=has_interactions,
+        interaction_days=interaction_days,
+        has_birthday=has_birthday,
     )
 
     count_result = await db.execute(select(func.count()).select_from(base_query.subquery()))
@@ -134,6 +164,19 @@ async def list_contacts_paginated(
         order_clause = [Contact.created_at.desc()]
     elif sort_by == "interaction":
         order_clause = [Contact.last_interaction_at.desc().nullslast()]
+    elif sort_by == "birthday":
+        # Sort by days until next birthday using MM-DD suffix.
+        # birthday is stored as "MM-DD" or "YYYY-MM-DD"; right(birthday, 5) extracts "MM-DD".
+        # Compare to today's MM-DD: if >= today, birthday is upcoming this year;
+        # if < today, it already passed and wraps to next year (add 366 offset).
+        from sqlalchemy import case
+        today_mmdd = datetime.now(UTC).strftime("%m-%d")
+        bday_mmdd = func.right(Contact.birthday, 5)
+        days_proxy = case(
+            (bday_mmdd >= today_mmdd, bday_mmdd),
+            else_=func.concat("z", bday_mmdd),  # 'z' > any MM-DD, so past dates sort last
+        )
+        order_clause = [Contact.birthday.is_(None).asc(), days_proxy.asc()]
     else:
         order_clause = [Contact.relationship_score.desc(), Contact.created_at.desc()]
 

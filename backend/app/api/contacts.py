@@ -59,7 +59,10 @@ async def list_contacts(
     score: str | None = Query(None, description="Filter by score tier: strong (8-10), active (4-7), dormant (0-3)"),
     date_from: str | None = Query(None, description="Filter contacts created on or after this date (YYYY-MM-DD)"),
     date_to: str | None = Query(None, description="Filter contacts created on or before this date (YYYY-MM-DD)"),
-    sort: str = Query("score", pattern="^(score|created|interaction)$"),
+    has_interactions: bool | None = Query(None, description="Filter to contacts with (true) or without (false) interactions"),
+    interaction_days: int | None = Query(None, ge=1, le=365, description="Filter to contacts with last interaction within N days"),
+    has_birthday: bool | None = Query(None, description="Filter to contacts with (true) or without (false) a birthday set"),
+    sort: str = Query("score", pattern="^(score|created|interaction|birthday)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ContactListResponse:
@@ -76,6 +79,9 @@ async def list_contacts(
         score=score,
         date_from=date_from,
         date_to=date_to,
+        has_interactions=has_interactions,
+        interaction_days=interaction_days,
+        has_birthday=has_birthday,
         sort_by=sort,
     )
 
@@ -331,10 +337,12 @@ async def apply_tags(
     if body.contact_ids:
         contact_ids = body.contact_ids
     else:
+        from sqlalchemy import or_
         result = await db.execute(
             select(Contact.id).where(
                 Contact.user_id == current_user.id,
                 Contact.priority_level != "archived",
+                or_(Contact.tags.is_(None), ~Contact.tags.contains(["2nd tier"])),
             )
         )
         contact_ids = [row[0] for row in result.all()]
@@ -342,7 +350,7 @@ async def apply_tags(
     if len(contact_ids) <= 20:
         # Inline processing
         from app.models.interaction import Interaction
-        from app.services.auto_tagger import assign_tags, merge_tags
+        from app.services.auto_tagger import _get_anthropic_client, assign_tags, merge_tags
 
         # Batch-load contacts and interactions (avoids N+1)
         c_result = await db.execute(
@@ -365,6 +373,8 @@ async def apply_tags(
             if len(lst) < 10:
                 lst.append(row[1][:100])
 
+        # Reuse one client for all contacts
+        anthropic_client = _get_anthropic_client()
         tagged = 0
         for cid in contact_ids:
             contact = contacts_map.get(cid)
@@ -382,7 +392,7 @@ async def apply_tags(
                 "location": contact.location,
                 "interaction_topics": topics_by_contact.get(cid, []),
             }
-            new_tags = await assign_tags(contact_data, taxonomy.categories)
+            new_tags = await assign_tags(contact_data, taxonomy.categories, client=anthropic_client)
             if new_tags:
                 contact.tags = merge_tags(contact.tags, new_tags)
                 tagged += 1

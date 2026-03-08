@@ -272,12 +272,15 @@ async def deduplicate_taxonomy(
 async def assign_tags(
     contact_data: dict,
     taxonomy: dict[str, list[str]],
+    *,
+    client=None,
 ) -> list[str]:
     """Phase 2: Assign tags to a single contact from the approved taxonomy.
 
     Args:
         contact_data: Dict with contact fields.
         taxonomy: The approved taxonomy (category -> tags).
+        client: Optional pre-created AsyncAnthropic client (reuse to avoid connection leaks).
 
     Returns:
         List of tag strings to assign.
@@ -286,7 +289,8 @@ async def assign_tags(
         logger.warning("assign_tags: ANTHROPIC_API_KEY not configured.")
         return []
 
-    client = _get_anthropic_client()
+    if client is None:
+        client = _get_anthropic_client()
 
     # Flatten taxonomy for prompt
     taxonomy_lines = []

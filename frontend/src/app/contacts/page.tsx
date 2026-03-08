@@ -188,6 +188,9 @@ export default function ContactsPage() {
   const dateFrom = searchParams.get("date_from") ?? "";
   const dateTo = searchParams.get("date_to") ?? "";
   const sortParam = searchParams.get("sort") ?? "score";
+  const hasInteractions = searchParams.get("has_interactions") === "true" ? true : undefined;
+  const interactionDays = searchParams.get("interaction_days") ? Number(searchParams.get("interaction_days")) : undefined;
+  const hasBirthday = searchParams.get("has_birthday") === "true" ? true : undefined;
   const showFilters = searchParams.get("filters") === "1";
 
   // Multi-select state
@@ -232,6 +235,9 @@ export default function ContactsPage() {
     source: sourceFilter || undefined,
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
+    has_interactions: hasInteractions,
+    interaction_days: interactionDays,
+    has_birthday: hasBirthday,
     sort: sortParam,
   });
 

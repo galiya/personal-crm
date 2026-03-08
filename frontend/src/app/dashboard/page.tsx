@@ -335,10 +335,10 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-semibold text-stone-900 flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-teal-500" />
-                New contacts
+                New contacts with recent interactions
               </h2>
               <Link
-                href="/contacts?sort=created"
+                href="/contacts?sort=created&interaction_days=30"
                 className="text-xs text-teal-600 hover:underline"
               >
                 View all
@@ -418,7 +418,7 @@ export default function DashboardPage() {
                 Birthdays this week
               </h2>
               <Link
-                href="/contacts"
+                href="/contacts?has_birthday=true&sort=birthday"
                 className="text-xs text-teal-600 hover:underline"
               >
                 View all
