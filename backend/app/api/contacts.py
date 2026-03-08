@@ -456,6 +456,56 @@ async def recalculate_scores(
     return envelope({"updated": updated})
 
 
+class BulkUpdateBody(BaseModel):
+    contact_ids: list[uuid.UUID]
+    add_tags: list[str] | None = None
+    remove_tags: list[str] | None = None
+    priority_level: str | None = None
+
+
+@router.post("/bulk-update", response_model=Envelope[dict])
+async def bulk_update_contacts(
+    body: BulkUpdateBody,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Envelope[dict]:
+    """Bulk update tags and/or priority level for a set of contacts."""
+    result = await db.execute(
+        select(Contact).where(
+            Contact.id.in_(body.contact_ids),
+            Contact.user_id == current_user.id,
+        )
+    )
+    contacts = result.scalars().all()
+
+    archive_contact_ids: list[uuid.UUID] = []
+    for contact in contacts:
+        if body.add_tags:
+            existing = set(contact.tags or [])
+            contact.tags = list(existing | set(body.add_tags))
+        if body.remove_tags:
+            existing = set(contact.tags or [])
+            contact.tags = list(existing - set(body.remove_tags))
+        if body.priority_level is not None:
+            contact.priority_level = body.priority_level
+            if body.priority_level == "archived":
+                archive_contact_ids.append(contact.id)
+
+    if archive_contact_ids:
+        from app.models.follow_up import FollowUpSuggestion
+        pending_result = await db.execute(
+            select(FollowUpSuggestion).where(
+                FollowUpSuggestion.contact_id.in_(archive_contact_ids),
+                FollowUpSuggestion.status == "pending",
+            )
+        )
+        for suggestion in pending_result.scalars().all():
+            suggestion.status = "dismissed"
+
+    await db.flush()
+    return envelope({"updated": len(contacts)})
+
+
 from app.core.redis import get_redis
 
 @router.post("/{contact_id}/refresh-bios", response_model=Envelope[BioRefreshData])

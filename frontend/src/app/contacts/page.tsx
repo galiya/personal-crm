@@ -3,8 +3,8 @@
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { Search, Plus, X, Filter } from "lucide-react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { Search, Plus, X, Filter, Tag, Archive, CheckSquare } from "lucide-react";
 import { useContacts } from "@/hooks/use-contacts";
 import { ScoreBadge } from "@/components/score-badge";
 import { ContactAvatar } from "@/components/contact-avatar";
@@ -28,9 +28,136 @@ const sourceLabels: Record<string, string> = {
   manual: "Manual",
 };
 
+function BulkActionBar({
+  selectedCount,
+  allTags,
+  onAddTag,
+  onRemoveTag,
+  onSetPriority,
+  onClear,
+  isPending,
+}: {
+  selectedCount: number;
+  allTags: string[];
+  onAddTag: (tag: string) => void;
+  onRemoveTag: (tag: string) => void;
+  onSetPriority: (level: string) => void;
+  onClear: () => void;
+  isPending: boolean;
+}) {
+  const [tagInput, setTagInput] = useState("");
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const [tagMode, setTagMode] = useState<"add" | "remove">("add");
+
+  const filteredTags = allTags.filter(
+    (t) => !tagInput || t.toLowerCase().includes(tagInput.toLowerCase())
+  );
+
+  return (
+    <div className="sticky top-14 z-30 bg-blue-600 text-white px-4 py-2.5 rounded-lg mb-4 flex items-center gap-3 shadow-lg">
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <CheckSquare className="w-4 h-4" />
+        <span className="text-sm font-medium">{selectedCount} selected</span>
+      </div>
+
+      <div className="h-5 w-px bg-blue-400" />
+
+      {/* Tag actions */}
+      <div className="relative">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => { setTagMode("add"); setShowTagDropdown((v) => !v); }}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-400 transition-colors"
+          >
+            <Tag className="w-3 h-3" />
+            Add Tag
+          </button>
+          <button
+            onClick={() => { setTagMode("remove"); setShowTagDropdown((v) => !v); }}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-400 transition-colors"
+          >
+            <X className="w-3 h-3" />
+            Remove Tag
+          </button>
+        </div>
+
+        {showTagDropdown && (
+          <div className="absolute left-0 top-full mt-1 w-56 bg-white rounded-lg border border-gray-200 shadow-lg z-50 p-2">
+            <input
+              type="text"
+              placeholder={tagMode === "add" ? "Type tag name..." : "Select tag to remove..."}
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && tagInput.trim() && tagMode === "add") {
+                  onAddTag(tagInput.trim());
+                  setTagInput("");
+                  setShowTagDropdown(false);
+                }
+              }}
+              className="w-full px-2.5 py-1.5 text-sm text-gray-900 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-1"
+              autoFocus
+            />
+            <div className="max-h-32 overflow-y-auto">
+              {filteredTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => {
+                    if (tagMode === "add") onAddTag(tag);
+                    else onRemoveTag(tag);
+                    setTagInput("");
+                    setShowTagDropdown(false);
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  {tagMode === "add" ? "+" : "-"} {tag}
+                </button>
+              ))}
+              {tagMode === "add" && tagInput.trim() && !allTags.includes(tagInput.trim()) && (
+                <button
+                  onClick={() => {
+                    onAddTag(tagInput.trim());
+                    setTagInput("");
+                    setShowTagDropdown(false);
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-md font-medium"
+                >
+                  + Create &quot;{tagInput.trim()}&quot;
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="h-5 w-px bg-blue-400" />
+
+      {/* Priority actions */}
+      <button
+        onClick={() => onSetPriority("archived")}
+        disabled={isPending}
+        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-400 transition-colors disabled:opacity-50"
+      >
+        <Archive className="w-3 h-3" />
+        Archive All
+      </button>
+
+      <div className="flex-1" />
+
+      <button
+        onClick={onClear}
+        className="text-xs text-blue-200 hover:text-white underline"
+      >
+        Clear selection
+      </button>
+    </div>
+  );
+}
+
 export default function ContactsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // Read all filters from URL search params
   const searchFromUrl = searchParams.get("q") ?? "";
@@ -44,6 +171,9 @@ export default function ContactsPage() {
   const dateFrom = searchParams.get("date_from") ?? "";
   const dateTo = searchParams.get("date_to") ?? "";
   const showFilters = searchParams.get("filters") === "1";
+
+  // Multi-select state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Helper to update URL params without full page reload
   const setParams = useCallback(
@@ -89,6 +219,46 @@ export default function ContactsPage() {
   const contacts = data?.data ?? [];
   const meta = data?.meta;
 
+  // Bulk update mutation
+  const bulkUpdate = useMutation({
+    mutationFn: async (body: {
+      contact_ids: string[];
+      add_tags?: string[];
+      remove_tags?: string[];
+      priority_level?: string;
+    }) => {
+      const { data, error } = await client.POST("/api/v1/contacts/bulk-update" as any, {
+        body,
+      });
+      if (error) throw new Error((error as { detail?: string })?.detail ?? "Bulk update failed");
+      return data;
+    },
+    onSuccess: () => {
+      setSelectedIds(new Set());
+      void queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      void queryClient.invalidateQueries({ queryKey: ["tags"] });
+    },
+  });
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === contacts.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(contacts.map((c) => c.id)));
+    }
+  };
+
+  const selectedArray = Array.from(selectedIds);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -115,7 +285,7 @@ export default function ContactsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name or company..."
+              placeholder="Search by name, company, or email..."
               value={searchInput}
               onChange={(e) => {
                 const value = e.target.value;
@@ -235,7 +405,6 @@ export default function ContactsPage() {
             )}
             <button
               onClick={() => {
-                const params = new URLSearchParams();
                 router.replace("/contacts", { scroll: false });
               }}
               className="text-xs text-gray-500 hover:text-gray-700 underline"
@@ -243,6 +412,25 @@ export default function ContactsPage() {
               Clear all
             </button>
           </div>
+        )}
+
+        {/* Bulk action bar */}
+        {selectedIds.size > 0 && (
+          <BulkActionBar
+            selectedCount={selectedIds.size}
+            allTags={allTags}
+            isPending={bulkUpdate.isPending}
+            onAddTag={(tag) =>
+              bulkUpdate.mutate({ contact_ids: selectedArray, add_tags: [tag] })
+            }
+            onRemoveTag={(tag) =>
+              bulkUpdate.mutate({ contact_ids: selectedArray, remove_tags: [tag] })
+            }
+            onSetPriority={(level) =>
+              bulkUpdate.mutate({ contact_ids: selectedArray, priority_level: level })
+            }
+            onClear={() => setSelectedIds(new Set())}
+          />
         )}
 
         {isLoading && (
@@ -266,6 +454,15 @@ export default function ContactsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="w-10 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={contacts.length > 0 && selectedIds.size === contacts.length}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      aria-label="Select all contacts"
+                    />
+                  </th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Company</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600">Score</th>
@@ -278,8 +475,21 @@ export default function ContactsPage() {
                     contact.full_name ??
                     [contact.given_name, contact.family_name].filter(Boolean).join(" ") ??
                     "Unnamed";
+                  const isSelected = selectedIds.has(contact.id);
                   return (
-                    <tr key={contact.id} className="hover:bg-gray-50">
+                    <tr
+                      key={contact.id}
+                      className={`hover:bg-gray-50 ${isSelected ? "bg-blue-50" : ""}`}
+                    >
+                      <td className="w-10 px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(contact.id)}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          aria-label={`Select ${name}`}
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         <Link
                           href={`/contacts/${contact.id}`}
