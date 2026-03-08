@@ -863,7 +863,13 @@ def reactivate_snoozed_suggestions() -> dict:
 # ---------------------------------------------------------------------------
 
 
-@shared_task(name="app.services.tasks.apply_tags_to_contacts", bind=True, max_retries=2)
+@shared_task(
+    name="app.services.tasks.apply_tags_to_contacts",
+    bind=True,
+    max_retries=2,
+    soft_time_limit=900,   # 15 minutes for large contact lists
+    time_limit=1200,       # 20 minutes hard limit
+)
 def apply_tags_to_contacts(self, user_id: str, contact_ids: list[str] | None = None) -> dict:
     """Apply approved taxonomy tags to contacts in bulk.
 
@@ -902,15 +908,31 @@ def apply_tags_to_contacts(self, user_id: str, contact_ids: list[str] | None = N
                     )
                 )
             else:
+                from sqlalchemy import or_
                 result = await db.execute(
                     select(Contact).where(
                         Contact.user_id == uid,
                         Contact.priority_level != "archived",
+                        or_(Contact.tags.is_(None), ~Contact.tags.contains(["2nd tier"])),
                     )
                 )
             contacts = list(result.scalars().all())
 
+            from app.core.config import settings as app_settings
+
+            if not app_settings.ANTHROPIC_API_KEY:
+                db.add(Notification(
+                    user_id=uid,
+                    notification_type="tagging",
+                    title="Auto-tagging failed",
+                    body="ANTHROPIC_API_KEY is not configured. Set it in your .env file.",
+                    link="/settings?tab=tags",
+                ))
+                await db.commit()
+                return {"status": "no_api_key", "tagged_count": 0}
+
             tagged = 0
+            errors = 0
             for contact in contacts:
                 try:
                     # Get interaction topics
@@ -938,17 +960,22 @@ def apply_tags_to_contacts(self, user_id: str, contact_ids: list[str] | None = N
                         contact.tags = merge_tags(contact.tags, new_tags)
                         tagged += 1
                 except Exception:
+                    errors += 1
                     logger.warning(
-                        "apply_tags_to_contacts: failed for contact %s", contact.id
+                        "apply_tags_to_contacts: failed for contact %s", contact.id,
+                        exc_info=True,
                     )
 
             # Notification
+            body = f"Tagged {tagged} of {len(contacts)} contacts"
+            if errors:
+                body += f" ({errors} errors — check worker logs)"
             db.add(Notification(
                 user_id=uid,
                 notification_type="tagging",
-                title="Auto-tagging completed",
-                body=f"Tagged {tagged} of {len(contacts)} contacts",
-                link="/contacts/tags",
+                title="Auto-tagging completed" if tagged > 0 else "Auto-tagging finished with issues",
+                body=body,
+                link="/settings?tab=tags",
             ))
             await db.commit()
 
@@ -962,5 +989,10 @@ def apply_tags_to_contacts(self, user_id: str, contact_ids: list[str] | None = N
     try:
         return _run(_apply(uid))
     except Exception as exc:
+        # Don't retry on soft time limit — partial results already committed
+        from celery.exceptions import SoftTimeLimitExceeded
+        if isinstance(exc, SoftTimeLimitExceeded):
+            logger.warning("apply_tags_to_contacts: soft time limit hit for %s", user_id)
+            return {"status": "timeout", "tagged_count": 0}
         logger.exception("apply_tags_to_contacts failed for %s, retrying.", user_id)
         raise self.retry(exc=exc, countdown=30) from exc

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { LayoutDashboard, Users, Building2, Sparkles, GitMerge, Settings, Bell, LogOut, ChevronDown, Tag } from "lucide-react";
+import { LayoutDashboard, Users, Building2, Sparkles, GitMerge, Settings, Bell, LogOut, ChevronDown } from "lucide-react";
 import { useUnreadCount } from "@/hooks/use-notifications";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/contacts", label: "Contacts", icon: Users },
-  { href: "/contacts/tags", label: "Tags", icon: Tag },
   { href: "/organizations", label: "Orgs", icon: Building2 },
   { href: "/suggestions", label: "Suggestions", icon: Sparkles },
   { href: "/identity", label: "Identity", icon: GitMerge },

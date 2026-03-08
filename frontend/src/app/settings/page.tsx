@@ -6,6 +6,7 @@ import { Mail, MessageCircle, Twitter, RefreshCw, Check, AlertCircle, CheckCircl
 import { Upload } from "lucide-react";
 import { client } from "@/lib/api-client";
 import { CsvImport } from "@/components/csv-import";
+import { TagTaxonomyPanel } from "@/components/tag-taxonomy-panel";
 
 type SyncStatus = "idle" | "loading" | "success" | "error";
 
@@ -416,9 +417,9 @@ function PriorityTab() {
   const clamp = (v: number) => Math.max(7, Math.min(365, v));
 
   const levels: { key: keyof PrioritySettings; label: string; color: string; bg: string }[] = [
-    { key: "high", label: "High", color: "text-red-700", bg: "bg-red-50 border-red-200" },
-    { key: "medium", label: "Medium", color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-200" },
-    { key: "low", label: "Low", color: "text-gray-600", bg: "bg-gray-50 border-gray-200" },
+    { key: "high", label: "\uD83D\uDD25 High", color: "text-red-700", bg: "bg-red-50 border-red-200" },
+    { key: "medium", label: "\u26A1 Medium", color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-200" },
+    { key: "low", label: "\uD83D\uDCA4 Low", color: "text-gray-600", bg: "bg-gray-50 border-gray-200" },
   ];
 
   if (isLoading) {
@@ -833,10 +834,22 @@ function SettingsPageInner() {
           >
             Priority
           </button>
+          <button
+            onClick={() => setTab("tags")}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "tags"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Tags
+          </button>
         </div>
 
         {activeTab === "priority" ? (
           <PriorityTab />
+        ) : activeTab === "tags" ? (
+          <TagTaxonomyPanel />
         ) : (
         <>
         <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Connected Accounts</h2>
