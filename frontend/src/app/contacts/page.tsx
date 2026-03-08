@@ -580,7 +580,15 @@ export default function ContactsPage() {
                       {sortParam === "created" && <ArrowDown className="w-3 h-3 text-teal-600" />}
                     </span>
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-stone-600">Company</th>
+                  <th
+                    className="text-left px-4 py-3 font-medium text-stone-600 cursor-pointer select-none hover:text-stone-900"
+                    onClick={() => setParams({ sort: sortParam === "company" ? "score" : "company" })}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      Company
+                      {sortParam === "company" && <ArrowDown className="w-3 h-3 text-teal-600" />}
+                    </span>
+                  </th>
                   <th
                     className="text-left px-4 py-3 font-medium text-stone-600 cursor-pointer select-none hover:text-stone-900"
                     onClick={() => setParams({ sort: sortParam === "score" ? "created" : "score" })}

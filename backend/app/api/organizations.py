@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user
@@ -15,6 +16,7 @@ from app.models.contact import Contact
 from app.models.user import User
 from app.schemas.responses import Envelope
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/organizations", tags=["organizations"])
 
@@ -46,6 +48,17 @@ class OrganizationListMeta(BaseModel):
     page_size: int
     total: int
     total_pages: int
+
+
+class MergeOrganizationsRequest(BaseModel):
+    source_companies: list[str] = Field(..., min_length=1, description="Company names to merge away")
+    target_company: str = Field(..., min_length=1, description="Canonical company name to keep")
+
+
+class MergeOrganizationsResult(BaseModel):
+    target_company: str
+    contacts_updated: int
+    source_companies_merged: list[str]
 
 
 def _envelope(data: Any, meta: dict | None = None) -> dict:
@@ -131,4 +144,53 @@ async def list_organizations(
             "total": total,
             "total_pages": total_pages,
         },
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/organizations/merge
+# ---------------------------------------------------------------------------
+
+
+@router.post("/merge", response_model=Envelope[MergeOrganizationsResult])
+async def merge_organizations(
+    payload: MergeOrganizationsRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Merge multiple company names into one canonical name.
+
+    Updates the ``company`` field on all contacts belonging to the source
+    companies so they point to ``target_company``. Only contacts owned by
+    the current user are affected.
+    """
+    # Remove target from sources if included (no-op for those contacts)
+    sources = [c for c in payload.source_companies if c != payload.target_company]
+    if not sources:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="source_companies must contain at least one company different from target_company",
+        )
+
+    result = await db.execute(
+        update(Contact)
+        .where(
+            Contact.user_id == current_user.id,
+            Contact.company.in_(sources),
+        )
+        .values(company=payload.target_company)
+    )
+    updated = result.rowcount
+
+    logger.info(
+        "Merged %d contacts from %s into '%s' (user=%s)",
+        updated, sources, payload.target_company, current_user.id,
+    )
+
+    return _envelope(
+        {
+            "target_company": payload.target_company,
+            "contacts_updated": updated,
+            "source_companies_merged": sources,
+        }
     )

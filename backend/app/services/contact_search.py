@@ -164,6 +164,8 @@ async def list_contacts_paginated(
         order_clause = [Contact.created_at.desc()]
     elif sort_by == "interaction":
         order_clause = [Contact.last_interaction_at.desc().nullslast()]
+    elif sort_by == "company":
+        order_clause = [Contact.company.is_(None).asc(), Contact.company.asc(), Contact.created_at.desc()]
     elif sort_by == "birthday":
         # Sort by days until next birthday using MM-DD suffix.
         # birthday is stored as "MM-DD" or "YYYY-MM-DD"; right(birthday, 5) extracts "MM-DD".

@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Search, Building2, ChevronDown, ChevronRight, CheckSquare, Tag, X, Archive } from "lucide-react";
+import { Search, Building2, ChevronDown, ChevronRight, CheckSquare, Tag, X, Archive, GitMerge } from "lucide-react";
 import Link from "next/link";
 import { client } from "@/lib/api-client";
 import { ContactAvatar } from "@/components/contact-avatar";
@@ -27,20 +27,131 @@ interface Organization {
   contacts: OrgContact[];
 }
 
+function MergeModal({
+  companies,
+  onMerge,
+  onClose,
+  isPending,
+}: {
+  companies: string[];
+  onMerge: (target: string) => void;
+  onClose: () => void;
+  isPending: boolean;
+}) {
+  const [target, setTarget] = useState(companies[0] ?? "");
+  const [customName, setCustomName] = useState("");
+  const [useCustom, setUseCustom] = useState(false);
+
+  const finalTarget = useCustom ? customName.trim() : target;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <GitMerge className="w-5 h-5 text-blue-600" />
+          <h2 className="text-lg font-bold text-gray-900">Merge Organizations</h2>
+        </div>
+
+        <p className="text-sm text-gray-600 mb-4">
+          All contacts from the selected companies will be moved under one company name.
+        </p>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Keep as company name:
+          </label>
+          <div className="space-y-1.5 max-h-48 overflow-y-auto">
+            {companies.map((c) => (
+              <label
+                key={c}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
+                  !useCustom && target === c
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="target"
+                  checked={!useCustom && target === c}
+                  onChange={() => { setTarget(c); setUseCustom(false); }}
+                  className="text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-900">{c}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <label
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
+              useCustom ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            <input
+              type="radio"
+              name="target"
+              checked={useCustom}
+              onChange={() => setUseCustom(true)}
+              className="text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700">Use a different name:</span>
+          </label>
+          {useCustom && (
+            <input
+              type="text"
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder="Enter company name..."
+              className="mt-2 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              autoFocus
+            />
+          )}
+        </div>
+
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => finalTarget && onMerge(finalTarget)}
+            disabled={!finalTarget || isPending}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            <GitMerge className="w-4 h-4" />
+            {isPending ? "Merging..." : "Merge"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BulkActionBar({
   selectedCount,
+  selectedOrgCount,
   allTags,
   onAddTag,
   onRemoveTag,
   onSetPriority,
+  onMergeOrgs,
   onClear,
   isPending,
 }: {
   selectedCount: number;
+  selectedOrgCount: number;
   allTags: string[];
   onAddTag: (tag: string) => void;
   onRemoveTag: (tag: string) => void;
   onSetPriority: (level: string) => void;
+  onMergeOrgs: () => void;
   onClear: () => void;
   isPending: boolean;
 }) {
@@ -139,6 +250,20 @@ function BulkActionBar({
         Archive All
       </button>
 
+      {selectedOrgCount >= 2 && (
+        <>
+          <div className="h-5 w-px bg-blue-400" />
+          <button
+            onClick={onMergeOrgs}
+            disabled={isPending}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50"
+          >
+            <GitMerge className="w-3 h-3" />
+            Merge {selectedOrgCount} Orgs
+          </button>
+        </>
+      )}
+
       <div className="flex-1" />
 
       <button
@@ -162,6 +287,8 @@ export default function OrganizationsPage() {
 
   const [expandedOrgs, setExpandedOrgs] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedOrgs, setSelectedOrgs] = useState<Set<string>>(new Set());
+  const [showMergeModal, setShowMergeModal] = useState(false);
 
   const setParams = useCallback(
     (updates: Record<string, string | undefined>) => {
@@ -225,6 +352,21 @@ export default function OrganizationsPage() {
     },
   });
 
+  const mergeOrgs = useMutation({
+    mutationFn: async (body: { source_companies: string[]; target_company: string }) => {
+      const { data, error } = await client.POST("/api/v1/organizations/merge" as any, { body });
+      if (error) throw new Error((error as { detail?: string })?.detail ?? "Merge failed");
+      return data;
+    },
+    onSuccess: () => {
+      setSelectedIds(new Set());
+      setSelectedOrgs(new Set());
+      setShowMergeModal(false);
+      void queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      void queryClient.invalidateQueries({ queryKey: ["contacts"] });
+    },
+  });
+
   const toggleOrg = (company: string) => {
     setExpandedOrgs((prev) => {
       const next = new Set(prev);
@@ -253,6 +395,12 @@ export default function OrganizationsPage() {
       } else {
         orgContactIds.forEach((id) => next.add(id));
       }
+      return next;
+    });
+    setSelectedOrgs((prev) => {
+      const next = new Set(prev);
+      if (allSelected) next.delete(org.company);
+      else next.add(org.company);
       return next;
     });
   };
@@ -297,6 +445,7 @@ export default function OrganizationsPage() {
         {selectedIds.size > 0 && (
           <BulkActionBar
             selectedCount={selectedIds.size}
+            selectedOrgCount={selectedOrgs.size}
             allTags={allTags}
             isPending={bulkUpdate.isPending}
             onAddTag={(tag) =>
@@ -308,7 +457,20 @@ export default function OrganizationsPage() {
             onSetPriority={(level) =>
               bulkUpdate.mutate({ contact_ids: selectedArray, priority_level: level })
             }
-            onClear={() => setSelectedIds(new Set())}
+            onMergeOrgs={() => setShowMergeModal(true)}
+            onClear={() => { setSelectedIds(new Set()); setSelectedOrgs(new Set()); }}
+          />
+        )}
+
+        {showMergeModal && selectedOrgs.size >= 2 && (
+          <MergeModal
+            companies={Array.from(selectedOrgs).sort()}
+            isPending={mergeOrgs.isPending}
+            onMerge={(target) => {
+              const sources = Array.from(selectedOrgs).filter((c) => c !== target);
+              mergeOrgs.mutate({ source_companies: sources, target_company: target });
+            }}
+            onClose={() => setShowMergeModal(false)}
           />
         )}
 
@@ -338,18 +500,16 @@ export default function OrganizationsPage() {
               return (
                 <div key={org.company} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
-                    {isExpanded && (
-                      <input
-                        type="checkbox"
-                        checked={allOrgSelected}
-                        ref={(el) => {
-                          if (el) el.indeterminate = someOrgSelected && !allOrgSelected;
-                        }}
-                        onChange={() => toggleSelectOrg(org)}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
-                        aria-label={`Select all contacts in ${org.company}`}
-                      />
-                    )}
+                    <input
+                      type="checkbox"
+                      checked={allOrgSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = someOrgSelected && !allOrgSelected;
+                      }}
+                      onChange={() => toggleSelectOrg(org)}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+                      aria-label={`Select all contacts in ${org.company}`}
+                    />
                     <button
                       onClick={() => toggleOrg(org.company)}
                       className="flex items-center gap-3 flex-1 min-w-0 text-left"

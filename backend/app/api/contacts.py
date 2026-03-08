@@ -62,7 +62,7 @@ async def list_contacts(
     has_interactions: bool | None = Query(None, description="Filter to contacts with (true) or without (false) interactions"),
     interaction_days: int | None = Query(None, ge=1, le=365, description="Filter to contacts with last interaction within N days"),
     has_birthday: bool | None = Query(None, description="Filter to contacts with (true) or without (false) a birthday set"),
-    sort: str = Query("score", pattern="^(score|created|interaction|birthday)$"),
+    sort: str = Query("score", pattern="^(score|created|interaction|birthday|company)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ContactListResponse:
