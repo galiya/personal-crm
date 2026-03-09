@@ -26,10 +26,23 @@ Thumbs.db
 
 # Celery / Redis
 celerybeat-schedule
+celerybeat-schedule.db
 *.pid
 
 # Telegram sessions
 *.session
+
+# Coverage
+.coverage
+coverage/
+
+# Build artifacts
+tsconfig.tsbuildinfo
+next-env.d.ts
+openapi.json
+
+# Static (generated)
+backend/static/
 
 # Logs
 *.log
