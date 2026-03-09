@@ -950,7 +950,7 @@ export default function ContactDetailPage() {
                   ...(!contact.telegram_username ? { telegram: "No Telegram username" } : {}),
                   ...(!contact.twitter_handle ? { twitter: "No Twitter handle" } : {}),
                 }}
-                onSend={async (message, channel) => {
+                onSend={async (message, channel, scheduledFor) => {
                   setSuggestionError(null);
                   if (channel === "telegram" && contact?.telegram_username) {
                     try {
@@ -958,6 +958,7 @@ export default function ContactDetailPage() {
                         contactId: id,
                         message,
                         channel,
+                        scheduledFor,
                       });
                       if (suggestion) {
                         updateSuggestion.mutate({
@@ -965,7 +966,11 @@ export default function ContactDetailPage() {
                           input: { status: "sent", suggested_message: message, suggested_channel: channel },
                         });
                       }
-                      setSuggestionSent("Message sent via Telegram!");
+                      setSuggestionSent(
+                        scheduledFor
+                          ? `Message scheduled for ${new Date(scheduledFor).toLocaleString()}!`
+                          : "Message sent via Telegram!"
+                      );
                       setTimeout(() => setSuggestionSent(null), 4000);
                     } catch (err) {
                       setSuggestionError(

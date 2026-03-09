@@ -226,11 +226,13 @@ export default function ContactsPage() {
 
   const activeFilterCount = [tagFilter, sourceFilter, dateFrom, dateTo, scoreFilter].filter(Boolean).length;
 
+  const priorityFilter = searchParams.get("priority") || undefined;
   const { data, isLoading, isError } = useContacts({
     search: search || undefined,
     page,
     page_size: 20,
     score: scoreFilter,
+    priority: priorityFilter,
     tag: tagFilter || undefined,
     source: sourceFilter || undefined,
     date_from: dateFrom || undefined,

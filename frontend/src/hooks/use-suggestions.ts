@@ -90,10 +90,12 @@ export function useSendMessage() {
       contactId,
       message,
       channel,
+      scheduledFor,
     }: {
       contactId: string;
       message: string;
       channel: string;
+      scheduledFor?: string;
     }) => {
       const res = await fetch(
         `/api/v1/contacts/${contactId}/send-message`,
@@ -103,7 +105,7 @@ export function useSendMessage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${typeof window !== "undefined" ? localStorage.getItem("access_token") : ""}`,
           },
-          body: JSON.stringify({ message, channel }),
+          body: JSON.stringify({ message, channel, scheduled_for: scheduledFor || null }),
         }
       );
       if (!res.ok) {

@@ -37,6 +37,7 @@ export interface ContactsParams {
   search?: string;
   tag?: string;
   score?: string;
+  priority?: string;
   source?: string;
   date_from?: string;
   date_to?: string;

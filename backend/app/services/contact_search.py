@@ -19,6 +19,7 @@ def build_contact_filter_query(
     tag: str | None = None,
     source: str | None = None,
     score: str | None = None,
+    priority: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
     has_interactions: bool | None = None,
@@ -125,6 +126,9 @@ def build_contact_filter_query(
     elif score == "dormant":
         base_query = base_query.where(Contact.relationship_score <= 3)
 
+    if priority and priority in ("high", "medium", "low"):
+        base_query = base_query.where(Contact.priority_level == priority)
+
     return base_query
 
 
@@ -138,6 +142,7 @@ async def list_contacts_paginated(
     tag: str | None = None,
     source: str | None = None,
     score: str | None = None,
+    priority: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
     has_interactions: bool | None = None,
@@ -153,6 +158,7 @@ async def list_contacts_paginated(
         tag=tag,
         source=source,
         score=score,
+        priority=priority,
         date_from=date_from,
         date_to=date_to,
         has_interactions=has_interactions,

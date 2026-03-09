@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { LayoutDashboard, Users, Building2, Sparkles, GitMerge, Settings, Bell, LogOut, ChevronDown, Archive } from "lucide-react";
+import { LayoutDashboard, Users, Building2, Sparkles, GitMerge, Settings, Bell, LogOut, ChevronDown, Archive, Search } from "lucide-react";
 import { useUnreadCount } from "@/hooks/use-notifications";
-import { useState, useRef, useEffect } from "react";
+import { useContacts } from "@/hooks/use-contacts";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -113,6 +114,133 @@ function NavDropdown({
   );
 }
 
+function NavSearch() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const { data } = useContacts({
+    search: query || undefined,
+    page_size: 6,
+  });
+  const results = query.length >= 2 ? (data?.data ?? []) : [];
+
+  // Cmd+K / Ctrl+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setOpen(true);
+        setTimeout(() => inputRef.current?.focus(), 0);
+      }
+      if (e.key === "Escape") {
+        setOpen(false);
+        setQuery("");
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery("");
+      }
+    };
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const navigate = useCallback((id: string) => {
+    setOpen(false);
+    setQuery("");
+    router.push(`/contacts/${id}`);
+  }, [router]);
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => {
+          setOpen(true);
+          setTimeout(() => inputRef.current?.focus(), 0);
+        }}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-stone-400 border border-stone-200 hover:border-stone-300 hover:text-stone-500 transition-colors"
+      >
+        <Search className="w-3.5 h-3.5" />
+        <span className="hidden sm:inline">Search</span>
+        <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-stone-100 rounded text-stone-400">
+          ⌘K
+        </kbd>
+      </button>
+    );
+  }
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-teal-300 bg-white ring-2 ring-teal-100">
+        <Search className="w-3.5 h-3.5 text-stone-400" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && results.length > 0) {
+              navigate(results[0].id);
+            }
+          }}
+          placeholder="Search contacts..."
+          className="w-40 sm:w-56 text-sm bg-transparent outline-none placeholder:text-stone-400"
+        />
+      </div>
+      {query.length >= 2 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border border-stone-200 shadow-lg z-50 max-h-80 overflow-auto">
+          {results.length === 0 ? (
+            <p className="px-3 py-4 text-sm text-stone-400 text-center">No contacts found</p>
+          ) : (
+            results.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => navigate(c.id)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-stone-50 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-medium shrink-0">
+                  {(c.full_name || c.emails?.[0] || "?")[0].toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-stone-900 truncate">
+                    {c.full_name || c.emails?.[0] || "Unnamed"}
+                  </p>
+                  {c.company && (
+                    <p className="text-xs text-stone-400 truncate">{c.company}</p>
+                  )}
+                </div>
+              </button>
+            ))
+          )}
+          {query && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                setQuery("");
+                router.push(`/contacts?q=${encodeURIComponent(query)}`);
+              }}
+              className="w-full px-3 py-2 text-xs text-teal-600 hover:bg-teal-50 border-t border-stone-100 transition-colors"
+            >
+              View all results for &ldquo;{query}&rdquo;
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Nav() {
   const pathname = usePathname();
   const { user, isLoading, logout } = useAuth();
@@ -183,6 +311,9 @@ export function Nav() {
             );
           })}
         </div>
+
+        {/* Contact search */}
+        <NavSearch />
 
         {/* Notifications bell */}
         <NotificationBell />

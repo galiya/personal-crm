@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Mail, MessageCircle, Twitter, RefreshCw, Send } from "lucide-react";
+import { Mail, MessageCircle, Twitter, RefreshCw, Send, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { client } from "@/lib/api-client";
 
@@ -40,7 +40,7 @@ interface MessageEditorProps {
   contactId?: string;
   initialMessage?: string;
   initialChannel?: Channel;
-  onSend?: (message: string, channel: Channel) => void;
+  onSend?: (message: string, channel: Channel, scheduledFor?: string) => void;
   className?: string;
   disabledChannels?: Partial<Record<Channel, string>>;
 }
@@ -65,6 +65,8 @@ export function MessageEditor({
     return availableChannels[0] ?? "email";
   });
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduledFor, setScheduledFor] = useState("");
 
   const config = channelConfig[channel] ?? channelConfig.email;
   const charCount = message.length;
@@ -105,7 +107,8 @@ export function MessageEditor({
 
   const handleSend = () => {
     if (!message.trim() || isOverLimit) return;
-    onSend?.(message.trim(), channel);
+    const iso = scheduledFor ? new Date(scheduledFor).toISOString() : undefined;
+    onSend?.(message.trim(), channel, iso);
   };
 
   return (
@@ -161,6 +164,36 @@ export function MessageEditor({
         </span>
       </div>
 
+      {/* Schedule (Telegram only) */}
+      {channel === "telegram" && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setShowSchedule((v) => !v);
+              if (showSchedule) setScheduledFor("");
+            }}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md border transition-colors",
+              showSchedule
+                ? "text-sky-700 bg-sky-50 border-sky-200"
+                : "text-gray-500 bg-white border-gray-200 hover:bg-gray-50"
+            )}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            {showSchedule ? "Cancel schedule" : "Schedule send"}
+          </button>
+          {showSchedule && (
+            <input
+              type="datetime-local"
+              value={scheduledFor}
+              onChange={(e) => setScheduledFor(e.target.value)}
+              min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+              className="text-xs border border-gray-200 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            />
+          )}
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex items-center justify-between">
         <button
@@ -176,11 +209,20 @@ export function MessageEditor({
 
         <button
           onClick={handleSend}
-          disabled={!message.trim() || isOverLimit}
-          className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          disabled={!message.trim() || isOverLimit || (showSchedule && !scheduledFor)}
+          className={cn(
+            "inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
+            showSchedule && scheduledFor
+              ? "bg-sky-600 text-white hover:bg-sky-700"
+              : "bg-green-600 text-white hover:bg-green-700"
+          )}
         >
           {channel === "telegram" ? (
-            <><Send className="w-4 h-4" /> Send</>
+            showSchedule && scheduledFor ? (
+              <><Clock className="w-4 h-4" /> Schedule</>
+            ) : (
+              <><Send className="w-4 h-4" /> Send</>
+            )
           ) : channel === "email" ? (
             <><Mail className="w-4 h-4" /> Open Email</>
           ) : (

@@ -74,7 +74,7 @@ function SuggestionCard({ suggestion }: { suggestion: Suggestion }) {
   const [sendConfirm, setSendConfirm] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  const handleSend = async (message: string, ch: Channel) => {
+  const handleSend = async (message: string, ch: Channel, scheduledFor?: string) => {
     setSendError(null);
 
     if (ch === "telegram" && c?.telegram_username) {
@@ -83,6 +83,7 @@ function SuggestionCard({ suggestion }: { suggestion: Suggestion }) {
           contactId: suggestion.contact_id,
           message,
           channel: ch,
+          scheduledFor,
         });
 
         updateSuggestion.mutate({
@@ -90,7 +91,11 @@ function SuggestionCard({ suggestion }: { suggestion: Suggestion }) {
           input: { status: "sent", suggested_message: message, suggested_channel: ch },
         });
 
-        setSendConfirm("Message sent via Telegram!");
+        setSendConfirm(
+          scheduledFor
+            ? `Message scheduled for ${new Date(scheduledFor).toLocaleString()}!`
+            : "Message sent via Telegram!"
+        );
         setTimeout(() => setSendConfirm(null), 3000);
       } catch (err) {
         setSendError(err instanceof Error ? err.message : "Failed to send message");
@@ -297,7 +302,20 @@ export default function SuggestionsPage() {
               Analyzing your contacts, interaction history, and relationship scores. This may take a moment.
             </p>
             <div className="mt-3 ml-8 h-1.5 rounded-full bg-indigo-100 overflow-hidden">
-              <div className="h-full rounded-full bg-indigo-500 animate-pulse" style={{ width: "60%" }} />
+              <div
+                className="h-full rounded-full bg-indigo-500"
+                style={{
+                  width: "40%",
+                  animation: "indeterminate 1.5s ease-in-out infinite",
+                }}
+              />
+              <style>{`
+                @keyframes indeterminate {
+                  0% { margin-left: 0%; width: 30%; }
+                  50% { margin-left: 30%; width: 40%; }
+                  100% { margin-left: 70%; width: 30%; }
+                }
+              `}</style>
             </div>
           </div>
         )}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
@@ -62,6 +63,7 @@ async def list_contacts(
     has_interactions: bool | None = Query(None, description="Filter to contacts with (true) or without (false) interactions"),
     interaction_days: int | None = Query(None, ge=1, le=365, description="Filter to contacts with last interaction within N days"),
     has_birthday: bool | None = Query(None, description="Filter to contacts with (true) or without (false) a birthday set"),
+    priority: str | None = Query(None, description="Filter by priority level: high, medium, low"),
     archived_only: bool = Query(False, description="Return only archived contacts"),
     sort: str = Query("score", pattern="^(score|created|interaction|birthday|company|activity)$"),
     db: AsyncSession = Depends(get_db),
@@ -78,6 +80,7 @@ async def list_contacts(
         tag=tag,
         source=source,
         score=score,
+        priority=priority,
         date_from=date_from,
         date_to=date_to,
         has_interactions=has_interactions,
@@ -1153,6 +1156,7 @@ async def sync_contact_emails(
 class SendMessageBody(BaseModel):
     message: str
     channel: str  # "telegram" | "twitter" | "email"
+    scheduled_for: datetime | None = None  # ISO datetime for scheduled send (Telegram only)
 
 
 @router.post(
@@ -1195,7 +1199,10 @@ async def send_message(
         from app.integrations.telegram import send_telegram_message
 
         try:
-            send_result = await send_telegram_message(current_user, username, body.message.strip())
+            send_result = await send_telegram_message(
+                current_user, username, body.message.strip(),
+                scheduled_for=body.scheduled_for,
+            )
         except RuntimeError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
         except Exception as exc:

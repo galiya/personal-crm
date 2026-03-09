@@ -110,10 +110,15 @@ async def send_telegram_message(
     user: User,
     username: str,
     message: str,
+    *,
+    scheduled_for: object | None = None,
 ) -> dict:
     """Send a Telegram message to *username* using the user's session.
 
-    Returns dict with ``message_id`` and ``sent`` status.
+    If *scheduled_for* is a datetime, the message is scheduled for future
+    delivery using Telegram's native scheduled-message feature.
+
+    Returns dict with ``message_id``, ``sent`` status, and ``scheduled``.
     """
     if not user.telegram_session:
         raise RuntimeError("No Telegram session. Please connect your account first.")
@@ -122,8 +127,15 @@ async def send_telegram_message(
     await _ensure_connected(client)
     try:
         entity = await client.get_input_entity(username)
-        result = await client.send_message(entity, message)
-        return {"sent": True, "message_id": result.id}
+        kwargs: dict = {}
+        if scheduled_for is not None:
+            kwargs["schedule"] = scheduled_for
+        result = await client.send_message(entity, message, **kwargs)
+        return {
+            "sent": True,
+            "message_id": result.id,
+            "scheduled": scheduled_for is not None,
+        }
     finally:
         await client.disconnect()
 
