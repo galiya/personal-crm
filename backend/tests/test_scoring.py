@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.contact import Contact
 from app.models.interaction import Interaction
 from app.models.user import User
-from app.services.scoring import calculate_score
+from app.services.scoring import calculate_score, calculate_score_breakdown
 
 
 def _make_contact(db: AsyncSession, user: User, name: str) -> Contact:
@@ -154,3 +154,73 @@ async def test_interaction_count_persisted(db: AsyncSession, test_user: User):
     await calculate_score(contact.id, db)
     await db.refresh(contact)
     assert contact.interaction_count == 3
+
+
+@pytest.mark.asyncio
+async def test_calculate_score_breakdown_returns_all_fields(db: AsyncSession, test_user: User):
+    """Verify ScoreBreakdown has all expected fields."""
+    contact = _make_contact(db, test_user, "Breakdown Test")
+    await db.flush()
+    _add_interaction(db, contact, test_user, "inbound", 5)
+    _add_interaction(db, contact, test_user, "outbound", 10)
+    await db.flush()
+
+    breakdown = await calculate_score_breakdown(contact.id, db)
+    assert hasattr(breakdown, 'total')
+    assert hasattr(breakdown, 'reciprocity')
+    assert hasattr(breakdown, 'recency')
+    assert hasattr(breakdown, 'frequency')
+    assert hasattr(breakdown, 'breadth')
+    assert hasattr(breakdown, 'inbound_365d')
+    assert hasattr(breakdown, 'outbound_365d')
+    assert hasattr(breakdown, 'count_30d')
+    assert hasattr(breakdown, 'count_90d')
+    assert hasattr(breakdown, 'platforms')
+    assert hasattr(breakdown, 'interaction_count')
+    assert breakdown.interaction_count == 2
+
+
+@pytest.mark.asyncio
+async def test_calculate_score_breakdown_matches_calculate_score(db: AsyncSession, test_user: User):
+    """Verify breakdown.total equals the original function."""
+    contact = _make_contact(db, test_user, "Match Test")
+    await db.flush()
+    for i in range(5):
+        _add_interaction(db, contact, test_user, "inbound", i + 1)
+        _add_interaction(db, contact, test_user, "outbound", i + 2)
+    await db.flush()
+
+    score = await calculate_score(contact.id, db)
+    breakdown = await calculate_score_breakdown(contact.id, db)
+    assert breakdown.total == score
+
+
+@pytest.mark.asyncio
+async def test_breakdown_reciprocity_values(db: AsyncSession, test_user: User):
+    """Create known inbound/outbound counts, verify reciprocity dimension."""
+    contact = _make_contact(db, test_user, "Reciprocity Test")
+    await db.flush()
+    # 4 inbound, 4 outbound = perfect balance = reciprocity 4
+    for i in range(4):
+        _add_interaction(db, contact, test_user, "inbound", i + 1)
+        _add_interaction(db, contact, test_user, "outbound", i + 1)
+    await db.flush()
+
+    breakdown = await calculate_score_breakdown(contact.id, db)
+    assert breakdown.reciprocity == 4
+    assert breakdown.inbound_365d == 4
+    assert breakdown.outbound_365d == 4
+
+
+@pytest.mark.asyncio
+async def test_breakdown_platforms_list(db: AsyncSession, test_user: User):
+    """Verify platforms returns actual names not just count."""
+    contact = _make_contact(db, test_user, "Platform Test")
+    await db.flush()
+    _add_interaction(db, contact, test_user, "inbound", 5, platform="email")
+    _add_interaction(db, contact, test_user, "outbound", 5, platform="telegram")
+    await db.flush()
+
+    breakdown = await calculate_score_breakdown(contact.id, db)
+    assert isinstance(breakdown.platforms, list)
+    assert set(breakdown.platforms) == {"email", "telegram"}

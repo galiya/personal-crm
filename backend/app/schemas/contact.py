@@ -54,6 +54,7 @@ class ContactResponse(ContactBase):
     id: uuid.UUID
     user_id: uuid.UUID
     relationship_score: int
+    interaction_count: int = 0
     last_interaction_at: datetime | None = None
     last_followup_at: datetime | None = None
     created_at: datetime

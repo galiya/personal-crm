@@ -63,7 +63,7 @@ async def list_contacts(
     interaction_days: int | None = Query(None, ge=1, le=365, description="Filter to contacts with last interaction within N days"),
     has_birthday: bool | None = Query(None, description="Filter to contacts with (true) or without (false) a birthday set"),
     archived_only: bool = Query(False, description="Return only archived contacts"),
-    sort: str = Query("score", pattern="^(score|created|interaction|birthday|company)$"),
+    sort: str = Query("score", pattern="^(score|created|interaction|birthday|company|activity)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ContactListResponse:
@@ -514,6 +514,68 @@ async def get_contact(
     if not contact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
     return envelope(ContactResponse.model_validate(contact).model_dump())
+
+
+@router.get("/{contact_id}/activity")
+async def get_contact_activity(
+    contact_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Return activity score breakdown and monthly interaction trend for a contact."""
+    from datetime import UTC, datetime, timedelta
+
+    from sqlalchemy import func
+
+    from app.models.interaction import Interaction
+    from app.services.scoring import calculate_score_breakdown
+
+    result = await db.execute(
+        select(Contact).where(Contact.id == contact_id, Contact.user_id == current_user.id)
+    )
+    contact = result.scalar_one_or_none()
+    if not contact:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
+
+    breakdown = await calculate_score_breakdown(contact_id, db)
+
+    # Monthly trend: last 6 months
+    six_months_ago = datetime.now(UTC) - timedelta(days=183)
+    trend_result = await db.execute(
+        select(
+            func.date_trunc("month", Interaction.occurred_at).label("month"),
+            func.count().label("count"),
+        )
+        .where(
+            Interaction.contact_id == contact_id,
+            Interaction.occurred_at >= six_months_ago,
+        )
+        .group_by(func.date_trunc("month", Interaction.occurred_at))
+        .order_by(func.date_trunc("month", Interaction.occurred_at))
+    )
+    monthly_trend = [
+        {"month": row.month.strftime("%Y-%m"), "count": row.count}
+        for row in trend_result.all()
+    ]
+
+    return envelope({
+        "score": breakdown.total,
+        "dimensions": {
+            "reciprocity": {"value": breakdown.reciprocity, "max": 4},
+            "recency": {"value": breakdown.recency, "max": 3},
+            "frequency": {"value": breakdown.frequency, "max": 2},
+            "breadth": {"value": breakdown.breadth, "max": 1},
+        },
+        "stats": {
+            "inbound_365d": breakdown.inbound_365d,
+            "outbound_365d": breakdown.outbound_365d,
+            "count_30d": breakdown.count_30d,
+            "count_90d": breakdown.count_90d,
+            "platforms": breakdown.platforms,
+            "interaction_count": breakdown.interaction_count,
+        },
+        "monthly_trend": monthly_trend,
+    })
 
 
 @router.put("/{contact_id}", response_model=Envelope[ContactResponse])

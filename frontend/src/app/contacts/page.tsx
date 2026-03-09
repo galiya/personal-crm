@@ -599,6 +599,15 @@ export default function ContactsPage() {
                     </span>
                   </th>
                   <th
+                    className="text-right px-4 py-3 font-medium text-stone-600 w-20 cursor-pointer select-none hover:text-stone-900"
+                    onClick={() => setParams({ sort: sortParam === "activity" ? "score" : "activity" })}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      Activity
+                      {sortParam === "activity" && <ArrowDown className="w-3 h-3 text-teal-600" />}
+                    </span>
+                  </th>
+                  <th
                     className="text-left px-4 py-3 font-medium text-stone-600 cursor-pointer select-none hover:text-stone-900"
                     onClick={() => setParams({ sort: sortParam === "interaction" ? "score" : "interaction" })}
                   >
@@ -648,6 +657,9 @@ export default function ContactsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <ScoreBadge score={contact.relationship_score} />
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono-data text-stone-500">
+                        {(contact as any).interaction_count ?? 0}
                       </td>
                       <td className="px-4 py-3 text-stone-500">
                         {contact.last_interaction_at

@@ -322,3 +322,43 @@ async def test_merge_contacts_not_found(client: AsyncClient, auth_headers: dict)
 async def test_contacts_require_auth(client: AsyncClient):
     resp = await client.get("/api/v1/contacts")
     assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_activity_endpoint_returns_breakdown(client: AsyncClient, auth_headers: dict, test_contact: Contact):
+    resp = await client.get(f"/api/v1/contacts/{test_contact.id}/activity", headers=auth_headers)
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert "score" in data
+    assert "dimensions" in data
+    assert "stats" in data
+    assert "monthly_trend" in data
+    dims = data["dimensions"]
+    assert dims["reciprocity"]["max"] == 4
+    assert dims["recency"]["max"] == 3
+    assert dims["frequency"]["max"] == 2
+    assert dims["breadth"]["max"] == 1
+
+
+@pytest.mark.asyncio
+async def test_activity_endpoint_monthly_trend(client: AsyncClient, auth_headers: dict, test_contact: Contact, db):
+    """Create interactions across months, verify trend buckets."""
+    from datetime import UTC, datetime, timedelta
+    from app.models.interaction import Interaction
+
+    now = datetime.now(UTC)
+    for months_ago in [1, 1, 3]:
+        db.add(Interaction(
+            contact_id=test_contact.id,
+            user_id=test_contact.user_id,
+            platform="email",
+            direction="inbound",
+            content_preview="test",
+            occurred_at=now - timedelta(days=months_ago * 30),
+        ))
+    await db.commit()
+
+    resp = await client.get(f"/api/v1/contacts/{test_contact.id}/activity", headers=auth_headers)
+    assert resp.status_code == 200
+    trend = resp.json()["data"]["monthly_trend"]
+    assert isinstance(trend, list)

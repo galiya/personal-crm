@@ -257,6 +257,19 @@ async def fetch_telegram_dialogs(user: User) -> list[dict[str, Any]]:
     return dialogs
 
 
+async def _find_contact_by_telegram_user_id(
+    tg_user_id: str, user_id: uuid.UUID, db: AsyncSession
+) -> Contact | None:
+    """Locate a Contact belonging to *user_id* whose telegram_user_id matches."""
+    result = await db.execute(
+        select(Contact).where(
+            Contact.user_id == user_id,
+            Contact.telegram_user_id == tg_user_id,
+        ).limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
 async def _find_contact_by_username(
     username: str, user_id: uuid.UUID, db: AsyncSession
 ) -> Contact | None:
@@ -373,7 +386,9 @@ async def sync_telegram_chats(user: User, db: AsyncSession) -> int:
 
             # Resolve the contact in our database
             contact: Contact | None = None
-            if entity.username:
+            # Check telegram_user_id first (survives username changes and parallel sync)
+            contact = await _find_contact_by_telegram_user_id(str(entity.id), user.id, db)
+            if contact is None and entity.username:
                 contact = await _find_contact_by_username(entity.username, user.id, db)
             if contact is None and entity.phone:
                 contact = await _find_contact_by_phone(entity.phone, user.id, db)
@@ -544,7 +559,9 @@ async def sync_telegram_group_members(user: User, db: AsyncSession) -> dict[str,
 
                 # Try to find existing contact
                 contact: Contact | None = None
-                if member.username:
+                # Check telegram_user_id first (survives username changes and parallel sync)
+                contact = await _find_contact_by_telegram_user_id(str(member.id), user.id, db)
+                if contact is None and member.username:
                     contact = await _find_contact_by_username(member.username, user.id, db)
                 if contact is None and member.phone:
                     contact = await _find_contact_by_phone(member.phone, user.id, db)

@@ -22,6 +22,7 @@ export interface Contact {
   tags: string[];
   notes: string | null;
   relationship_score: number;
+  interaction_count: number;
   last_interaction_at: string | null;
   last_followup_at: string | null;
   priority_level: string;
@@ -180,5 +181,38 @@ export function useUpdateContact() {
         queryKey: ["contacts", variables.id],
       });
     },
+  });
+}
+
+export interface ActivityData {
+  score: number;
+  dimensions: {
+    reciprocity: { value: number; max: number };
+    recency: { value: number; max: number };
+    frequency: { value: number; max: number };
+    breadth: { value: number; max: number };
+  };
+  stats: {
+    inbound_365d: number;
+    outbound_365d: number;
+    count_30d: number;
+    count_90d: number;
+    platforms: string[];
+    interaction_count: number;
+  };
+  monthly_trend: { month: string; count: number }[];
+}
+
+export function useContactActivity(id: string) {
+  return useQuery({
+    queryKey: ["contact-activity", id],
+    queryFn: async () => {
+      const { data } = await client.GET(
+        "/api/v1/contacts/{contact_id}/activity" as any,
+        { params: { path: { contact_id: id } } }
+      );
+      return (data as any)?.data as ActivityData;
+    },
+    enabled: Boolean(id),
   });
 }

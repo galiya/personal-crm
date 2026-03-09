@@ -27,7 +27,8 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useContact, useUpdateContact, useDeleteContact, useContactDuplicates, useMergeContacts, type Contact } from "@/hooks/use-contacts";
+import { useContact, useUpdateContact, useDeleteContact, useContactDuplicates, useMergeContacts, useContactActivity, type Contact } from "@/hooks/use-contacts";
+import { ActivityBreakdown, ActivityBreakdownSkeleton } from "@/components/activity-breakdown";
 import { ScoreBadge } from "@/components/score-badge";
 import { Timeline, type TimelineEntry } from "@/components/timeline";
 import {
@@ -206,6 +207,7 @@ export default function ContactDetailPage() {
   const contact = contactData?.data as Contact | undefined;
   const updateContact = useUpdateContact();
   const deleteContact = useDeleteContact();
+  const { data: activityData, isLoading: activityLoading } = useContactActivity(id);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -710,6 +712,13 @@ export default function ContactDetailPage() {
                 })}
               </div>
             </div>
+
+            {/* Activity breakdown */}
+            {activityLoading ? (
+              <ActivityBreakdownSkeleton />
+            ) : activityData ? (
+              <ActivityBreakdown data={activityData} />
+            ) : null}
 
             {/* Editable properties card */}
             <div className="bg-white rounded-lg border border-stone-200 p-5">

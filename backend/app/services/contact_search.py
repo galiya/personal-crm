@@ -168,6 +168,8 @@ async def list_contacts_paginated(
         order_clause = [Contact.created_at.desc()]
     elif sort_by == "interaction":
         order_clause = [Contact.last_interaction_at.desc().nullslast()]
+    elif sort_by == "activity":
+        order_clause = [Contact.interaction_count.desc(), Contact.created_at.desc()]
     elif sort_by == "company":
         order_clause = [Contact.company.is_(None).asc(), Contact.company.asc(), Contact.created_at.desc()]
     elif sort_by == "birthday":

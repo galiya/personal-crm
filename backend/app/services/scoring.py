@@ -1,4 +1,5 @@
 import uuid
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select, func, case, distinct
@@ -8,16 +9,23 @@ from app.models.contact import Contact
 from app.models.interaction import Interaction
 
 
-async def calculate_score(contact_id: uuid.UUID, db: AsyncSession) -> int:
-    """
-    Calculate relationship score for a contact (0-10 scale).
+@dataclass
+class ScoreBreakdown:
+    total: int              # 0-10 composite
+    reciprocity: int        # 0-4
+    recency: int            # 0-3
+    frequency: int          # 0-2
+    breadth: int            # 0-1
+    inbound_365d: int       # raw inbound count
+    outbound_365d: int      # raw outbound count
+    count_30d: int          # interactions in last 30d
+    count_90d: int          # interactions in 30-90d window
+    platforms: list[str] = field(default_factory=list)  # distinct platform names
+    interaction_count: int = 0  # lifetime total
 
-    4 dimensions:
-    - Reciprocity (0-4): inbound/outbound balance in last 365 days
-    - Recency (0-3): time since last interaction, inbound-weighted
-    - Frequency (0-2): weighted interaction count across time windows
-    - Breadth (0-1): multi-platform communication
-    """
+
+async def calculate_score_breakdown(contact_id: uuid.UUID, db: AsyncSession) -> ScoreBreakdown:
+    """Calculate full score breakdown for a contact."""
     now = datetime.now(UTC)
     d30 = now - timedelta(days=30)
     d90 = now - timedelta(days=90)
@@ -109,7 +117,9 @@ async def calculate_score(contact_id: uuid.UUID, db: AsyncSession) -> int:
         )
     )
     freq_row = freq_result.one()
-    weighted = freq_row.c30 * 1.0 + freq_row.c90 * 0.3 + freq_row.c365 * 0.1
+    count_30d = freq_row.c30
+    count_90d = freq_row.c90
+    weighted = count_30d * 1.0 + count_90d * 0.3 + freq_row.c365 * 0.1
     if weighted >= 8:
         frequency = 2
     elif weighted >= 3:
@@ -125,6 +135,13 @@ async def calculate_score(contact_id: uuid.UUID, db: AsyncSession) -> int:
     )
     platform_count = platform_result.scalar_one()
     breadth = 1 if platform_count >= 2 else 0
+
+    # Query 5: distinct platform names
+    platform_names_result = await db.execute(
+        select(distinct(Interaction.platform))
+        .where(Interaction.contact_id == contact_id)
+    )
+    platforms = [row[0] for row in platform_names_result.all() if row[0] is not None]
 
     score = min(10, reciprocity + recency + frequency + breadth)
 
@@ -144,4 +161,22 @@ async def calculate_score(contact_id: uuid.UUID, db: AsyncSession) -> int:
         contact.interaction_count = interaction_count
         await db.flush()
 
-    return score
+    return ScoreBreakdown(
+        total=score,
+        reciprocity=reciprocity,
+        recency=recency,
+        frequency=frequency,
+        breadth=breadth,
+        inbound_365d=inbound_count,
+        outbound_365d=outbound_count,
+        count_30d=count_30d,
+        count_90d=count_90d,
+        platforms=platforms,
+        interaction_count=interaction_count,
+    )
+
+
+async def calculate_score(contact_id: uuid.UUID, db: AsyncSession) -> int:
+    """Calculate relationship score (0-10). Thin wrapper around calculate_score_breakdown."""
+    breakdown = await calculate_score_breakdown(contact_id, db)
+    return breakdown.total
