@@ -7,8 +7,10 @@
   const setupSection = document.getElementById('setup-section');
   const statusSection = document.getElementById('status-section');
   const apiUrlInput = document.getElementById('api-url');
-  const tokenInput = document.getElementById('token');
-  const saveBtn = document.getElementById('save-btn');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const loginBtn = document.getElementById('login-btn');
+  const loginError = document.getElementById('login-error');
   const disconnectBtn = document.getElementById('disconnect-btn');
   const autoSyncToggle = document.getElementById('auto-sync');
   const profileCountEl = document.getElementById('profile-count');
@@ -58,17 +60,45 @@
     return `${days}d ago`;
   }
 
-  saveBtn.addEventListener('click', async () => {
-    const apiUrl = apiUrlInput.value.trim();
-    const token = tokenInput.value.trim();
+  function showError(msg) {
+    loginError.textContent = msg;
+    loginError.classList.remove('hidden');
+  }
 
-    if (!apiUrl || !token) {
-      alert('Please fill in both fields.');
+  function hideError() {
+    loginError.classList.add('hidden');
+  }
+
+  loginBtn.addEventListener('click', async () => {
+    const apiUrl = apiUrlInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!apiUrl || !email || !password) {
+      showError('Please fill in all fields.');
       return;
     }
 
-    await Storage.saveConfig({ apiUrl, token });
-    await render();
+    hideError();
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Logging in...';
+
+    try {
+      const cleanUrl = apiUrl.replace(/\/+$/, '');
+      const token = await Api.login(cleanUrl, email, password);
+      await Storage.saveConfig({ apiUrl: cleanUrl, token });
+      await render();
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Log in';
+    }
+  });
+
+  // Allow Enter key to submit
+  passwordInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') loginBtn.click();
   });
 
   disconnectBtn.addEventListener('click', async () => {

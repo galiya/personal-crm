@@ -19,10 +19,15 @@
         <input type="url" id="api-url" placeholder="https://your-pingcrm.example.com">
       </div>
       <div class="form-group">
-        <label for="token">JWT Token</label>
-        <input type="password" id="token" placeholder="Paste your token here">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com">
       </div>
-      <button id="save-btn" class="btn btn-primary">Save &amp; Connect</button>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Your password">
+      </div>
+      <p id="login-error" class="error-text hidden"></p>
+      <button id="login-btn" class="btn btn-primary">Log in</button>
     </div>
 
     <div id="status-section" class="section hidden">
@@ -54,6 +59,7 @@
   </div>
 
   <script src="../lib/storage.js"></script>
+  <script src="../lib/api.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
