@@ -234,10 +234,13 @@ function OnboardingInner() {
   );
 }
 
-export default function OnboardingPage() {
+function OnboardingPageContent() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
       <OnboardingInner />
     </Suspense>
   );
 }
+
+function PageLoading() { return <div className="min-h-screen bg-stone-50 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full" /></div>; }
+export default function OnboardingPage() { return <Suspense fallback={<PageLoading />}><OnboardingPageContent /></Suspense>; }

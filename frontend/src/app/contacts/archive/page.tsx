@@ -196,3 +196,6 @@ function ArchivedContactsInner() {
     </div>
   );
 }
+
+function PageLoading() { return <div className="min-h-screen bg-stone-50 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full" /></div>; }
+export default function ArchivePage() { return <Suspense fallback={<PageLoading />}><ArchivePageContent /></Suspense>; }

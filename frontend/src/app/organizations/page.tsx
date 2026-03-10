@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useCallback, useRef } from "react";
+import { Suspense, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Search, Building2, ChevronDown, ChevronRight, CheckSquare, Tag, X, Archive, GitMerge } from "lucide-react";
@@ -278,7 +278,7 @@ function BulkActionBar({
   );
 }
 
-export default function OrganizationsPage() {
+function OrganizationsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -615,4 +615,12 @@ export default function OrganizationsPage() {
       </div>
     </div>
   );
+}
+
+function PageLoading() {
+  return <div className="min-h-screen bg-stone-50 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full" /></div>;
+}
+
+export default function OrganizationsPage() {
+  return <Suspense fallback={<PageLoading />}><OrganizationsPageContent /></Suspense>;
 }

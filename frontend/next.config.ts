@@ -4,7 +4,6 @@ const nextConfig: NextConfig = {
   output: "standalone",
   experimental: {
     proxyTimeout: 120_000,
-    missingSuspenseWithCSRBailout: false,
   },
   async rewrites() {
     return [

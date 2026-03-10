@@ -49,7 +49,7 @@ function TwitterCallbackInner() {
   return <p className="text-sm text-gray-500">Connecting Twitter...</p>;
 }
 
-export default function TwitterCallbackPage() {
+function TwitterCallbackPageContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Suspense fallback={<p className="text-sm text-gray-500">Loading...</p>}>
@@ -58,3 +58,6 @@ export default function TwitterCallbackPage() {
     </div>
   );
 }
+
+function PageLoading() { return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full" /></div>; }
+export default function TwitterCallbackPage() { return <Suspense fallback={<PageLoading />}><TwitterCallbackPageContent /></Suspense>; }
