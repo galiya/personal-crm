@@ -100,12 +100,12 @@ function PriorityBadge({ level }: { level: string }) {
 // Platform icons for contact row
 // ---------------------------------------------------------------------------
 
-function PlatformIcons({ emails, telegram, twitter }: { emails: string[]; telegram: string | null; twitter: string | null }) {
+function PlatformIcons({ emails, telegram, twitter }: { emails: string[]; telegram?: string | null; twitter?: string | null }) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      {emails.length > 0 && <Mail className="w-3 h-3 text-red-400" title="Email" />}
-      {telegram && <MessageCircle className="w-3 h-3 text-sky-400" title="Telegram" />}
-      {twitter && <Twitter className="w-3 h-3 text-stone-400" title="Twitter/X" />}
+      {emails.length > 0 && <span className="text-red-400" aria-label="Email"><Mail className="w-3 h-3" /></span>}
+      {telegram && <span className="text-sky-400" aria-label="Telegram"><MessageCircle className="w-3 h-3" /></span>}
+      {twitter && <span className="text-stone-400" aria-label="Twitter/X"><Twitter className="w-3 h-3" /></span>}
     </span>
   );
 }
@@ -114,7 +114,7 @@ function PlatformIcons({ emails, telegram, twitter }: { emails: string[]; telegr
 // Days-ago label
 // ---------------------------------------------------------------------------
 
-function DaysAgo({ dateStr }: { dateStr: string | null }) {
+function DaysAgo({ dateStr }: { dateStr?: string | null }) {
   if (!dateStr) return <span className="text-stone-300">&mdash;</span>;
   const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
   const isOverdue = days > 30;
@@ -874,7 +874,7 @@ function ContactsPageContent() {
 
                   {/* Activity count */}
                   <div className="text-right font-mono-data text-xs text-stone-500">
-                    {contact.interaction_count ?? 0}
+                    {(contact as any).interaction_count ?? 0}
                   </div>
 
                   {/* Last interaction */}
