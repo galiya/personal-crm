@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/suggestions", label: "Suggestions", icon: Sparkles },
   {
     href: "/contacts",
     label: "Contacts",
@@ -22,7 +23,6 @@ const navLinks = [
     ],
   },
   { href: "/organizations", label: "Orgs", icon: Building2 },
-  { href: "/suggestions", label: "Suggestions", icon: Sparkles },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
