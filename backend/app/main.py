@@ -20,6 +20,7 @@ from app.api.twitter import router as twitter_router
 from app.api.organizations import router as organizations_router
 from app.api.settings import router as settings_router
 from app.api.linkedin import router as linkedin_router
+from app.api.activity import router as activity_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -79,6 +80,7 @@ app.include_router(notifications_router)
 app.include_router(organizations_router)
 app.include_router(settings_router)
 app.include_router(linkedin_router)
+app.include_router(activity_router)
 
 # Serve uploaded avatars
 _static_dir = Path(__file__).resolve().parent.parent / "static"

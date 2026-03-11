@@ -5,27 +5,10 @@ Reviewing 4 new HTML mockups (dashboard-v2, contacts-v2, contact-detail, setting
 
 ---
 
-## 1. Entire Pages Missing from Mockups
-
-These 4 pages exist in code with full functionality but have **no mockup at all**:
-
-| Page | Route | What It Does |
-|------|-------|-------------|
-| **Suggestions Digest** | `/suggestions` | Full-page suggestion management: generate, send, snooze, dismiss, regenerate, channel switching. Dashboard mockup only shows 3 inline cards. |
-| **Archive** | `/contacts/archive` | Dedicated archived contacts list with search, unarchive action, pagination. |
-| **Identity Resolution** | `/identity` | Full duplicate pair list, scan trigger, match score display, merge/reject workflow. |
-| **Notifications** | `/notifications` | Notification center: list with expand/collapse details, mark-read, mark-all-read, type icons, related page links. |
-
-**Impact:** These pages need mockups if they should follow the new design language, or a decision to remove/merge them.
-
----
-
 ## 2. Navigation & Layout Differences
 
 | Feature | Current Code | Mockup |
 |---------|-------------|--------|
-| **Sidebar nav** | Vertical left sidebar with static links | Top horizontal navbar |
-| **Contacts dropdown** | Archive + Resolve Duplicates nested under Contacts | Same (matches) |
 | **User menu dropdown** | Shows user name, has sign-out action | Shows "Alex" with chevron but **no dropdown content** |
 | **Global search (Cmd+K)** | Not implemented | Mockup shows `Cmd+K` search button in navbar (new feature) |
 | **Onboarding wizard** | 4-step onboarding at `/onboarding` | No mockup (dashboard has empty state instead) |

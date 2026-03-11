@@ -102,3 +102,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
+          BIRD_AUTH_TOKEN: ${{ secrets.BIRD_AUTH_TOKEN }}
+          BIRD_CT0: ${{ secrets.BIRD_CT0 }}

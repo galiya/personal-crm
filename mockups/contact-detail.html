@@ -23,17 +23,9 @@ tailwind.config = { theme: { extend: { fontFamily: {
   .nav-group:hover .nav-dropdown, .nav-dropdown:hover { display: block; }
   .nav-dropdown { display: none; }
 
-  /* Score ring */
-  .score-ring { transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
-
   /* Interaction timeline */
   .timeline-item { transition: background 0.15s; }
   .timeline-item:hover { background: #fafaf9; }
-
-  /* Tab */
-  .detail-tab { transition: all 0.15s; border-bottom: 2px solid transparent; }
-  .detail-tab:hover { color: #0d9488; }
-  .detail-tab.active { color: #0d9488; border-bottom-color: #0d9488; }
 
   /* Section card */
   .section-card { transition: box-shadow 0.2s; }
@@ -62,16 +54,6 @@ tailwind.config = { theme: { extend: { fontFamily: {
   .editable:hover .edit-hint { opacity: 1; }
   .edit-hint { opacity: 0; transition: opacity 0.15s; }
 
-  /* Active editing state */
-  .editable-active {
-    background: white;
-    border: 1px solid #0d9488;
-    border-radius: 6px;
-    padding: 2px 8px;
-    margin: -3px -9px;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
-  }
 </style>
 </head>
 <body class="bg-stone-50 text-stone-900 min-h-screen">
@@ -127,40 +109,15 @@ tailwind.config = { theme: { extend: { fontFamily: {
           <i data-lucide="camera" class="w-5 h-5 text-white"></i>
         </div>
         <input type="file" id="avatarUpload" accept="image/*" class="hidden">
-        <svg class="absolute -inset-1 w-[88px] h-[88px]" viewBox="0 0 88 88">
-          <circle cx="44" cy="44" r="40" fill="none" stroke="#e7e5e4" stroke-width="3"/>
-          <circle cx="44" cy="44" r="40" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"
-            stroke-dasharray="251" stroke-dashoffset="126" class="score-ring" transform="rotate(-90 44 44)"/>
-        </svg>
-        <div class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-amber-50 border-2 border-white flex items-center justify-center">
-          <span class="font-mono text-xs font-bold text-amber-700">5</span>
-        </div>
       </div>
 
       <!-- Info -->
       <div class="flex-1 min-w-0">
         <!-- Name row: click name to edit -->
         <div class="flex items-center gap-3 mb-0.5">
-          <h1 class="editable text-xl font-display font-bold text-stone-900" onclick="this.contentEditable=true;this.focus();this.classList.add('editable-active')" onblur="this.contentEditable=false;this.classList.remove('editable-active')">Jason Goldberg</h1>
+          <h1 class="text-xl font-display font-bold text-stone-900">Jason Goldberg</h1>
           <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
             <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Warm
-          </span>
-        </div>
-
-        <!-- Org + title + location + birthday: click to edit -->
-        <div class="flex items-center gap-1.5 mb-3 flex-wrap">
-          <span class="editable text-sm text-stone-500" onclick="this.contentEditable=true;this.focus();this.classList.add('editable-active')" onblur="this.contentEditable=false;this.classList.remove('editable-active')">CTO</span>
-          <span class="text-sm text-stone-300">at</span>
-          <a href="#" class="editable text-sm font-medium text-teal-600 hover:text-teal-700">DeFi Labs</a>
-          <span class="text-stone-200 mx-0.5">&middot;</span>
-          <span class="inline-flex items-center gap-1 text-sm text-stone-400">
-            <i data-lucide="map-pin" class="w-3 h-3"></i>
-            <span class="editable text-stone-500" onclick="this.contentEditable=true;this.focus();this.classList.add('editable-active')" onblur="this.contentEditable=false;this.classList.remove('editable-active')">New York, NY</span>
-          </span>
-          <span class="text-stone-200 mx-0.5">&middot;</span>
-          <span class="inline-flex items-center gap-1 text-sm text-stone-400">
-            <i data-lucide="cake" class="w-3 h-3"></i>
-            <span class="editable text-stone-500" onclick="this.contentEditable=true;this.focus();this.classList.add('editable-active')" onblur="this.contentEditable=false;this.classList.remove('editable-active')">Mar 22</span>
           </span>
         </div>
 
@@ -174,28 +131,6 @@ tailwind.config = { theme: { extend: { fontFamily: {
             <i data-lucide="message-circle" class="w-3.5 h-3.5 text-sky-400 mt-0.5 shrink-0"></i>
             <p class="text-xs text-stone-600 leading-relaxed">Building bridges, literally. DM me about L2 infra.</p>
           </div>
-        </div>
-
-        <!-- Contact channels: email, telegram, twitter, linkedin, phone -->
-        <div class="flex flex-wrap gap-2 mb-4">
-          <a href="mailto:jason@defi.xyz" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs text-stone-600 bg-stone-50 hover:bg-stone-100 transition-colors">
-            <i data-lucide="mail" class="w-3.5 h-3.5 text-red-400"></i> jason@defi.xyz
-          </a>
-          <a href="#" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs text-stone-600 bg-stone-50 hover:bg-stone-100 transition-colors">
-            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-sky-500"></i> @jgoldberg
-          </a>
-          <a href="#" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs text-stone-600 bg-stone-50 hover:bg-stone-100 transition-colors">
-            <i data-lucide="twitter" class="w-3.5 h-3.5 text-stone-500"></i> @jason_defi
-          </a>
-          <a href="#" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs text-stone-600 bg-stone-50 hover:bg-stone-100 transition-colors">
-            <svg class="w-3.5 h-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 11v5M8 8v.01M12 16v-5c0-1 1-2 2-2s2 1 2 2v5"/>
-            </svg>
-            jason-goldberg
-          </a>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs text-stone-400 bg-stone-50">
-            <i data-lucide="phone" class="w-3.5 h-3.5"></i> +1 (555) 012-3456
-          </span>
         </div>
 
         <!-- Tags -->
@@ -235,18 +170,8 @@ tailwind.config = { theme: { extend: { fontFamily: {
               <i data-lucide="wand-2" class="w-4 h-4 text-stone-400"></i> Auto-tag with AI
             </a>
             <div class="my-1 h-px bg-stone-100"></div>
-            <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50">
-              <i data-lucide="send" class="w-4 h-4 text-stone-400"></i> Send message
-            </a>
             <a href="#" onclick="document.getElementById('logInteractionModal').classList.remove('hidden');event.preventDefault()" class="flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50">
               <i data-lucide="calendar-plus" class="w-4 h-4 text-stone-400"></i> Log interaction
-            </a>
-            <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50">
-              <i data-lucide="users" class="w-4 h-4 text-stone-400"></i> Show duplicates
-            </a>
-            <div class="my-1 h-px bg-stone-100"></div>
-            <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-sm text-stone-700 hover:bg-stone-50">
-              <i data-lucide="archive" class="w-4 h-4 text-stone-400"></i> Archive contact
             </a>
             <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50">
               <i data-lucide="trash-2" class="w-4 h-4"></i> Delete contact
@@ -261,26 +186,18 @@ tailwind.config = { theme: { extend: { fontFamily: {
   <!-- ═══════ TWO COLUMN ═══════ -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    <!-- LEFT (2/3): Tabs content -->
-    <div class="lg:col-span-2 space-y-6">
+    <!-- LEFT (2/3): Timeline content — rendered second in DOM but ordered right on mobile -->
+    <div class="lg:col-span-2 lg:order-2 space-y-6">
 
-      <!-- Tab bar -->
-      <div class="flex gap-4 border-b border-stone-200 anim-in d3">
-        <button class="detail-tab active pb-3 text-sm font-medium" onclick="switchDetailTab(this, 'timeline')">
-          Timeline
-        </button>
-        <button class="detail-tab pb-3 text-sm font-medium text-stone-500" onclick="switchDetailTab(this, 'details')">
-          Details
-        </button>
-      </div>
-
-      <!-- Timeline tab -->
-      <div id="tab-timeline" class="anim-in d4">
+      <!-- Timeline -->
+      <div class="anim-in d3">
 
         <!-- Pending follow-up card (same pattern as dashboard — click to expand) -->
         <div class="suggestion-card bg-white rounded-xl border border-stone-200 p-4 mb-4" onclick="toggleSuggestion(this)">
           <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-semibold shrink-0">JG</div>
+            <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+              <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i>
+            </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -289,7 +206,6 @@ tailwind.config = { theme: { extend: { fontFamily: {
                     <i data-lucide="sparkles" class="w-3 h-3"></i>
                   </span>
                 </div>
-                <span class="text-[11px] text-stone-400 shrink-0">7 days ago</span>
               </div>
               <p class="text-xs text-stone-500 mt-1 line-clamp-2">Haven't caught up in a while. Mention the DeFi project you discussed at ETH Denver...</p>
 
@@ -522,24 +438,79 @@ tailwind.config = { theme: { extend: { fontFamily: {
         </button>
       </div>
 
-      <!-- Details tab (hidden) — supplementary fields not shown in header -->
-      <div id="tab-details" class="hidden">
-        <div class="bg-white rounded-xl border border-stone-200 p-5 space-y-4">
-          <p class="text-xs text-stone-400 mb-2">Most fields can be edited inline by clicking them in the header above. Additional fields below.</p>
-          <div class="grid grid-cols-2 gap-4">
-            <div><label class="text-xs font-medium text-stone-500 mb-1 block">Phone</label><input value="+1 (555) 012-3456" class="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400"></div>
-            <div><label class="text-xs font-medium text-stone-500 mb-1 block">LinkedIn URL</label><input value="linkedin.com/in/jason-goldberg" class="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400"></div>
-            <div><label class="text-xs font-medium text-stone-500 mb-1 block">Additional emails</label><input placeholder="Add email..." class="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400 placeholder:text-stone-300"></div>
-            <div><label class="text-xs font-medium text-stone-500 mb-1 block">Website</label><input placeholder="https://..." class="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400 placeholder:text-stone-300"></div>
+    </div>
+
+    <!-- LEFT (1/3): Contact details + score sidebar -->
+    <div class="lg:order-1 space-y-6">
+
+      <!-- Contact Details (editable) -->
+      <div class="section-card bg-white rounded-xl border border-stone-200 p-5 anim-in d2">
+        <h3 class="text-sm font-display font-semibold text-stone-900 mb-4">Contact Details</h3>
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-stone-500">First name</span>
+            <span class="editable text-xs font-medium text-stone-900" onclick="startEdit(this)">Jason</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-stone-500">Last name</span>
+            <span class="editable text-xs font-medium text-stone-900" onclick="startEdit(this)">Goldberg</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-stone-500">Title</span>
+            <span class="editable text-xs font-medium text-stone-900" onclick="startEdit(this)">CTO</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-stone-500">Company</span>
+            <span class="editable text-xs font-medium text-teal-600" onclick="startEdit(this)">DeFi Labs</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-stone-500">Location</span>
+            <span class="editable text-xs font-medium text-stone-900" onclick="startEdit(this)">New York, NY</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-stone-500">Birthday</span>
+            <span class="editable text-xs font-medium text-stone-900" onclick="startEdit(this)">Mar 22</span>
+          </div>
+          <div class="my-1 h-px bg-stone-100"></div>
+          <div class="flex items-center justify-between group">
+            <span class="text-xs text-stone-500">Email</span>
+            <div class="flex items-center gap-1.5">
+              <a href="mailto:jason@defi.xyz" class="text-xs font-medium text-teal-600 hover:text-teal-700">jason@defi.xyz</a>
+              <button onclick="copyToClipboard('jason@defi.xyz',this)" class="p-0.5 rounded text-stone-300 hover:text-stone-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Copy"><i data-lucide="copy" class="w-3 h-3"></i></button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between group">
+            <span class="text-xs text-stone-500">Telegram</span>
+            <div class="flex items-center gap-1.5">
+              <span class="editable text-xs font-medium text-stone-900" onclick="startEdit(this)">@jgoldberg</span>
+              <button onclick="copyToClipboard('@jgoldberg',this)" class="p-0.5 rounded text-stone-300 hover:text-stone-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Copy"><i data-lucide="copy" class="w-3 h-3"></i></button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between group">
+            <span class="text-xs text-stone-500">Twitter</span>
+            <div class="flex items-center gap-1.5">
+              <span class="editable text-xs font-medium text-stone-900" onclick="startEdit(this)">@jason_defi</span>
+              <button onclick="copyToClipboard('@jason_defi',this)" class="p-0.5 rounded text-stone-300 hover:text-stone-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Copy"><i data-lucide="copy" class="w-3 h-3"></i></button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between group">
+            <span class="text-xs text-stone-500">LinkedIn</span>
+            <div class="flex items-center gap-1.5">
+              <span class="editable text-xs font-medium text-stone-900" onclick="startEdit(this)">jason-goldberg</span>
+              <button onclick="copyToClipboard('jason-goldberg',this)" class="p-0.5 rounded text-stone-300 hover:text-stone-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Copy"><i data-lucide="copy" class="w-3 h-3"></i></button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between group">
+            <span class="text-xs text-stone-500">Phone</span>
+            <div class="flex items-center gap-1.5">
+              <span class="editable text-xs font-medium text-stone-900" onclick="startEdit(this)">+1 (555) 012-3456</span>
+              <button onclick="copyToClipboard('+15550123456',this)" class="p-0.5 rounded text-stone-300 hover:text-stone-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Copy"><i data-lucide="copy" class="w-3 h-3"></i></button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- RIGHT (1/3): Score breakdown + sidebar -->
-    <div class="space-y-6">
-
-      <!-- Relationship Health (combined: score + stats + trend) -->
+      <!-- Relationship Health (combined: score + stats) -->
       <div class="section-card bg-white rounded-xl border border-stone-200 p-5 anim-in d3">
         <!-- Score header -->
         <div class="flex items-center justify-between mb-4">
@@ -609,36 +580,6 @@ tailwind.config = { theme: { extend: { fontFamily: {
           </div>
         </div>
 
-        <!-- 6-month trend -->
-        <div class="border-t border-stone-100 pt-4">
-          <p class="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-2">6-month trend</p>
-          <div class="flex items-end gap-1.5 h-12">
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <div class="w-full bg-stone-200 rounded-t" style="height:0px"></div>
-              <span class="text-[9px] text-stone-400">Oct</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <div class="w-full bg-teal-300 rounded-t" style="height:10px"></div>
-              <span class="text-[9px] text-stone-400">Nov</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <div class="w-full bg-stone-200 rounded-t" style="height:0px"></div>
-              <span class="text-[9px] text-stone-400">Dec</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <div class="w-full bg-stone-200 rounded-t" style="height:0px"></div>
-              <span class="text-[9px] text-stone-400">Jan</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <div class="w-full bg-teal-400 rounded-t" style="height:36px"></div>
-              <span class="text-[9px] text-stone-400">Feb</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <div class="w-full bg-teal-500 rounded-t" style="height:16px"></div>
-              <span class="text-[9px] text-stone-400">Mar</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Possible Duplicates -->
@@ -783,12 +724,8 @@ tailwind.config = { theme: { extend: { fontFamily: {
         </div>
       </div>
       <div>
-        <label class="text-xs font-medium text-stone-500 mb-1 block">Summary</label>
-        <textarea rows="3" placeholder="What did you discuss?" class="w-full text-sm border border-stone-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-400 placeholder:text-stone-300 resize-none"></textarea>
-      </div>
-      <div>
-        <label class="text-xs font-medium text-stone-500 mb-1 block">Key takeaways (optional)</label>
-        <textarea rows="2" placeholder="Action items, follow-ups, important notes..." class="w-full text-sm border border-stone-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-400 placeholder:text-stone-300 resize-none"></textarea>
+        <label class="text-xs font-medium text-stone-500 mb-1 block">Notes</label>
+        <textarea rows="4" placeholder="What did you discuss? Any action items or follow-ups?" class="w-full text-sm border border-stone-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-400 placeholder:text-stone-300 resize-none"></textarea>
       </div>
     </div>
     <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-stone-100 bg-stone-50/50 rounded-b-2xl">
@@ -803,11 +740,48 @@ tailwind.config = { theme: { extend: { fontFamily: {
 <script>
   lucide.createIcons();
 
-  function switchDetailTab(btn, tabId) {
-    document.querySelectorAll('.detail-tab').forEach(t => { t.classList.remove('active'); t.classList.add('text-stone-500'); });
-    btn.classList.add('active'); btn.classList.remove('text-stone-500');
-    document.querySelectorAll('[id^="tab-"]').forEach(p => p.classList.add('hidden'));
-    document.getElementById('tab-' + tabId).classList.remove('hidden');
+  function copyToClipboard(text, btn) {
+    navigator.clipboard.writeText(text);
+    const icon = btn.querySelector('i');
+    icon.setAttribute('data-lucide', 'check');
+    btn.classList.remove('text-stone-300', 'hover:text-stone-500');
+    btn.classList.add('text-emerald-500');
+    btn.style.opacity = '1';
+    lucide.createIcons();
+    setTimeout(() => {
+      icon.setAttribute('data-lucide', 'copy');
+      btn.classList.remove('text-emerald-500');
+      btn.classList.add('text-stone-300', 'hover:text-stone-500');
+      btn.style.opacity = '';
+      lucide.createIcons();
+    }, 1500);
+  }
+
+  function startEdit(el) {
+    if (el.querySelector('input')) return;
+    const text = el.textContent.trim();
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = text;
+    input.className = 'text-sm border border-teal-400 rounded-md px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-teal-300';
+    input.style.width = Math.max(text.length * 8 + 32, 80) + 'px';
+
+    const actions = document.createElement('span');
+    actions.className = 'inline-flex items-center gap-1 ml-1.5';
+    actions.innerHTML = '<button class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-teal-600 text-white hover:bg-teal-700">Save</button><button class="px-1.5 py-0.5 text-[10px] font-medium rounded text-stone-500 hover:bg-stone-100">Cancel</button>';
+
+    el.textContent = '';
+    el.appendChild(input);
+    el.appendChild(actions);
+    input.focus();
+    input.select();
+
+    const save = () => { el.textContent = input.value || text; };
+    const cancel = () => { el.textContent = text; };
+    actions.children[0].onclick = (e) => { e.stopPropagation(); save(); };
+    actions.children[1].onclick = (e) => { e.stopPropagation(); cancel(); };
+    input.onkeydown = (e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); };
+    el.onclick = (e) => e.stopPropagation();
   }
 
   function setPriority(btn, level) {

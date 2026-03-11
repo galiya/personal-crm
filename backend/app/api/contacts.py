@@ -420,6 +420,10 @@ async def contact_stats(
     current_user: User = Depends(get_current_user),
 ) -> Envelope[ContactStatsData]:
     """Return aggregate contact stats for the dashboard."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.models.interaction import Interaction
+
     result = await db.execute(
         select(
             func.count().label("total"),
@@ -435,12 +439,23 @@ async def contact_stats(
         )
     )
     row = result.one()
+
+    week_ago = datetime.now(UTC) - timedelta(days=7)
+    interactions_result = await db.execute(
+        select(func.count()).where(
+            Interaction.user_id == current_user.id,
+            Interaction.occurred_at >= week_ago,
+        )
+    )
+    interactions_this_week = interactions_result.scalar_one()
+
     return {
         "data": {
             "total": row.total,
             "strong": row.strong,
             "active": row.active,
             "dormant": row.dormant,
+            "interactions_this_week": interactions_this_week,
         },
         "error": None,
     }
@@ -487,6 +502,54 @@ async def get_upcoming_birthdays(
                 "days_until_birthday": days,
             }
             for days, c in matches
+        ]
+    )
+
+
+@router.get("/overdue")
+async def get_overdue_contacts(
+    limit: int = Query(10, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Return contacts that have exceeded their follow-up threshold, sorted by most overdue first."""
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime.now(UTC)
+    default_thresholds = {"high": 30, "medium": 60, "low": 180}
+    thresholds: dict = current_user.priority_settings or default_thresholds
+
+    result = await db.execute(
+        select(Contact).where(
+            Contact.user_id == current_user.id,
+            Contact.priority_level != "archived",
+            Contact.last_interaction_at.isnot(None),
+        )
+    )
+    contacts = result.scalars().all()
+
+    overdue: list[tuple[int, Contact]] = []
+    for contact in contacts:
+        priority = contact.priority_level or "medium"
+        threshold_days = thresholds.get(priority, default_thresholds.get(priority, 60))
+        last = contact.last_interaction_at
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=UTC)
+        days_since = (now - last).days
+        days_overdue = days_since - threshold_days
+        if days_overdue > 0:
+            overdue.append((days_overdue, contact))
+
+    overdue.sort(key=lambda x: x[0], reverse=True)
+    overdue = overdue[:limit]
+
+    return envelope(
+        [
+            {
+                **ContactResponse.model_validate(c).model_dump(),
+                "days_overdue": days,
+            }
+            for days, c in overdue
         ]
     )
 
