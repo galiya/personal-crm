@@ -476,15 +476,15 @@ function DuplicateRow({
       )}
 
       <div className="px-3 py-3">
-        <div className="flex items-center gap-2.5 mb-2.5">
+        <Link href={`/contacts/${dup.id}`} className="flex items-center gap-2.5 mb-2.5 group/dup">
           <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0", avatarColor(name))}>
             {getInitials(name)}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-stone-900">{name}</p>
+            <p className="text-xs font-medium text-stone-900 group-hover/dup:text-teal-700 transition-colors">{name}</p>
             <p className="text-[10px] text-stone-400">{dup.source ? `Via ${dup.source}` : "Contact"}</p>
           </div>
-        </div>
+        </Link>
 
         <div className="space-y-1.5 mb-3">
           {dup.emails?.[0] && (
@@ -1361,8 +1361,8 @@ export default function ContactDetailPage() {
                 <div className="my-2 h-px bg-stone-100" />
 
                 <InlineListField label="Email" values={contact.emails ?? []} onSave={(v) => saveField("emails", v)} copyable isLink linkPrefix="mailto:" />
-                <InlineField label="Telegram" value={contact.telegram_username} onSave={(v) => saveField("telegram_username", v)} copyable />
-                <InlineField label="Twitter" value={contact.twitter_handle} onSave={(v) => saveField("twitter_handle", v)} copyable />
+                <InlineField label="Telegram" value={contact.telegram_username} onSave={(v) => saveField("telegram_username", v)} copyable isLink linkPrefix="https://t.me/" />
+                <InlineField label="Twitter" value={contact.twitter_handle} onSave={(v) => saveField("twitter_handle", v)} copyable isLink linkPrefix="https://x.com/" />
                 <InlineField
                   label="LinkedIn"
                   value={contact.linkedin_url}

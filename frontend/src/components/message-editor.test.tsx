@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { MessageEditor } from "./message-editor";
 
@@ -105,6 +105,37 @@ describe("MessageEditor", () => {
     // Twitter/X button should have the selected styling (slate color)
     const twitterBtn = screen.getByText("Twitter/X").closest("button")!;
     expect(twitterBtn.className).toContain("text-slate-600");
+  });
+
+  it("disables send button while sending and re-enables after", async () => {
+    let resolve: () => void;
+    const onSend = vi.fn(() => new Promise<void>((r) => { resolve = r; }));
+    render(
+      <MessageEditor
+        initialMessage="Hello"
+        initialChannel="telegram"
+        onSend={onSend}
+      />
+    );
+    const sendBtn = screen.getByText("Send").closest("button")!;
+    expect(sendBtn).not.toBeDisabled();
+
+    fireEvent.click(sendBtn);
+    await waitFor(() => {
+      expect(screen.getByText("Sending…")).toBeInTheDocument();
+    });
+    expect(sendBtn).toBeDisabled();
+
+    // Double-click should not call onSend again
+    fireEvent.click(sendBtn);
+    expect(onSend).toHaveBeenCalledTimes(1);
+
+    // Resolve the promise — button re-enables
+    resolve!();
+    await waitFor(() => {
+      expect(screen.getByText("Send")).toBeInTheDocument();
+    });
+    expect(sendBtn).not.toBeDisabled();
   });
 
   it("defaults to first available channel when initial is disabled", () => {

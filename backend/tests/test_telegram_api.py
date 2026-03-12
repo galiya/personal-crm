@@ -255,7 +255,7 @@ async def test_sync_telegram_dispatches_task(
     headers = {"Authorization": f"Bearer {token}"}
 
     with patch("app.services.tasks.sync_telegram_for_user") as mock_task:
-        mock_task.delay.return_value = None
+        mock_task.return_value = None
         response = await client.post(
             "/api/v1/contacts/sync/telegram",
             headers=headers,
@@ -265,7 +265,7 @@ async def test_sync_telegram_dispatches_task(
     body = response.json()
     assert body["error"] is None
     assert body["data"]["status"] == "started"
-    mock_task.delay.assert_called_once_with(str(test_user.id))
+    mock_task.assert_called_once_with(str(test_user.id))
 
 
 @pytest.mark.asyncio

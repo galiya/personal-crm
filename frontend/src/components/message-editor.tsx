@@ -40,7 +40,7 @@ interface MessageEditorProps {
   contactId?: string;
   initialMessage?: string;
   initialChannel?: Channel;
-  onSend?: (message: string, channel: Channel, scheduledFor?: string) => void;
+  onSend?: (message: string, channel: Channel, scheduledFor?: string) => void | Promise<void>;
   onRegenerate?: (message: string, channel: Channel) => void;
   className?: string;
   disabledChannels?: Partial<Record<Channel, string>>;
@@ -66,6 +66,7 @@ export function MessageEditor({
     }
     return availableChannels[0] ?? "email";
   });
+  const [isSending, setIsSending] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
   const [scheduledFor, setScheduledFor] = useState("");
@@ -108,10 +109,15 @@ export function MessageEditor({
     }
   };
 
-  const handleSend = () => {
-    if (!message.trim() || isOverLimit) return;
+  const handleSend = async () => {
+    if (!message.trim() || isOverLimit || isSending) return;
     const iso = scheduledFor ? new Date(scheduledFor).toISOString() : undefined;
-    onSend?.(message.trim(), channel, iso);
+    setIsSending(true);
+    try {
+      await onSend?.(message.trim(), channel, iso);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -212,7 +218,7 @@ export function MessageEditor({
 
         <button
           onClick={handleSend}
-          disabled={!message.trim() || isOverLimit || (showSchedule && !scheduledFor)}
+          disabled={!message.trim() || isOverLimit || isSending || (showSchedule && !scheduledFor)}
           className={cn(
             "inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
             showSchedule && scheduledFor
@@ -220,7 +226,9 @@ export function MessageEditor({
               : "bg-green-600 text-white hover:bg-green-700"
           )}
         >
-          {channel === "telegram" ? (
+          {isSending ? (
+            <><RefreshCw className="w-4 h-4 animate-spin" /> Sending…</>
+          ) : channel === "telegram" ? (
             showSchedule && scheduledFor ? (
               <><Clock className="w-4 h-4" /> Schedule</>
             ) : (
