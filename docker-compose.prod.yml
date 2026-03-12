@@ -20,6 +20,8 @@ services:
       POSTGRES_USER: pingcrm
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: pingcrm
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
