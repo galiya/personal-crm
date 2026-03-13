@@ -909,12 +909,15 @@ function SettingsPageInner() {
   const pollForNotification = useCallback((platform: string, setter: (s: SyncState) => void) => {
     let attempts = 0;
     const maxAttempts = 60;
+    let baselineCount: number | null = null;
     const interval = setInterval(async () => {
       attempts++;
       try {
         const { data } = await client.GET("/api/v1/notifications/unread-count");
         const count = (data as { data?: { count?: number } })?.data?.count ?? 0;
-        if (count > 0) {
+        if (baselineCount === null) {
+          baselineCount = count;
+        } else if (count > baselineCount) {
           clearInterval(interval);
           setter({ status: "success", message: `${platform} sync completed! Check notifications for details.` });
         } else if (attempts >= maxAttempts) {

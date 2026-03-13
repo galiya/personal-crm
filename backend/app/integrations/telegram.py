@@ -527,6 +527,81 @@ async def sync_telegram_chats(user: User, db: AsyncSession) -> int:
     }
 
 
+async def sync_telegram_contact_messages(
+    user: User, contact: Contact, db: AsyncSession
+) -> dict[str, Any]:
+    """Sync Telegram DMs for a single *contact*.
+
+    Connects via MTProto, resolves entity by telegram_user_id (fallback to
+    username), fetches last MAX_MESSAGES messages, deduplicates via
+    _upsert_interaction, and updates last_interaction_at.
+
+    Returns ``{"new_interactions": N}``.
+    """
+    if not user.telegram_session:
+        return {"new_interactions": 0, "skipped": True, "reason": "telegram_not_connected"}
+
+    tg_user_id = contact.telegram_user_id
+    tg_username = (contact.telegram_username or "").lstrip("@").strip()
+    if not tg_user_id and not tg_username:
+        return {"new_interactions": 0, "skipped": True, "reason": "no_telegram_identifier"}
+
+    client = _make_client(user.telegram_session)
+    await _ensure_connected(client)
+
+    try:
+        if not await client.is_user_authorized():
+            return {"new_interactions": 0, "skipped": True, "reason": "session_expired"}
+
+        me = await client.get_me()
+        my_id: int = me.id
+
+        # Resolve entity: prefer numeric ID to avoid ResolveUsernameRequest
+        if tg_user_id:
+            entity = await client.get_input_entity(int(tg_user_id))
+        else:
+            entity = await client.get_input_entity(tg_username)
+            # Backfill telegram_user_id from resolved entity
+            resolved_id = getattr(entity, "user_id", None)
+            if resolved_id:
+                contact.telegram_user_id = str(resolved_id)
+
+        new_count = 0
+        async for message in client.iter_messages(entity, limit=MAX_MESSAGES):
+            if message.message is None:
+                continue
+
+            direction = "outbound" if message.sender_id == my_id else "inbound"
+            entity_id = tg_user_id or str(getattr(entity, "user_id", tg_username))
+            message_id = f"{entity_id}:{message.id}"
+            occurred_at = message.date.replace(tzinfo=UTC) if message.date.tzinfo is None else message.date
+
+            _interaction, is_new = await _upsert_interaction(
+                contact=contact,
+                user_id=user.id,
+                message_id=message_id,
+                direction=direction,
+                content_preview=message.message,
+                occurred_at=occurred_at,
+                db=db,
+            )
+            if is_new:
+                new_count += 1
+
+            if contact.last_interaction_at is None or contact.last_interaction_at < occurred_at:
+                contact.last_interaction_at = occurred_at
+
+        await db.flush()
+    finally:
+        await client.disconnect()
+
+    logger.info(
+        "sync_telegram_contact_messages: contact %s — %d new interaction(s).",
+        contact.id, new_count,
+    )
+    return {"new_interactions": new_count}
+
+
 MAX_GROUPS = 20  # max private groups to scan for members
 MAX_MEMBERS_PER_GROUP = 200  # max members fetched per group
 

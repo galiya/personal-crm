@@ -950,6 +950,110 @@ async def sync_twitter_dms(
     return {"new_interactions": new_count, "new_contacts": created_contacts}
 
 
+async def sync_twitter_contact_dms(
+    user: User, contact: "Contact", db: AsyncSession
+) -> dict[str, Any]:
+    """Sync Twitter DMs for a single *contact*.
+
+    Fetches all DM events, filters to those involving the contact's
+    twitter_user_id, and creates/deduplicates Interaction rows.
+
+    Returns ``{"new_interactions": N}``.
+    """
+    from app.models.interaction import Interaction
+
+    headers = await _user_bearer_headers(user, db)
+    if not headers:
+        return {"new_interactions": 0, "skipped": True, "reason": "twitter_not_connected"}
+
+    # Ensure we have the user's own Twitter ID
+    if not user.twitter_user_id:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(f"{_TWITTER_API_BASE}/users/me", headers=headers)
+                resp.raise_for_status()
+                user.twitter_user_id = resp.json()["data"]["id"]
+                await db.flush()
+        except Exception:
+            logger.exception("sync_twitter_contact_dms: failed to get user's Twitter ID")
+            return {"new_interactions": 0, "skipped": True, "reason": "cannot_get_user_id"}
+
+    # Resolve contact's twitter_user_id if missing
+    contact_twitter_id = contact.twitter_user_id
+    if not contact_twitter_id and contact.twitter_handle:
+        handle = contact.twitter_handle.lstrip("@").strip().lower()
+        handle_map = await _cached_resolve_handles([handle], headers)
+        resolved = handle_map.get(handle)
+        if resolved:
+            contact.twitter_user_id = resolved
+            contact_twitter_id = resolved
+            await db.flush()
+
+    if not contact_twitter_id:
+        return {"new_interactions": 0, "skipped": True, "reason": "no_twitter_id"}
+
+    dm_events = await fetch_dm_conversations(headers)
+    if not dm_events:
+        return {"new_interactions": 0}
+
+    new_count = 0
+    for event in dm_events:
+        event_id = event.get("id", "")
+        sender_id = event.get("sender_id", "")
+        text = event.get("text", "")
+
+        direction = "outbound" if sender_id == user.twitter_user_id else "inbound"
+
+        # Determine participant — same logic as sync_twitter_dms
+        participant_id = sender_id if direction == "inbound" else ""
+        if not participant_id or participant_id == user.twitter_user_id:
+            participant_ids = event.get("participant_ids", [])
+            for pid in participant_ids:
+                if pid != user.twitter_user_id:
+                    participant_id = pid
+                    break
+        if not participant_id or participant_id == user.twitter_user_id:
+            convo_id = event.get("dm_conversation_id", "")
+            parts = convo_id.split("-") if convo_id else []
+            if len(parts) == 2:
+                for part in parts:
+                    if part != user.twitter_user_id:
+                        participant_id = part
+                        break
+
+        # Only keep events involving this specific contact
+        if participant_id != contact_twitter_id:
+            continue
+
+        # Dedup
+        existing = await db.execute(
+            select(Interaction).where(Interaction.raw_reference_id == f"twitter_dm:{event_id}")
+        )
+        if existing.scalar_one_or_none():
+            continue
+
+        interaction = Interaction(
+            contact_id=contact.id,
+            user_id=user.id,
+            platform="twitter",
+            direction=direction,
+            content_preview=text[:500] if text else "",
+            raw_reference_id=f"twitter_dm:{event_id}",
+            occurred_at=_parse_twitter_ts(event.get("created_at")),
+        )
+        db.add(interaction)
+        if contact.last_interaction_at is None or contact.last_interaction_at < interaction.occurred_at:
+            contact.last_interaction_at = interaction.occurred_at
+        new_count += 1
+
+    await db.flush()
+    logger.info(
+        "sync_twitter_contact_dms: contact %s — %d new interaction(s).",
+        contact.id, new_count,
+    )
+    return {"new_interactions": new_count}
+
+
 # ---------------------------------------------------------------------------
 # Mention sync
 # ---------------------------------------------------------------------------

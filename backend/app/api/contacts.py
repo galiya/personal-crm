@@ -1312,6 +1312,88 @@ async def sync_contact_emails(
 
 
 # ---------------------------------------------------------------------------
+# POST /api/v1/contacts/{contact_id}/sync-telegram
+# ---------------------------------------------------------------------------
+
+_TELEGRAM_SYNC_TTL = 3600  # 1 hour
+
+
+@router.post("/{contact_id}/sync-telegram", response_model=Envelope[dict])
+async def sync_contact_telegram(
+    contact_id: uuid.UUID,
+    force: bool = Query(False, description="Bypass 1h rate limit (for manual refresh)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Envelope[dict]:
+    """Sync Telegram DMs for a single contact. Rate-limited to once per hour."""
+    result = await db.execute(
+        select(Contact).where(Contact.id == contact_id, Contact.user_id == current_user.id)
+    )
+    contact = result.scalar_one_or_none()
+    if not contact:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
+
+    if not contact.telegram_username and not contact.telegram_user_id:
+        return envelope({"new_interactions": 0, "skipped": True, "reason": "no_telegram"})
+
+    if not current_user.telegram_session:
+        return envelope({"new_interactions": 0, "skipped": True, "reason": "telegram_not_connected"})
+
+    r = get_redis()
+    cache_key = f"tg_msg_sync:{contact_id}"
+    if not force and await r.exists(cache_key):
+        return envelope({"new_interactions": 0, "skipped": True, "reason": "synced_recently"})
+
+    from app.integrations.telegram import sync_telegram_contact_messages
+
+    changes = await sync_telegram_contact_messages(current_user, contact, db)
+
+    await r.setex(cache_key, _TELEGRAM_SYNC_TTL, "1")
+    return envelope(changes)
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/contacts/{contact_id}/sync-twitter
+# ---------------------------------------------------------------------------
+
+_TWITTER_SYNC_TTL = 3600  # 1 hour
+
+
+@router.post("/{contact_id}/sync-twitter", response_model=Envelope[dict])
+async def sync_contact_twitter(
+    contact_id: uuid.UUID,
+    force: bool = Query(False, description="Bypass 1h rate limit (for manual refresh)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Envelope[dict]:
+    """Sync Twitter DMs for a single contact. Rate-limited to once per hour."""
+    result = await db.execute(
+        select(Contact).where(Contact.id == contact_id, Contact.user_id == current_user.id)
+    )
+    contact = result.scalar_one_or_none()
+    if not contact:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
+
+    if not contact.twitter_handle and not contact.twitter_user_id:
+        return envelope({"new_interactions": 0, "skipped": True, "reason": "no_twitter"})
+
+    if not current_user.twitter_access_token:
+        return envelope({"new_interactions": 0, "skipped": True, "reason": "twitter_not_connected"})
+
+    r = get_redis()
+    cache_key = f"tw_dm_sync:{contact_id}"
+    if not force and await r.exists(cache_key):
+        return envelope({"new_interactions": 0, "skipped": True, "reason": "synced_recently"})
+
+    from app.integrations.twitter import sync_twitter_contact_dms
+
+    changes = await sync_twitter_contact_dms(current_user, contact, db)
+
+    await r.setex(cache_key, _TWITTER_SYNC_TTL, "1")
+    return envelope(changes)
+
+
+# ---------------------------------------------------------------------------
 # POST /api/v1/contacts/{contact_id}/send-message
 # ---------------------------------------------------------------------------
 

@@ -1040,6 +1040,8 @@ export default function ContactDetailPage() {
         client.POST("/api/v1/contacts/{contact_id}/refresh-bios", { params: { path: { contact_id: id }, query: { force: true } } } as any),
         client.POST("/api/v1/contacts/{contact_id}/refresh-avatar" as any, { params: { path: { contact_id: id }, query: { force: true } } }),
         ...(contactEmails?.length ? [client.POST("/api/v1/contacts/{contact_id}/sync-emails" as any, { params: { path: { contact_id: id }, query: { force: true } } })] : []),
+        ...(contact?.telegram_username ? [client.POST("/api/v1/contacts/{contact_id}/sync-telegram" as any, { params: { path: { contact_id: id }, query: { force: true } } })] : []),
+        ...(contact?.twitter_handle ? [client.POST("/api/v1/contacts/{contact_id}/sync-twitter" as any, { params: { path: { contact_id: id }, query: { force: true } } })] : []),
       ]);
       void queryClient.invalidateQueries({ queryKey: ["contacts", id] });
       void queryClient.invalidateQueries({ queryKey: ["interactions", id] });
