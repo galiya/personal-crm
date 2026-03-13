@@ -32,10 +32,10 @@ celery_app.conf.update(
             "task": "app.services.tasks.update_relationship_scores",
             "schedule": crontab(minute=0, hour=2),
         },
-        # Sync Telegram for all users every 12 hours
-        "sync-telegram-all-every-12h": {
+        # Sync Telegram for all users once daily at 03:00 UTC
+        "sync-telegram-all-daily": {
             "task": "app.services.tasks.sync_telegram_all",
-            "schedule": crontab(minute=0, hour="*/12"),
+            "schedule": crontab(minute=0, hour=3),
         },
         # Send weekly networking digest every Monday at 09:00 UTC
         "send-weekly-digests-monday": {
@@ -52,10 +52,10 @@ celery_app.conf.update(
             "task": "app.services.tasks.generate_suggestions_all",
             "schedule": crontab(minute=0, hour=8),
         },
-        # Sync Google Calendar for all users every 30 minutes
-        "sync-google-calendar-all-every-30m": {
+        # Sync Google Calendar for all users once daily at 06:00 UTC
+        "sync-google-calendar-all-daily": {
             "task": "app.services.tasks.sync_google_calendar_all",
-            "schedule": crontab(minute="*/30"),
+            "schedule": crontab(minute=0, hour=6),
         },
         # Reactivate snoozed suggestions every hour
         "reactivate-snoozed-suggestions-hourly": {
