@@ -6,33 +6,20 @@ import OrganizationsPage from "./page";
 // Mock api-client
 const mockGet = vi.fn();
 const mockPost = vi.fn();
+const mockDelete = vi.fn();
 
 vi.mock("@/lib/api-client", () => ({
   client: {
     GET: (...args: unknown[]) => mockGet(...args),
     POST: (...args: unknown[]) => mockPost(...args),
     PUT: vi.fn(),
-    DELETE: vi.fn(),
+    DELETE: (...args: unknown[]) => mockDelete(...args),
   },
 }));
 
 // Mock date-fns to avoid time-sensitive output
 vi.mock("date-fns", () => ({
   formatDistanceToNow: () => "2 days ago",
-}));
-
-// Mock ContactAvatar component
-vi.mock("@/components/contact-avatar", () => ({
-  ContactAvatar: ({ name }: { name: string }) => (
-    <span data-testid="contact-avatar">{name[0]}</span>
-  ),
-}));
-
-// Mock ScoreBadge component
-vi.mock("@/components/score-badge", () => ({
-  ScoreBadge: ({ score }: { score: number }) => (
-    <span data-testid="score-badge">{score}</span>
-  ),
 }));
 
 const mockReplace = vi.fn();
@@ -47,25 +34,21 @@ vi.mock("next/navigation", async () => ({
 
 // ---- helpers ----
 
-function makeContact(overrides: Record<string, unknown> = {}) {
-  return {
-    id: "contact-1",
-    full_name: "Alice Smith",
-    given_name: "Alice",
-    family_name: "Smith",
-    title: "Engineer",
-    avatar_url: null,
-    relationship_score: 7,
-    last_interaction_at: "2025-01-15T10:00:00Z",
-    ...overrides,
-  };
-}
-
 function makeOrg(overrides: Record<string, unknown> = {}) {
   return {
-    company: "Acme Inc",
+    id: "org-1",
+    name: "Acme Inc",
+    domain: "acme.com",
+    industry: null,
+    location: null,
+    website: null,
+    linkedin_url: null,
+    twitter_handle: null,
+    notes: null,
     contact_count: 1,
-    contacts: [makeContact()],
+    avg_relationship_score: 42,
+    total_interactions: 10,
+    last_interaction_at: "2025-01-15T10:00:00Z",
     ...overrides,
   };
 }
@@ -95,12 +78,10 @@ describe("OrganizationsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     currentParams = new URLSearchParams();
-    // Default tags response
     mockGet.mockImplementation((path: string) => {
       if (path === "/api/v1/contacts/tags") {
         return Promise.resolve({ data: { data: ["investor", "friend"] }, error: null });
       }
-      // Default organizations response — empty
       return Promise.resolve(makeApiResponse([]));
     });
   });
@@ -111,15 +92,15 @@ describe("OrganizationsPage", () => {
       expect(screen.getByText("Organizations")).toBeInTheDocument();
     });
 
-    it("renders organization names", async () => {
+    it("renders organization names as links", async () => {
       mockGet.mockImplementation((path: string) => {
         if (path === "/api/v1/contacts/tags") {
           return Promise.resolve({ data: { data: [] }, error: null });
         }
         return Promise.resolve(
           makeApiResponse([
-            makeOrg({ company: "Acme Inc" }),
-            makeOrg({ company: "Beta Corp", contacts: [makeContact({ id: "c2", full_name: "Bob Jones" })] }),
+            makeOrg({ id: "org-1", name: "Acme Inc" }),
+            makeOrg({ id: "org-2", name: "Beta Corp", domain: "beta.com" }),
           ])
         );
       });
@@ -130,6 +111,10 @@ describe("OrganizationsPage", () => {
         expect(screen.getByText("Acme Inc")).toBeInTheDocument();
         expect(screen.getByText("Beta Corp")).toBeInTheDocument();
       });
+
+      // Org names are links to detail pages
+      const acmeLink = screen.getByText("Acme Inc").closest("a");
+      expect(acmeLink).toHaveAttribute("href", "/organizations/org-1");
     });
 
     it("shows contact count per organization", async () => {
@@ -138,28 +123,18 @@ describe("OrganizationsPage", () => {
           return Promise.resolve({ data: { data: [] }, error: null });
         }
         return Promise.resolve(
-          makeApiResponse([
-            makeOrg({
-              company: "Multi Corp",
-              contact_count: 3,
-              contacts: [
-                makeContact({ id: "c1" }),
-                makeContact({ id: "c2", full_name: "Bob" }),
-                makeContact({ id: "c3", full_name: "Carol" }),
-              ],
-            }),
-          ])
+          makeApiResponse([makeOrg({ name: "Multi Corp", contact_count: 3 })])
         );
       });
 
       renderPage();
 
       await waitFor(() => {
-        expect(screen.getByText("3 people")).toBeInTheDocument();
+        expect(screen.getByText("3")).toBeInTheDocument();
       });
     });
 
-    it("shows total companies count in header", async () => {
+    it("shows total organizations count in header", async () => {
       mockGet.mockImplementation((path: string) => {
         if (path === "/api/v1/contacts/tags") {
           return Promise.resolve({ data: { data: [] }, error: null });
@@ -170,29 +145,24 @@ describe("OrganizationsPage", () => {
       renderPage();
 
       await waitFor(() => {
-        expect(screen.getByText("5 companies")).toBeInTheDocument();
+        expect(screen.getByText("5 organizations")).toBeInTheDocument();
       });
     });
 
-    it("expands org to show contacts when clicked", async () => {
+    it("shows delete button per row", async () => {
       mockGet.mockImplementation((path: string) => {
         if (path === "/api/v1/contacts/tags") {
           return Promise.resolve({ data: { data: [] }, error: null });
         }
-        return Promise.resolve(
-          makeApiResponse([makeOrg({ company: "Acme Inc" })])
-        );
+        return Promise.resolve(makeApiResponse([makeOrg({ name: "Acme Inc" })]));
       });
 
       renderPage();
 
       await waitFor(() => expect(screen.getByText("Acme Inc")).toBeInTheDocument());
 
-      fireEvent.click(screen.getByText("Acme Inc"));
-
-      await waitFor(() => {
-        expect(screen.getByText("Alice Smith")).toBeInTheDocument();
-      });
+      const deleteBtn = screen.getByTitle("Delete Acme Inc");
+      expect(deleteBtn).toBeInTheDocument();
     });
   });
 
@@ -215,7 +185,6 @@ describe("OrganizationsPage", () => {
 
   describe("Loading state", () => {
     it("shows loading text while data is fetching", async () => {
-      // Return a never-resolving promise to hold the loading state
       mockGet.mockImplementation(() => new Promise(() => {}));
 
       renderPage();
@@ -244,17 +213,16 @@ describe("OrganizationsPage", () => {
   describe("Search", () => {
     it("renders search input", async () => {
       renderPage();
-      expect(screen.getByPlaceholderText("Search companies...")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Search organizations...")).toBeInTheDocument();
     });
 
     it("calls router.replace with search query after debounce", async () => {
       vi.useFakeTimers();
       renderPage();
 
-      const input = screen.getByPlaceholderText("Search companies...");
+      const input = screen.getByPlaceholderText("Search organizations...");
       fireEvent.change(input, { target: { value: "acme" } });
 
-      // Should not fire immediately
       expect(mockReplace).not.toHaveBeenCalled();
 
       vi.advanceTimersByTime(300);
@@ -271,7 +239,7 @@ describe("OrganizationsPage", () => {
       currentParams = new URLSearchParams("q=beta");
       renderPage();
 
-      const input = screen.getByPlaceholderText("Search companies...") as HTMLInputElement;
+      const input = screen.getByPlaceholderText("Search organizations...") as HTMLInputElement;
       expect(input.value).toBe("beta");
     });
 
@@ -300,26 +268,20 @@ describe("OrganizationsPage", () => {
   });
 
   describe("Selection and bulk actions", () => {
-    it("shows bulk action bar when contacts are selected", async () => {
+    it("shows bulk action bar when orgs are selected", async () => {
       mockGet.mockImplementation((path: string) => {
         if (path === "/api/v1/contacts/tags") {
           return Promise.resolve({ data: { data: ["investor"] }, error: null });
         }
-        return Promise.resolve(makeApiResponse([makeOrg({ company: "Acme Inc" })]));
+        return Promise.resolve(makeApiResponse([makeOrg({ id: "org-1", name: "Acme Inc" })]));
       });
 
       renderPage();
 
       await waitFor(() => expect(screen.getByText("Acme Inc")).toBeInTheDocument());
 
-      // Click org row toggle-expand button to expand it
-      fireEvent.click(screen.getByText("Acme Inc"));
-
-      await waitFor(() => expect(screen.getByText("Alice Smith")).toBeInTheDocument());
-
-      // Click the contact checkbox
-      const contactCheckbox = screen.getByRole("checkbox", { name: "Select Alice Smith" });
-      fireEvent.click(contactCheckbox);
+      const checkbox = screen.getByRole("checkbox", { name: "Select Acme Inc" });
+      fireEvent.click(checkbox);
 
       await waitFor(() => {
         expect(screen.getByText("1 selected")).toBeInTheDocument();
@@ -331,18 +293,15 @@ describe("OrganizationsPage", () => {
         if (path === "/api/v1/contacts/tags") {
           return Promise.resolve({ data: { data: [] }, error: null });
         }
-        return Promise.resolve(makeApiResponse([makeOrg()]));
+        return Promise.resolve(makeApiResponse([makeOrg({ id: "org-1", name: "Acme Inc" })]));
       });
 
       renderPage();
 
       await waitFor(() => expect(screen.getByText("Acme Inc")).toBeInTheDocument());
 
-      fireEvent.click(screen.getByText("Acme Inc"));
-      await waitFor(() => expect(screen.getByText("Alice Smith")).toBeInTheDocument());
-
-      const contactCheckbox = screen.getByRole("checkbox", { name: "Select Alice Smith" });
-      fireEvent.click(contactCheckbox);
+      const checkbox = screen.getByRole("checkbox", { name: "Select Acme Inc" });
+      fireEvent.click(checkbox);
 
       await waitFor(() => expect(screen.getByText("Clear selection")).toBeInTheDocument());
 
@@ -350,6 +309,31 @@ describe("OrganizationsPage", () => {
 
       await waitFor(() => {
         expect(screen.queryByText("Clear selection")).not.toBeInTheDocument();
+      });
+    });
+
+    it("select all checkbox selects all orgs", async () => {
+      mockGet.mockImplementation((path: string) => {
+        if (path === "/api/v1/contacts/tags") {
+          return Promise.resolve({ data: { data: [] }, error: null });
+        }
+        return Promise.resolve(
+          makeApiResponse([
+            makeOrg({ id: "org-1", name: "Acme Inc" }),
+            makeOrg({ id: "org-2", name: "Beta Corp" }),
+          ])
+        );
+      });
+
+      renderPage();
+
+      await waitFor(() => expect(screen.getByText("Acme Inc")).toBeInTheDocument());
+
+      const selectAll = screen.getByRole("checkbox", { name: "Select all organizations" });
+      fireEvent.click(selectAll);
+
+      await waitFor(() => {
+        expect(screen.getByText("2 selected")).toBeInTheDocument();
       });
     });
   });
@@ -449,11 +433,8 @@ describe("OrganizationsPage", () => {
         }
         return Promise.resolve(
           makeApiResponse([
-            makeOrg({ company: "Acme Inc", contacts: [makeContact({ id: "c1" })] }),
-            makeOrg({
-              company: "Beta Corp",
-              contacts: [makeContact({ id: "c2", full_name: "Bob Jones" })],
-            }),
+            makeOrg({ id: "org-1", name: "Acme Inc" }),
+            makeOrg({ id: "org-2", name: "Beta Corp" }),
           ])
         );
       });
@@ -465,15 +446,10 @@ describe("OrganizationsPage", () => {
         expect(screen.getByText("Beta Corp")).toBeInTheDocument();
       });
 
-      // Select all contacts in Acme Inc via org-level checkbox
-      const acmeCheckbox = screen.getByRole("checkbox", {
-        name: "Select all contacts in Acme Inc",
-      });
+      const acmeCheckbox = screen.getByRole("checkbox", { name: "Select Acme Inc" });
       fireEvent.click(acmeCheckbox);
 
-      const betaCheckbox = screen.getByRole("checkbox", {
-        name: "Select all contacts in Beta Corp",
-      });
+      const betaCheckbox = screen.getByRole("checkbox", { name: "Select Beta Corp" });
       fireEvent.click(betaCheckbox);
 
       await waitFor(() => {
