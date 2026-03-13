@@ -5,23 +5,10 @@ export const dynamic = "force-dynamic";
 import { Suspense, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Search, Building2, ChevronDown, ChevronRight, CheckSquare, Tag, X, Archive, GitMerge, BarChart3, MessageSquare, Clock } from "lucide-react";
+import { Search, Building2, CheckSquare, GitMerge, Trash2, BarChart3, MessageSquare, Clock, Users } from "lucide-react";
 import Link from "next/link";
 import { client } from "@/lib/api-client";
-import { ContactAvatar } from "@/components/contact-avatar";
-import { ScoreBadge } from "@/components/score-badge";
 import { formatDistanceToNow } from "date-fns";
-
-interface OrgContact {
-  id: string;
-  full_name: string | null;
-  given_name: string | null;
-  family_name: string | null;
-  title: string | null;
-  avatar_url: string | null;
-  relationship_score: number;
-  last_interaction_at: string | null;
-}
 
 interface Organization {
   id: string;
@@ -37,8 +24,25 @@ interface Organization {
   avg_relationship_score: number;
   total_interactions: number;
   last_interaction_at: string | null;
-  contacts: OrgContact[] | null;
 }
+
+/* ── Favicon helper ── */
+
+function OrgIcon({ domain }: { domain: string | null }) {
+  if (domain) {
+    return (
+      <img
+        src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`}
+        alt=""
+        className="w-5 h-5 rounded-sm"
+        onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling?.classList.remove("hidden"); }}
+      />
+    );
+  }
+  return <Building2 className="w-4 h-4 text-blue-600" />;
+}
+
+/* ── Merge Modal ── */
 
 function MergeModal({
   orgs,
@@ -117,35 +121,21 @@ function MergeModal({
   );
 }
 
+/* ── Bulk Action Bar ── */
+
 function BulkActionBar({
   selectedCount,
-  selectedOrgCount,
-  allTags,
-  onAddTag,
-  onRemoveTag,
-  onSetPriority,
   onMergeOrgs,
+  onDeleteOrgs,
   onClear,
   isPending,
 }: {
   selectedCount: number;
-  selectedOrgCount: number;
-  allTags: string[];
-  onAddTag: (tag: string) => void;
-  onRemoveTag: (tag: string) => void;
-  onSetPriority: (level: string) => void;
   onMergeOrgs: () => void;
+  onDeleteOrgs: () => void;
   onClear: () => void;
   isPending: boolean;
 }) {
-  const [tagInput, setTagInput] = useState("");
-  const [showTagDropdown, setShowTagDropdown] = useState(false);
-  const [tagMode, setTagMode] = useState<"add" | "remove">("add");
-
-  const filteredTags = allTags.filter(
-    (t) => !tagInput || t.toLowerCase().includes(tagInput.toLowerCase())
-  );
-
   return (
     <div className="sticky top-14 z-30 bg-blue-600 text-white px-4 py-2.5 rounded-lg mb-4 flex items-center gap-3 shadow-lg">
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -155,97 +145,25 @@ function BulkActionBar({
 
       <div className="h-5 w-px bg-blue-400" />
 
-      <div className="relative">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => { setTagMode("add"); setShowTagDropdown((v) => !v); }}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-400 transition-colors"
-          >
-            <Tag className="w-3 h-3" />
-            Add Tag
-          </button>
-          <button
-            onClick={() => { setTagMode("remove"); setShowTagDropdown((v) => !v); }}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-400 transition-colors"
-          >
-            <X className="w-3 h-3" />
-            Remove Tag
-          </button>
-        </div>
-
-        {showTagDropdown && (
-          <div className="absolute left-0 top-full mt-1 w-56 bg-white rounded-lg border border-gray-200 shadow-lg z-50 p-2">
-            <input
-              type="text"
-              placeholder={tagMode === "add" ? "Type tag name..." : "Select tag to remove..."}
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && tagInput.trim() && tagMode === "add") {
-                  onAddTag(tagInput.trim());
-                  setTagInput("");
-                  setShowTagDropdown(false);
-                }
-              }}
-              className="w-full px-2.5 py-1.5 text-sm text-gray-900 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-1"
-              autoFocus
-            />
-            <div className="max-h-32 overflow-y-auto">
-              {filteredTags.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => {
-                    if (tagMode === "add") onAddTag(tag);
-                    else onRemoveTag(tag);
-                    setTagInput("");
-                    setShowTagDropdown(false);
-                  }}
-                  className="w-full text-left px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                >
-                  {tagMode === "add" ? "+" : "-"} {tag}
-                </button>
-              ))}
-              {tagMode === "add" && tagInput.trim() && !allTags.includes(tagInput.trim()) && (
-                <button
-                  onClick={() => {
-                    onAddTag(tagInput.trim());
-                    setTagInput("");
-                    setShowTagDropdown(false);
-                  }}
-                  className="w-full text-left px-2.5 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-md font-medium"
-                >
-                  + Create &quot;{tagInput.trim()}&quot;
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="h-5 w-px bg-blue-400" />
+      {selectedCount >= 2 && (
+        <button
+          onClick={onMergeOrgs}
+          disabled={isPending}
+          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-400 transition-colors disabled:opacity-50"
+        >
+          <GitMerge className="w-3 h-3" />
+          Merge {selectedCount} Orgs
+        </button>
+      )}
 
       <button
-        onClick={() => onSetPriority("archived")}
+        onClick={onDeleteOrgs}
         disabled={isPending}
-        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-400 transition-colors disabled:opacity-50"
+        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-red-500/80 hover:bg-red-500 transition-colors disabled:opacity-50"
       >
-        <Archive className="w-3 h-3" />
-        Archive All
+        <Trash2 className="w-3 h-3" />
+        Delete
       </button>
-
-      {selectedOrgCount >= 2 && (
-        <>
-          <div className="h-5 w-px bg-blue-400" />
-          <button
-            onClick={onMergeOrgs}
-            disabled={isPending}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50"
-          >
-            <GitMerge className="w-3 h-3" />
-            Merge {selectedOrgCount} Orgs
-          </button>
-        </>
-      )}
 
       <div className="flex-1" />
 
@@ -259,6 +177,8 @@ function BulkActionBar({
   );
 }
 
+/* ── Main Content ── */
+
 function OrganizationsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -268,8 +188,6 @@ function OrganizationsPageContent() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const page = Number(searchParams.get("page") ?? "1");
 
-  const [expandedOrgs, setExpandedOrgs] = useState<Set<string>>(new Set());
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedOrgIds, setSelectedOrgIds] = useState<Set<string>>(new Set());
   const [showMergeModal, setShowMergeModal] = useState(false);
 
@@ -298,37 +216,8 @@ function OrganizationsPageContent() {
     },
   });
 
-  const { data: allTags = [] } = useQuery({
-    queryKey: ["tags"],
-    queryFn: async () => {
-      const { data } = await client.GET("/api/v1/contacts/tags");
-      return (data?.data as string[]) ?? [];
-    },
-  });
-
   const organizations = data?.data ?? [];
   const meta = data?.meta;
-
-  const bulkUpdate = useMutation({
-    mutationFn: async (body: {
-      contact_ids: string[];
-      add_tags?: string[];
-      remove_tags?: string[];
-      priority_level?: string;
-    }) => {
-      const { data, error } = await client.POST("/api/v1/contacts/bulk-update" as any, {
-        body,
-      });
-      if (error) throw new Error((error as { detail?: string })?.detail ?? "Bulk update failed");
-      return data;
-    },
-    onSuccess: () => {
-      setSelectedIds(new Set());
-      void queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      void queryClient.invalidateQueries({ queryKey: ["contacts"] });
-      void queryClient.invalidateQueries({ queryKey: ["tags"] });
-    },
-  });
 
   const mergeOrgs = useMutation({
     mutationFn: async (body: { source_ids: string[]; target_id: string }) => {
@@ -337,16 +226,26 @@ function OrganizationsPageContent() {
       return data;
     },
     onSuccess: () => {
-      setSelectedIds(new Set());
       setSelectedOrgIds(new Set());
       setShowMergeModal(false);
       void queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      void queryClient.invalidateQueries({ queryKey: ["contacts"] });
     },
   });
 
-  const toggleOrg = (orgId: string) => {
-    setExpandedOrgs((prev) => {
+  const deleteOrg = useMutation({
+    mutationFn: async (orgId: string) => {
+      const { error } = await client.DELETE("/api/v1/organizations/{org_id}" as any, {
+        params: { path: { org_id: orgId } },
+      });
+      if (error) throw new Error((error as { detail?: string })?.detail ?? "Delete failed");
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    },
+  });
+
+  const toggleSelectOrg = (orgId: string) => {
+    setSelectedOrgIds((prev) => {
       const next = new Set(prev);
       if (next.has(orgId)) next.delete(orgId);
       else next.add(orgId);
@@ -354,37 +253,29 @@ function OrganizationsPageContent() {
     });
   };
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const toggleSelectAll = () => {
+    if (selectedOrgIds.size === organizations.length) {
+      setSelectedOrgIds(new Set());
+    } else {
+      setSelectedOrgIds(new Set(organizations.map((o) => o.id)));
+    }
   };
 
-  const toggleSelectOrg = (org: Organization) => {
-    const contacts = org.contacts ?? [];
-    const orgContactIds = contacts.map((c) => c.id);
-    const allSelected = orgContactIds.length > 0 && orgContactIds.every((id) => selectedIds.has(id));
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (allSelected) {
-        orgContactIds.forEach((id) => next.delete(id));
-      } else {
-        orgContactIds.forEach((id) => next.add(id));
-      }
-      return next;
-    });
-    setSelectedOrgIds((prev) => {
-      const next = new Set(prev);
-      if (allSelected) next.delete(org.id);
-      else next.add(org.id);
-      return next;
-    });
+  const handleDeleteSelected = async () => {
+    const count = selectedOrgIds.size;
+    if (!confirm(`Delete ${count} organization${count > 1 ? "s" : ""}? Contacts will be unlinked but not deleted.`)) return;
+    for (const id of selectedOrgIds) {
+      await deleteOrg.mutateAsync(id);
+    }
+    setSelectedOrgIds(new Set());
   };
 
-  const selectedArray = Array.from(selectedIds);
+  const handleDeleteSingle = (org: Organization) => {
+    if (!confirm(`Delete "${org.name}"? Contacts will be unlinked but not deleted.`)) return;
+    deleteOrg.mutate(org.id);
+    setSelectedOrgIds((prev) => { const next = new Set(prev); next.delete(org.id); return next; });
+  };
+
   const selectedMergeOrgs = organizations.filter((o) => selectedOrgIds.has(o.id));
 
   return (
@@ -395,7 +286,7 @@ function OrganizationsPageContent() {
             <h1 className="text-2xl font-bold text-gray-900">Organizations</h1>
             {meta && (
               <p className="text-sm text-gray-500 mt-0.5">
-                {meta.total} organizations
+                {meta.total} organization{meta.total !== 1 ? "s" : ""}
               </p>
             )}
           </div>
@@ -422,23 +313,13 @@ function OrganizationsPageContent() {
         </div>
 
         {/* Bulk action bar */}
-        {selectedIds.size > 0 && (
+        {selectedOrgIds.size > 0 && (
           <BulkActionBar
-            selectedCount={selectedIds.size}
-            selectedOrgCount={selectedOrgIds.size}
-            allTags={allTags}
-            isPending={bulkUpdate.isPending}
-            onAddTag={(tag) =>
-              bulkUpdate.mutate({ contact_ids: selectedArray, add_tags: [tag] })
-            }
-            onRemoveTag={(tag) =>
-              bulkUpdate.mutate({ contact_ids: selectedArray, remove_tags: [tag] })
-            }
-            onSetPriority={(level) =>
-              bulkUpdate.mutate({ contact_ids: selectedArray, priority_level: level })
-            }
+            selectedCount={selectedOrgIds.size}
+            isPending={mergeOrgs.isPending || deleteOrg.isPending}
             onMergeOrgs={() => setShowMergeModal(true)}
-            onClear={() => { setSelectedIds(new Set()); setSelectedOrgIds(new Set()); }}
+            onDeleteOrgs={handleDeleteSelected}
+            onClear={() => setSelectedOrgIds(new Set())}
           />
         )}
 
@@ -471,131 +352,97 @@ function OrganizationsPageContent() {
         )}
 
         {organizations.length > 0 && (
-          <div className="space-y-2">
-            {organizations.map((org) => {
-              const contacts = org.contacts ?? [];
-              const isExpanded = expandedOrgs.has(org.id);
-              const orgContactIds = contacts.map((c) => c.id);
-              const allOrgSelected = orgContactIds.length > 0 && orgContactIds.every((id) => selectedIds.has(id));
-              const someOrgSelected = orgContactIds.some((id) => selectedIds.has(id));
-              return (
-                <div key={org.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
+                  <th className="w-10 px-4 py-3">
                     <input
                       type="checkbox"
-                      checked={allOrgSelected}
+                      checked={selectedOrgIds.size === organizations.length && organizations.length > 0}
                       ref={(el) => {
-                        if (el) el.indeterminate = someOrgSelected && !allOrgSelected;
+                        if (el) el.indeterminate = selectedOrgIds.size > 0 && selectedOrgIds.size < organizations.length;
                       }}
-                      onChange={() => toggleSelectOrg(org)}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
-                      aria-label={`Select all contacts in ${org.name}`}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      aria-label="Select all organizations"
                     />
-                    <button
-                      onClick={() => toggleOrg(org.id)}
-                      className="flex items-center gap-3 flex-1 min-w-0 text-left"
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      )}
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
+                  </th>
+                  <th className="px-4 py-3 font-medium">Organization</th>
+                  <th className="px-4 py-3 font-medium text-center" title="Contacts">
+                    <Users className="w-3.5 h-3.5 inline" />
+                  </th>
+                  <th className="px-4 py-3 font-medium text-center" title="Avg Score">
+                    <BarChart3 className="w-3.5 h-3.5 inline" />
+                  </th>
+                  <th className="px-4 py-3 font-medium text-center" title="Interactions">
+                    <MessageSquare className="w-3.5 h-3.5 inline" />
+                  </th>
+                  <th className="px-4 py-3 font-medium text-right">Last Activity</th>
+                  <th className="w-10 px-4 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {organizations.map((org) => {
+                  const isSelected = selectedOrgIds.has(org.id);
+                  return (
+                    <tr key={org.id} className={`hover:bg-gray-50 transition-colors ${isSelected ? "bg-blue-50/50" : ""}`}>
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectOrg(org.id)}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          aria-label={`Select ${org.name}`}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
                         <Link
                           href={`/organizations/${org.id}`}
-                          className="text-sm font-semibold text-gray-900 hover:text-blue-600"
-                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center gap-3 group"
                         >
-                          {org.name}
+                          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            <OrgIcon domain={org.domain} />
+                            <Building2 className="w-4 h-4 text-blue-600 hidden" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                              {org.name}
+                            </span>
+                            {org.domain && (
+                              <span className="ml-2 text-xs text-gray-400">{org.domain}</span>
+                            )}
+                          </div>
                         </Link>
-                        {org.domain && (
-                          <span className="ml-2 text-xs text-gray-400">{org.domain}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 flex-shrink-0">
-                        <span className="text-xs text-gray-500" title="Contacts">
-                          {org.contact_count} {org.contact_count === 1 ? "person" : "people"}
-                        </span>
-                        {org.avg_relationship_score > 0 && (
-                          <span className="text-xs text-gray-500 flex items-center gap-1" title="Avg Score">
-                            <BarChart3 className="w-3 h-3" />
-                            {org.avg_relationship_score}
-                          </span>
-                        )}
-                        {org.total_interactions > 0 && (
-                          <span className="text-xs text-gray-500 flex items-center gap-1" title="Total Interactions">
-                            <MessageSquare className="w-3 h-3" />
-                            {org.total_interactions}
-                          </span>
-                        )}
-                        {org.last_interaction_at && (
-                          <span className="text-xs text-gray-400 flex items-center gap-1" title="Last Activity">
-                            <Clock className="w-3 h-3" />
-                            {formatDistanceToNow(new Date(org.last_interaction_at), { addSuffix: true })}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  </div>
-
-                  {isExpanded && (
-                    <div className="border-t border-gray-100">
-                      <table className="w-full text-sm">
-                        <tbody className="divide-y divide-gray-50">
-                          {contacts.map((contact) => {
-                            const name =
-                              contact.full_name ??
-                              [contact.given_name, contact.family_name].filter(Boolean).join(" ") ??
-                              "Unnamed";
-                            const isSelected = selectedIds.has(contact.id);
-                            return (
-                              <tr key={contact.id} className={`hover:bg-gray-50 ${isSelected ? "bg-blue-50" : ""}`}>
-                                <td className="w-10 px-4 py-2.5 pl-14">
-                                  <input
-                                    type="checkbox"
-                                    checked={isSelected}
-                                    onChange={() => toggleSelect(contact.id)}
-                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    aria-label={`Select ${name}`}
-                                  />
-                                </td>
-                                <td className="px-4 py-2.5">
-                                  <Link
-                                    href={`/contacts/${contact.id}`}
-                                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
-                                  >
-                                    <ContactAvatar
-                                      avatarUrl={contact.avatar_url}
-                                      name={name}
-                                      size="xs"
-                                    />
-                                    {name}
-                                  </Link>
-                                </td>
-                                <td className="px-4 py-2.5 text-gray-500">
-                                  {contact.title ?? "-"}
-                                </td>
-                                <td className="px-4 py-2.5">
-                                  <ScoreBadge score={contact.relationship_score} lastInteractionAt={contact.last_interaction_at} />
-                                </td>
-                                <td className="px-4 py-2.5 text-gray-500 text-right">
-                                  {contact.last_interaction_at
-                                    ? formatDistanceToNow(new Date(contact.last_interaction_at), { addSuffix: true })
-                                    : "Never"}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                        {org.contact_count}
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                        {org.avg_relationship_score || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                        {org.total_interactions || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs text-gray-400">
+                        {org.last_interaction_at
+                          ? formatDistanceToNow(new Date(org.last_interaction_at), { addSuffix: true })
+                          : "Never"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleDeleteSingle(org)}
+                          className="p-1 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          title={`Delete ${org.name}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
 

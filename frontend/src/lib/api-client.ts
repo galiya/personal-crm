@@ -33,6 +33,11 @@ client.use({
         window.location.href = "/auth/login";
       }
     }
+    // Throw on server errors so React Query transitions to error state
+    // (401 is handled above via redirect; 4xx client errors surface as res.error in callers)
+    if (response.status >= 500) {
+      throw new Error(`API error: ${response.status}`);
+    }
     return response;
   },
 });

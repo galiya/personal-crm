@@ -113,26 +113,47 @@
 
 | # | Task | DoD | Depends | Status |
 |---|------|-----|---------|--------|
-| 1 | Add FloodWaitError handling in all Telegram sync paths | `FloodWaitError` caught in `sync_telegram_chats`, `sync_telegram_chats_batch`, `sync_telegram_contact_messages`, `sync_telegram_group_members`, `sync_telegram_bios` — waits `e.seconds + 5` then retries | — | `cc:TODO` |
-| 2 | Set `telegram_last_synced_at` at end of first-sync batch chain | `sync_telegram_notify` (final chain task) sets `user.telegram_last_synced_at = now()` | — | `cc:TODO` |
-| 3 | Add Redis lock to prevent concurrent first-sync dispatch | `sync_telegram_for_user` acquires `tg_sync_lock:{user_id}` with 6h TTL, skips if locked | — | `cc:TODO` |
-| 4 | Normalize message ID to numeric Telegram user ID in all paths | `sync_telegram_contact_messages` uses resolved numeric ID (not username) for `raw_reference_id` | — | `cc:TODO` |
+| 1 | Add FloodWaitError handling in all Telegram sync paths | `FloodWaitError` caught in `sync_telegram_chats`, `sync_telegram_chats_batch`, `sync_telegram_contact_messages`, `sync_telegram_group_members`, `sync_telegram_bios` — waits `e.seconds + 5` then retries | — | `cc:完了` |
+| 2 | Set `telegram_last_synced_at` at end of first-sync batch chain | `sync_telegram_notify` (final chain task) sets `user.telegram_last_synced_at = now()` | — | `cc:完了` |
+| 3 | Add Redis lock to prevent concurrent first-sync dispatch | `sync_telegram_for_user` acquires `tg_sync_lock:{user_id}` with 6h TTL, skips if locked | — | `cc:完了` |
+| 4 | Normalize message ID to numeric Telegram user ID in all paths | `sync_telegram_contact_messages` uses resolved numeric ID (not username) for `raw_reference_id` | — | `cc:完了` |
 
 ### 12.2 Twitter Critical Fixes (High)
 
 | # | Task | DoD | Depends | Status |
 |---|------|-----|---------|--------|
-| 5 | Batch dedup queries in Twitter sync loops | All 5 sync functions (`sync_twitter_dms`, `sync_twitter_contact_dms`, `sync_twitter_mentions`, `sync_twitter_replies`) use single `WHERE raw_reference_id IN (...)` query instead of per-event SELECT | — | `cc:TODO` |
-| 6 | Guard `last_interaction_at` in mentions and replies | `sync_twitter_mentions` and `sync_twitter_replies` use same `if older` guard as DM path | 5 | `cc:TODO` |
-| 7 | Delete dead Twitter code | Remove: `_build_oauth_header`, `build_twitter_client` (OAuth 1.0a), `sync_twitter_bios` (unused), `fetch_mentions_bird`, `fetch_user_replies_bird` (dead bird helpers), duplicate `hashlib` import | — | `cc:TODO` |
+| 5 | Batch dedup queries in Twitter sync loops | All 5 sync functions (`sync_twitter_dms`, `sync_twitter_contact_dms`, `sync_twitter_mentions`, `sync_twitter_replies`) use single `WHERE raw_reference_id IN (...)` query instead of per-event SELECT | — | `cc:完了` |
+| 6 | Guard `last_interaction_at` in mentions and replies | `sync_twitter_mentions` and `sync_twitter_replies` use same `if older` guard as DM path | 5 | `cc:完了` |
+| 7 | Delete dead Twitter code | Remove: `_build_oauth_header`, `build_twitter_client` (OAuth 1.0a), `sync_twitter_bios` (unused), `fetch_mentions_bird`, `fetch_user_replies_bird` (dead bird helpers), duplicate `hashlib` import | — | `cc:完了` |
 
 ### 12.3 Telegram Reliability Fixes (Medium)
 
 | # | Task | DoD | Depends | Status |
 |---|------|-----|---------|--------|
-| 8 | Fix `connect_telegram` missing disconnect on error | `connect_telegram` wrapped in `try/finally: await client.disconnect()` | — | `cc:TODO` |
-| 9 | Fix `sync_telegram_bios` to include contacts with only `telegram_user_id` | Query uses `OR(telegram_username IS NOT NULL, telegram_user_id IS NOT NULL)` | — | `cc:TODO` |
-| 10 | Add `notify_sync_failure` to batch task max retries | `sync_telegram_chats_batch_task` calls `notify_sync_failure.delay()` on final retry failure | — | `cc:TODO` |
+| 8 | Fix `connect_telegram` missing disconnect on error | `connect_telegram` wrapped in `try/finally: await client.disconnect()` | — | `cc:完了` |
+| 9 | Fix `sync_telegram_bios` to include contacts with only `telegram_user_id` | Query uses `OR(telegram_username IS NOT NULL, telegram_user_id IS NOT NULL)` | — | `cc:完了` |
+| 10 | Add `notify_sync_failure` to batch task max retries | `sync_telegram_chats_batch_task` calls `notify_sync_failure.delay()` on final retry failure | — | `cc:完了` |
+
+---
+
+## Phase 13: Organizations & Contact Detail UX Fixes
+
+作成日: 2026-03-13
+
+### 13.1 Critical Fixes (High)
+
+| # | Task | DoD | Depends | Status |
+|---|------|-----|---------|--------|
+| 1 | Fix org detail page React error #310 — move `useMemo` before early returns, add `res.error` throw in queryFn, add 500 throw in api-client `onResponse` | Org detail page loads without crash; shows data or "not found" | — | `cc:完了` |
+| 2 | Org list: remove expand/collapse chevron pattern, convert to flat table with org name as link to detail page | Org list shows flat rows; clicking org name navigates to `/organizations/{id}`; no ">" chevron | — | `cc:完了` |
+| 3 | Org list: add per-row delete button + delete in bulk action bar | Each org row has trash icon; bulk bar shows "Delete" when orgs selected; confirm dialog before delete | 2 | `cc:完了` |
+| 4 | Org list: show domain favicon as org logo | Org rows show `google.com/s2/favicons?domain={domain}&sz=32` when domain exists, fallback to Building2 icon | 2 | `cc:完了` |
+
+### 13.2 Contact Detail — Company/Org Unified Field (Medium)
+
+| # | Task | DoD | Depends | Status |
+|---|------|-----|---------|--------|
+| 5 | Merge Company + Organization into single field: editable on pencil click, clickable link to org detail when org exists, remove separate "Organization" row | Single "Company" row: displays as link to `/organizations/{org_id}` when org exists, pencil icon edits `company` field, no separate Organization row | — | `cc:完了` |
 
 ---
 

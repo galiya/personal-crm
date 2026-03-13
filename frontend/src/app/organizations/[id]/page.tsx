@@ -92,6 +92,7 @@ export default function OrganizationDetailPage() {
       const res = await client.GET("/api/v1/organizations/{org_id}" as any, {
         params: { path: { org_id: id } },
       });
+      if (res.error) throw new Error("Failed to load organization");
       return (res.data as any)?.data as OrganizationData;
     },
   });
@@ -123,6 +124,18 @@ export default function OrganizationDetailPage() {
     },
   });
 
+  const contacts = data?.contacts ?? [];
+  const sortedContacts = useMemo(() => [...contacts].sort((a, b) => {
+    if (sortBy === "score") return b.relationship_score - a.relationship_score;
+    if (sortBy === "name") return (a.full_name ?? "").localeCompare(b.full_name ?? "");
+    if (sortBy === "recent") {
+      const aDate = a.last_interaction_at ? new Date(a.last_interaction_at).getTime() : 0;
+      const bDate = b.last_interaction_at ? new Date(b.last_interaction_at).getTime() : 0;
+      return bDate - aDate;
+    }
+    return 0;
+  }), [contacts, sortBy]);
+
   if (isLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-zinc-500">
@@ -140,18 +153,6 @@ export default function OrganizationDetailPage() {
   }
 
   const org = data;
-  const contacts = org.contacts ?? [];
-
-  const sortedContacts = useMemo(() => [...contacts].sort((a, b) => {
-    if (sortBy === "score") return b.relationship_score - a.relationship_score;
-    if (sortBy === "name") return (a.full_name ?? "").localeCompare(b.full_name ?? "");
-    if (sortBy === "recent") {
-      const aDate = a.last_interaction_at ? new Date(a.last_interaction_at).getTime() : 0;
-      const bDate = b.last_interaction_at ? new Date(b.last_interaction_at).getTime() : 0;
-      return bDate - aDate;
-    }
-    return 0;
-  }), [contacts, sortBy]);
 
   const handleSave = () => {
     updateMutation.mutate(editData);
