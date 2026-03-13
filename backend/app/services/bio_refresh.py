@@ -65,6 +65,16 @@ async def refresh_contact_bios(
                         avatar_path = await download_twitter_avatar(image_url, contact.id)
                         if avatar_path:
                             contact.avatar_url = avatar_path
+                # Reset failure counter on successful fetch
+                try:
+                    from app.core.config import settings as _settings
+                    import redis.asyncio as aioredis
+                    _r = aioredis.from_url(_settings.REDIS_URL)
+                    await _r.delete(f"twitter_bio_fail:{current_user.id}")
+                    await _r.aclose()
+                except Exception:
+                    pass
+
                 if new_bio and new_bio != (contact.twitter_bio or ""):
                     old_bio = contact.twitter_bio
                     contact.twitter_bio = new_bio
@@ -84,6 +94,26 @@ async def refresh_contact_bios(
             logger.warning(
                 "bio_refresh: Twitter bio fetch failed for contact %s", contact.id
             )
+            # Track consecutive failures per user; notify after 3+
+            try:
+                from app.core.config import settings
+                import redis.asyncio as aioredis
+
+                r = aioredis.from_url(settings.REDIS_URL)
+                fail_key = f"twitter_bio_fail:{current_user.id}"
+                count = await r.incr(fail_key)
+                await r.expire(fail_key, 86400)  # 24h TTL
+                if count == 3:
+                    db.add(Notification(
+                        user_id=current_user.id,
+                        notification_type="system",
+                        title="Twitter profile sync failing",
+                        body=f"{count} consecutive Twitter bio fetches have failed. This may indicate an API issue or expired credentials.",
+                        link="/settings",
+                    ))
+                await r.aclose()
+            except Exception:
+                pass  # Don't let notification logic break bio refresh
 
     # ------------------------------------------------------------------
     # Telegram bio check

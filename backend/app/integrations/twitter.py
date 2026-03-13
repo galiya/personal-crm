@@ -559,7 +559,11 @@ async def refresh_twitter_token(refresh_token: str) -> dict[str, Any]:
 
 
 async def _user_bearer_headers(user: User, db: AsyncSession) -> dict[str, str] | None:
-    """Get Bearer headers using user's OAuth 2.0 token, refreshing if needed."""
+    """Get Bearer headers using user's OAuth 2.0 token, refreshing if needed.
+
+    Creates a system notification when token refresh fails so the user
+    knows to reconnect Twitter in Settings.
+    """
     if not user.twitter_access_token:
         return None
 
@@ -576,6 +580,15 @@ async def _user_bearer_headers(user: User, db: AsyncSession) -> dict[str, str] |
 
     # Token expired — refresh
     if not user.twitter_refresh_token:
+        from app.models.notification import Notification
+        db.add(Notification(
+            user_id=user.id,
+            notification_type="system",
+            title="Twitter connection expired",
+            body="Your Twitter access token has expired and no refresh token is available. Please reconnect in Settings.",
+            link="/settings",
+        ))
+        await db.flush()
         return None
 
     try:
@@ -587,6 +600,15 @@ async def _user_bearer_headers(user: User, db: AsyncSession) -> dict[str, str] |
         return {"Authorization": f"Bearer {tokens['access_token']}"}
     except Exception:
         logger.exception("Failed to refresh Twitter token for user %s", user.id)
+        from app.models.notification import Notification
+        db.add(Notification(
+            user_id=user.id,
+            notification_type="system",
+            title="Twitter connection expired",
+            body="Failed to refresh your Twitter token. Please reconnect in Settings to restore Twitter sync.",
+            link="/settings",
+        ))
+        await db.flush()
         return None
 
 

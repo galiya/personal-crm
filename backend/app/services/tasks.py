@@ -534,16 +534,23 @@ def poll_twitter_activity(self, user_id: str) -> dict:
 
             activity_records = await poll_contacts_activity(user, db)
 
-            # Surface bird CLI failures to the user (once per poll cycle)
+            # Surface bird CLI failures to the user (at most once per 24h)
             bird_error = bird.last_error
             if bird_error and not activity_records:
-                db.add(Notification(
-                    user_id=uid,
-                    notification_type="sync",
-                    title="Twitter enrichment unavailable",
-                    body=bird_error[:200],
-                    link="/settings",
-                ))
+                import redis.asyncio as aioredis
+                from app.core.config import settings as _cfg
+                _r = aioredis.from_url(_cfg.REDIS_URL)
+                dedup_key = f"bird_error_notified:{uid}"
+                if not await _r.exists(dedup_key):
+                    db.add(Notification(
+                        user_id=uid,
+                        notification_type="system",
+                        title="Twitter enrichment unavailable",
+                        body=bird_error[:200],
+                        link="/settings",
+                    ))
+                    await _r.setex(dedup_key, 86400, "1")  # 24h dedup
+                await _r.aclose()
 
             total_events = 0
             for record in activity_records:
@@ -594,6 +601,8 @@ def poll_twitter_activity(self, user_id: str) -> dict:
         return _run(_poll(uid))
     except Exception as exc:
         logger.exception("poll_twitter_activity failed for %s, retrying.", user_id)
+        if self.request.retries >= self.max_retries:
+            _run(_notify_sync_failure(uid, "Twitter activity", str(exc)))
         raise self.retry(exc=exc, countdown=120) from exc
 
 
