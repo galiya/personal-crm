@@ -31,7 +31,10 @@ class Contact(Base):
     emails: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True, default=list)
     phones: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True, default=list)
 
-    company: Mapped[str | None] = mapped_column(String, nullable=True)
+    company: Mapped[str | None] = mapped_column(String, nullable=True)  # legacy — migrating to organization_id
+    organization_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     title: Mapped[str | None] = mapped_column(String, nullable=True)
 
     twitter_handle: Mapped[str | None] = mapped_column(String, nullable=True)
