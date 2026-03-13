@@ -52,6 +52,11 @@ celery_app.conf.update(
             "task": "app.services.tasks.generate_suggestions_all",
             "schedule": crontab(minute=0, hour=8),
         },
+        # Sync Google Calendar for all users every 30 minutes
+        "sync-google-calendar-all-every-30m": {
+            "task": "app.services.tasks.sync_google_calendar_all",
+            "schedule": crontab(minute="*/30"),
+        },
         # Reactivate snoozed suggestions every hour
         "reactivate-snoozed-suggestions-hourly": {
             "task": "app.services.tasks.reactivate_snoozed_suggestions",

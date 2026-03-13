@@ -22,6 +22,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contacts/ids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Contact Ids
+         * @description Return all matching contact IDs (no pagination) for bulk select-all.
+         */
+        get: operations["list_contact_ids_api_v1_contacts_ids_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contacts/tags": {
         parameters: {
             query?: never;
@@ -42,6 +62,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contacts/tags/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Discover Tag Taxonomy
+         * @description Phase 1: AI scans all contacts and proposes a categorized tag taxonomy.
+         */
+        post: operations["discover_tag_taxonomy_api_v1_contacts_tags_discover_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/tags/taxonomy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Taxonomy
+         * @description Get the current user's tag taxonomy.
+         */
+        get: operations["get_taxonomy_api_v1_contacts_tags_taxonomy_get"];
+        /**
+         * Update Taxonomy
+         * @description Update the user's tag taxonomy (add/remove/rename categories and tags).
+         */
+        put: operations["update_taxonomy_api_v1_contacts_tags_taxonomy_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/tags/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply Tags
+         * @description Phase 2: Apply approved taxonomy tags to contacts (inline for <20, Celery for more).
+         */
+        post: operations["apply_tags_api_v1_contacts_tags_apply_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contacts/stats": {
         parameters: {
             query?: never;
@@ -54,6 +138,46 @@ export interface paths {
          * @description Return aggregate contact stats for the dashboard.
          */
         get: operations["contact_stats_api_v1_contacts_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/birthdays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Upcoming Birthdays
+         * @description Return contacts with birthdays in the next 7 days.
+         */
+        get: operations["get_upcoming_birthdays_api_v1_contacts_birthdays_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/overdue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Overdue Contacts
+         * @description Return contacts that have exceeded their follow-up threshold, sorted by most overdue first.
+         */
+        get: operations["get_overdue_contacts_api_v1_contacts_overdue_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -81,6 +205,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contacts/{contact_id}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Contact Activity
+         * @description Return activity score breakdown and monthly interaction trend for a contact.
+         */
+        get: operations["get_contact_activity_api_v1_contacts__contact_id__activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contacts/{contact_id}/duplicates": {
         parameters: {
             query?: never;
@@ -95,6 +239,26 @@ export interface paths {
         get: operations["find_contact_duplicates_api_v1_contacts__contact_id__duplicates_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{contact_id}/dismiss-duplicate/{other_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dismiss Duplicate
+         * @description Dismiss a duplicate pair by creating a rejected IdentityMatch.
+         */
+        post: operations["dismiss_duplicate_api_v1_contacts__contact_id__dismiss_duplicate__other_id__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -222,6 +386,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contacts/sync/gmail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Gmail
+         * @description Dispatch a background Gmail thread sync.
+         *
+         *     Returns immediately. A notification is created when sync completes.
+         */
+        post: operations["sync_gmail_api_v1_contacts_sync_gmail_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contacts/sync/twitter": {
         parameters: {
             query?: never;
@@ -264,6 +450,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contacts/bulk-update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk Update Contacts
+         * @description Bulk update tags and/or priority level for a set of contacts.
+         */
+        post: operations["bulk_update_contacts_api_v1_contacts_bulk_update_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{contact_id}/enrich": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enrich Contact
+         * @description Enrich a contact using the Apollo People Enrichment API.
+         *
+         *     Only fills in fields that are currently empty/null on the contact.
+         */
+        post: operations["enrich_contact_api_v1_contacts__contact_id__enrich_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contacts/{contact_id}/refresh-bios": {
         parameters: {
             query?: never;
@@ -277,9 +505,176 @@ export interface paths {
          * Refresh Contact Bios
          * @description Check for bio updates on Twitter and Telegram for a single contact.
          *
-         *     Rate-limited to once per 24 hours per contact.
+         *     Rate-limited to once per 24 hours per contact (unless force=true).
          */
         post: operations["refresh_contact_bios_api_v1_contacts__contact_id__refresh_bios_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{contact_id}/refresh-avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Contact Avatar
+         * @description Refresh a contact's avatar from Telegram or Twitter. Rate-limited to once per 24h.
+         */
+        post: operations["refresh_contact_avatar_api_v1_contacts__contact_id__refresh_avatar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{contact_id}/sync-emails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Contact Emails
+         * @description Search Gmail for threads involving this contact's emails and save as interactions.
+         *
+         *     Rate-limited to once per hour per contact (unless force=true).
+         */
+        post: operations["sync_contact_emails_api_v1_contacts__contact_id__sync_emails_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{contact_id}/sync-telegram": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Contact Telegram
+         * @description Sync Telegram DMs for a single contact. Rate-limited to once per hour.
+         */
+        post: operations["sync_contact_telegram_api_v1_contacts__contact_id__sync_telegram_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{contact_id}/sync-twitter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Contact Twitter
+         * @description Sync Twitter DMs for a single contact. Rate-limited to once per hour.
+         */
+        post: operations["sync_contact_twitter_api_v1_contacts__contact_id__sync_twitter_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{contact_id}/send-message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Message
+         * @description Send a message to a contact via the specified channel.
+         *
+         *     Currently supports Telegram. Creates an Interaction record on success.
+         */
+        post: operations["send_message_api_v1_contacts__contact_id__send_message_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{contact_id}/auto-tag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Auto Tag Contact
+         * @description Quick single-contact auto-tagging using the approved taxonomy.
+         */
+        post: operations["auto_tag_contact_api_v1_contacts__contact_id__auto_tag_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{contact_id}/compose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compose Message
+         * @description Generate an AI-drafted reach-out message for a contact (no suggestion required).
+         */
+        post: operations["compose_message_api_v1_contacts__contact_id__compose_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/reconcile-last-interaction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reconcile Last Interaction
+         * @description Reconcile last_interaction_at for all contacts from actual interaction data.
+         *
+         *     Fixes stale values caused by sync bugs where last_interaction_at wasn't
+         *     updated when interactions were created or skipped as duplicates.
+         */
+        post: operations["reconcile_last_interaction_api_v1_contacts_reconcile_last_interaction_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -424,6 +819,8 @@ export interface paths {
          *
          *     - Validates the ``state`` parameter against the server-side nonce store
          *       to prevent CSRF attacks.
+         *     - If the state was created by an authenticated user (connect-account flow),
+         *       verifies that the current authenticated user matches the stored user_id.
          *     - If a user with the returned email already exists, update their refresh token.
          *     - Otherwise create a new account from the Google profile information.
          */
@@ -510,6 +907,9 @@ export interface paths {
         /**
          * Generate Suggestions
          * @description Manually trigger suggestion generation for the current user.
+         *
+         *     If no contacts have been scored yet, runs score recalculation first
+         *     so the engine has data to work with.
          */
         post: operations["generate_suggestions_api_v1_suggestions_generate_post"];
         delete?: never;
@@ -838,6 +1238,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Organizations
+         * @description Return organizations with stats from materialized view.
+         */
+        get: operations["list_organizations_api_v1_organizations_get"];
+        put?: never;
+        /** Create Organization */
+        post: operations["create_organization_api_v1_organizations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/{org_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Organization */
+        get: operations["get_organization_api_v1_organizations__org_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Organization */
+        delete: operations["delete_organization_api_v1_organizations__org_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Organization */
+        patch: operations["update_organization_api_v1_organizations__org_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/organizations/{org_id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Organization Stats */
+        get: operations["get_organization_stats_api_v1_organizations__org_id__stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organizations/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Merge Organizations
+         * @description Merge source organizations into the target organization.
+         *
+         *     Moves all contacts from source orgs to target, then deletes sources.
+         */
+        post: operations["merge_organizations_api_v1_organizations_merge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/priority": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Priority */
+        get: operations["get_priority_api_v1_settings_priority_get"];
+        /** Update Priority */
+        put: operations["update_priority_api_v1_settings_priority_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/linkedin/push": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Push Linkedin Data
+         * @description Receive profile and message data from the LinkedIn Chrome Extension.
+         */
+        post: operations["push_linkedin_data_api_v1_linkedin_push_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/activity/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Recent Activity
+         * @description Return a unified activity feed of recent interactions across all contacts.
+         */
+        get: operations["get_recent_activity_api_v1_activity_recent_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -859,6 +1396,42 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ApplyTagsBody */
+        ApplyTagsBody: {
+            /** Contact Ids */
+            contact_ids?: string[] | null;
+        };
+        /** ApplyTagsResult */
+        ApplyTagsResult: {
+            /** Tagged Count */
+            tagged_count: number;
+            /** Task Id */
+            task_id?: string | null;
+        };
+        /** AutoTagResult */
+        AutoTagResult: {
+            /** Tags Added */
+            tags_added: string[];
+            /** All Tags */
+            all_tags: string[];
+        };
+        /** AvatarRefreshData */
+        AvatarRefreshData: {
+            /** Avatar Url */
+            avatar_url?: string | null;
+            /**
+             * Changed
+             * @default false
+             */
+            changed: boolean;
+            /**
+             * Skipped
+             * @default false
+             */
+            skipped: boolean;
+            /** Reason */
+            reason?: string | null;
+        };
         /** BioRefreshData */
         BioRefreshData: {
             /** Twitter Bio Changed */
@@ -912,6 +1485,25 @@ export interface components {
             /** Client Secret */
             client_secret?: string | null;
         };
+        /** BulkUpdateBody */
+        BulkUpdateBody: {
+            /** Contact Ids */
+            contact_ids: string[];
+            /** Add Tags */
+            add_tags?: string[] | null;
+            /** Remove Tags */
+            remove_tags?: string[] | null;
+            /** Priority Level */
+            priority_level?: string | null;
+        };
+        /** ComposeBody */
+        ComposeBody: {
+            /**
+             * Channel
+             * @default email
+             */
+            channel: string;
+        };
         /** ContactCreate */
         ContactCreate: {
             /** Full Name */
@@ -942,10 +1534,20 @@ export interface components {
             telegram_username?: string | null;
             /** Telegram Bio */
             telegram_bio?: string | null;
+            /** Location */
+            location?: string | null;
             /** Linkedin Url */
             linkedin_url?: string | null;
+            /** Linkedin Profile Id */
+            linkedin_profile_id?: string | null;
+            /** Linkedin Headline */
+            linkedin_headline?: string | null;
+            /** Linkedin Bio */
+            linkedin_bio?: string | null;
             /** Avatar Url */
             avatar_url?: string | null;
+            /** Birthday */
+            birthday?: string | null;
             /**
              * Tags
              * @default []
@@ -999,10 +1601,20 @@ export interface components {
             telegram_username?: string | null;
             /** Telegram Bio */
             telegram_bio?: string | null;
+            /** Location */
+            location?: string | null;
             /** Linkedin Url */
             linkedin_url?: string | null;
+            /** Linkedin Profile Id */
+            linkedin_profile_id?: string | null;
+            /** Linkedin Headline */
+            linkedin_headline?: string | null;
+            /** Linkedin Bio */
+            linkedin_bio?: string | null;
             /** Avatar Url */
             avatar_url?: string | null;
+            /** Birthday */
+            birthday?: string | null;
             /**
              * Tags
              * @default []
@@ -1027,8 +1639,15 @@ export interface components {
              * Format: uuid
              */
             user_id: string;
+            /** Organization Id */
+            organization_id?: string | null;
             /** Relationship Score */
             relationship_score: number;
+            /**
+             * Interaction Count
+             * @default 0
+             */
+            interaction_count: number;
             /** Last Interaction At */
             last_interaction_at?: string | null;
             /** Last Followup At */
@@ -1051,6 +1670,11 @@ export interface components {
             active: number;
             /** Dormant */
             dormant: number;
+            /**
+             * Interactions This Week
+             * @default 0
+             */
+            interactions_this_week: number;
         };
         /** ContactSummaryData */
         ContactSummaryData: {
@@ -1114,8 +1738,18 @@ export interface components {
             twitter_bio?: string | null;
             /** Telegram Username */
             telegram_username?: string | null;
+            /** Location */
+            location?: string | null;
             /** Linkedin Url */
             linkedin_url?: string | null;
+            /** Linkedin Profile Id */
+            linkedin_profile_id?: string | null;
+            /** Linkedin Headline */
+            linkedin_headline?: string | null;
+            /** Linkedin Bio */
+            linkedin_bio?: string | null;
+            /** Birthday */
+            birthday?: string | null;
             /** Tags */
             tags?: string[] | null;
             /** Notes */
@@ -1170,6 +1804,49 @@ export interface components {
             /** Score */
             score: number;
         };
+        /** EnrichData */
+        EnrichData: {
+            /** Fields Updated */
+            fields_updated: string[];
+            /**
+             * Source
+             * @default apollo
+             */
+            source: string;
+        };
+        /** Envelope */
+        Envelope: {
+            /** Data */
+            data?: unknown | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
+        /** Envelope[ApplyTagsResult] */
+        Envelope_ApplyTagsResult_: {
+            data?: components["schemas"]["ApplyTagsResult"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
+        /** Envelope[AutoTagResult] */
+        Envelope_AutoTagResult_: {
+            data?: components["schemas"]["AutoTagResult"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
+        /** Envelope[AvatarRefreshData] */
+        Envelope_AvatarRefreshData_: {
+            data?: components["schemas"]["AvatarRefreshData"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
         /** Envelope[BioRefreshData] */
         Envelope_BioRefreshData_: {
             data?: components["schemas"]["BioRefreshData"] | null;
@@ -1205,6 +1882,14 @@ export interface components {
         /** Envelope[DeletedData] */
         Envelope_DeletedData_: {
             data?: components["schemas"]["DeletedData"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
+        /** Envelope[EnrichData] */
+        Envelope_EnrichData_: {
+            data?: components["schemas"]["EnrichData"] | null;
             /** Error */
             error?: string | null;
             /** Meta */
@@ -1250,9 +1935,25 @@ export interface components {
             /** Meta */
             meta?: Record<string, never> | null;
         };
+        /** Envelope[LinkedInPushResult] */
+        Envelope_LinkedInPushResult_: {
+            data?: components["schemas"]["LinkedInPushResult"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
         /** Envelope[MarkedData] */
         Envelope_MarkedData_: {
             data?: components["schemas"]["MarkedData"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
+        /** Envelope[MergeOrganizationsResult] */
+        Envelope_MergeOrganizationsResult_: {
+            data?: components["schemas"]["MergeOrganizationsResult"] | null;
             /** Error */
             error?: string | null;
             /** Meta */
@@ -1282,6 +1983,30 @@ export interface components {
             /** Meta */
             meta?: Record<string, never> | null;
         };
+        /** Envelope[OrgStatsResponse] */
+        Envelope_OrgStatsResponse_: {
+            data?: components["schemas"]["OrgStatsResponse"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
+        /** Envelope[OrganizationResponse] */
+        Envelope_OrganizationResponse_: {
+            data?: components["schemas"]["OrganizationResponse"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
+        /** Envelope[PrioritySettingsData] */
+        Envelope_PrioritySettingsData_: {
+            data?: components["schemas"]["PrioritySettingsData"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
         /** Envelope[RegenerateResult] */
         Envelope_RegenerateResult_: {
             data?: components["schemas"]["RegenerateResult"] | null;
@@ -1306,9 +2031,25 @@ export interface components {
             /** Meta */
             meta?: Record<string, never> | null;
         };
+        /** Envelope[SendMessageData] */
+        Envelope_SendMessageData_: {
+            data?: components["schemas"]["SendMessageData"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
         /** Envelope[SyncStartedData] */
         Envelope_SyncStartedData_: {
             data?: components["schemas"]["SyncStartedData"] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
+        /** Envelope[TaxonomyResult] */
+        Envelope_TaxonomyResult_: {
+            data?: components["schemas"]["TaxonomyResult"] | null;
             /** Error */
             error?: string | null;
             /** Meta */
@@ -1386,6 +2127,15 @@ export interface components {
             /** Meta */
             meta?: Record<string, never> | null;
         };
+        /** Envelope[dict] */
+        Envelope_dict_: {
+            /** Data */
+            data?: Record<string, never> | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
         /** Envelope[list[DuplicateContactData]] */
         Envelope_list_DuplicateContactData__: {
             /** Data */
@@ -1426,6 +2176,15 @@ export interface components {
         Envelope_list_InteractionResponse__: {
             /** Data */
             data?: components["schemas"]["InteractionResponse"][] | null;
+            /** Error */
+            error?: string | null;
+            /** Meta */
+            meta?: Record<string, never> | null;
+        };
+        /** Envelope[list[OrganizationResponse]] */
+        Envelope_list_OrganizationResponse__: {
+            /** Data */
+            data?: components["schemas"]["OrganizationResponse"][] | null;
             /** Error */
             error?: string | null;
             /** Meta */
@@ -1476,6 +2235,8 @@ export interface components {
             suggested_channel: string;
             /** Status */
             status: string;
+            /** Pool */
+            pool?: string | null;
             /** Scheduled For */
             scheduled_for?: string | null;
             /**
@@ -1595,6 +2356,23 @@ export interface components {
             /** Errors */
             errors: string[];
         };
+        /** LinkedInMessagePush */
+        LinkedInMessagePush: {
+            /** Profile Id */
+            profile_id: string;
+            /** Profile Name */
+            profile_name: string;
+            /** Direction */
+            direction: string;
+            /** Content Preview */
+            content_preview: string;
+            /** Timestamp */
+            timestamp: string;
+            /** Conversation Id */
+            conversation_id: string;
+            /** Content Hash */
+            content_hash?: string | null;
+        };
         /** LinkedInMessagesImportResult */
         LinkedInMessagesImportResult: {
             /** New Interactions */
@@ -1606,10 +2384,77 @@ export interface components {
             /** Unmatched Names */
             unmatched_names: string[];
         };
+        /** LinkedInProfilePush */
+        LinkedInProfilePush: {
+            /** Profile Id */
+            profile_id: string;
+            /** Profile Url */
+            profile_url: string;
+            /** Full Name */
+            full_name: string;
+            /** Headline */
+            headline?: string | null;
+            /** Company */
+            company?: string | null;
+            /** Location */
+            location?: string | null;
+            /** About */
+            about?: string | null;
+            /** Avatar Url */
+            avatar_url?: string | null;
+        };
+        /** LinkedInPushRequest */
+        LinkedInPushRequest: {
+            /**
+             * Profiles
+             * @default []
+             */
+            profiles: components["schemas"]["LinkedInProfilePush"][];
+            /**
+             * Messages
+             * @default []
+             */
+            messages: components["schemas"]["LinkedInMessagePush"][];
+        };
+        /** LinkedInPushResult */
+        LinkedInPushResult: {
+            /** Contacts Created */
+            contacts_created: number;
+            /** Contacts Updated */
+            contacts_updated: number;
+            /** Interactions Created */
+            interactions_created: number;
+            /** Interactions Skipped */
+            interactions_skipped: number;
+        };
         /** MarkedData */
         MarkedData: {
             /** Marked */
             marked: boolean;
+        };
+        /** MergeOrganizationsRequest */
+        MergeOrganizationsRequest: {
+            /**
+             * Source Ids
+             * @description Organization IDs to merge away
+             */
+            source_ids: string[];
+            /**
+             * Target Id
+             * @description Organization ID to keep
+             */
+            target_id: string;
+        };
+        /** MergeOrganizationsResult */
+        MergeOrganizationsResult: {
+            /** Target Id */
+            target_id: string;
+            /** Target Name */
+            target_name: string;
+            /** Contacts Updated */
+            contacts_updated: number;
+            /** Source Organizations Merged */
+            source_organizations_merged: number;
         };
         /** MergedContactData */
         MergedContactData: {
@@ -1659,6 +2504,132 @@ export interface components {
             /** State */
             state: string;
         };
+        /** OrgContact */
+        OrgContact: {
+            /** Id */
+            id: string;
+            /** Full Name */
+            full_name?: string | null;
+            /** Given Name */
+            given_name?: string | null;
+            /** Family Name */
+            family_name?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Avatar Url */
+            avatar_url?: string | null;
+            /**
+             * Relationship Score
+             * @default 0
+             */
+            relationship_score: number;
+            /** Last Interaction At */
+            last_interaction_at?: string | null;
+        };
+        /** OrgStatsResponse */
+        OrgStatsResponse: {
+            /** Organization Id */
+            organization_id: string;
+            /**
+             * Contact Count
+             * @default 0
+             */
+            contact_count: number;
+            /**
+             * Avg Relationship Score
+             * @default 0
+             */
+            avg_relationship_score: number;
+            /**
+             * Total Interactions
+             * @default 0
+             */
+            total_interactions: number;
+            /** Last Interaction At */
+            last_interaction_at?: string | null;
+        };
+        /** OrganizationCreate */
+        OrganizationCreate: {
+            /** Name */
+            name: string;
+            /** Domain */
+            domain?: string | null;
+            /** Industry */
+            industry?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Website */
+            website?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Twitter Handle */
+            twitter_handle?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** OrganizationResponse */
+        OrganizationResponse: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Domain */
+            domain?: string | null;
+            /** Industry */
+            industry?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Website */
+            website?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Twitter Handle */
+            twitter_handle?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /**
+             * Contact Count
+             * @default 0
+             */
+            contact_count: number;
+            /**
+             * Avg Relationship Score
+             * @default 0
+             */
+            avg_relationship_score: number;
+            /**
+             * Total Interactions
+             * @default 0
+             */
+            total_interactions: number;
+            /** Last Interaction At */
+            last_interaction_at?: string | null;
+            /** Contacts */
+            contacts?: components["schemas"]["OrgContact"][] | null;
+        };
+        /** OrganizationUpdate */
+        OrganizationUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Domain */
+            domain?: string | null;
+            /** Industry */
+            industry?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Website */
+            website?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Twitter Handle */
+            twitter_handle?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
         /** PaginationMeta */
         PaginationMeta: {
             /** Total */
@@ -1669,6 +2640,24 @@ export interface components {
             page_size: number;
             /** Total Pages */
             total_pages: number;
+        };
+        /** PrioritySettingsData */
+        PrioritySettingsData: {
+            /** High */
+            high: number;
+            /** Medium */
+            medium: number;
+            /** Low */
+            low: number;
+        };
+        /** PrioritySettingsInput */
+        PrioritySettingsInput: {
+            /** High */
+            high: number;
+            /** Medium */
+            medium: number;
+            /** Low */
+            low: number;
         };
         /** RegenerateBody */
         RegenerateBody: {
@@ -1696,6 +2685,24 @@ export interface components {
             /** Updated */
             updated: number;
         };
+        /** SendMessageBody */
+        SendMessageBody: {
+            /** Message */
+            message: string;
+            /** Channel */
+            channel: string;
+            /** Scheduled For */
+            scheduled_for?: string | null;
+        };
+        /** SendMessageData */
+        SendMessageData: {
+            /** Sent */
+            sent: boolean;
+            /** Channel */
+            channel: string;
+            /** Interaction Id */
+            interaction_id?: string | null;
+        };
         /** SuggestionUpdateBody */
         SuggestionUpdateBody: {
             /** Status */
@@ -1713,6 +2720,26 @@ export interface components {
         SyncStartedData: {
             /** Status */
             status: string;
+        };
+        /** TaxonomyResult */
+        TaxonomyResult: {
+            /** Categories */
+            categories: {
+                [key: string]: string[];
+            };
+            /** Total Tags */
+            total_tags: number;
+            /** Status */
+            status: string;
+        };
+        /** TaxonomyUpdateBody */
+        TaxonomyUpdateBody: {
+            /** Categories */
+            categories: {
+                [key: string]: string[];
+            };
+            /** Status */
+            status?: string | null;
         };
         /** Telegram2FARequest */
         Telegram2FARequest: {
@@ -1753,16 +2780,6 @@ export interface components {
             code: string;
             /** Phone Code Hash */
             phone_code_hash: string;
-        };
-        /** Token */
-        Token: {
-            /** Access Token */
-            access_token: string;
-            /**
-             * Token Type
-             * @default bearer
-             */
-            token_type: string;
         };
         /** TokenData */
         TokenData: {
@@ -1846,6 +2863,8 @@ export interface components {
             twitter_connected: boolean;
             /** Twitter Username */
             twitter_username?: string | null;
+            /** Priority Settings */
+            priority_settings?: Record<string, never> | null;
         };
         /** UserWithAccountsData */
         UserWithAccountsData: {
@@ -1922,6 +2941,17 @@ export interface operations {
                 date_from?: string | null;
                 /** @description Filter contacts created on or before this date (YYYY-MM-DD) */
                 date_to?: string | null;
+                /** @description Filter to contacts with (true) or without (false) interactions */
+                has_interactions?: boolean | null;
+                /** @description Filter to contacts with last interaction within N days */
+                interaction_days?: number | null;
+                /** @description Filter to contacts with (true) or without (false) a birthday set */
+                has_birthday?: boolean | null;
+                /** @description Filter by priority level: high, medium, low */
+                priority?: string | null;
+                /** @description Return only archived contacts */
+                archived_only?: boolean;
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -1982,6 +3012,47 @@ export interface operations {
             };
         };
     };
+    list_contact_ids_api_v1_contacts_ids_get: {
+        parameters: {
+            query?: {
+                search?: string | null;
+                tag?: string | null;
+                source?: string | null;
+                score?: string | null;
+                priority?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                has_interactions?: boolean | null;
+                interaction_days?: number | null;
+                has_birthday?: boolean | null;
+                archived_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_list_str__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_tags_api_v1_contacts_tags_get: {
         parameters: {
             query?: never;
@@ -2002,6 +3073,112 @@ export interface operations {
             };
         };
     };
+    discover_tag_taxonomy_api_v1_contacts_tags_discover_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_TaxonomyResult_"];
+                };
+            };
+        };
+    };
+    get_taxonomy_api_v1_contacts_tags_taxonomy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_TaxonomyResult_"];
+                };
+            };
+        };
+    };
+    update_taxonomy_api_v1_contacts_tags_taxonomy_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxonomyUpdateBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_TaxonomyResult_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    apply_tags_api_v1_contacts_tags_apply_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyTagsBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ApplyTagsResult_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     contact_stats_api_v1_contacts_stats_get: {
         parameters: {
             query?: never;
@@ -2018,6 +3195,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_ContactStatsData_"];
+                };
+            };
+        };
+    };
+    get_upcoming_birthdays_api_v1_contacts_birthdays_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    get_overdue_contacts_api_v1_contacts_overdue_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2119,6 +3347,37 @@ export interface operations {
             };
         };
     };
+    get_contact_activity_api_v1_contacts__contact_id__activity_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     find_contact_duplicates_api_v1_contacts__contact_id__duplicates_get: {
         parameters: {
             query?: never;
@@ -2137,6 +3396,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_list_DuplicateContactData__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_duplicate_api_v1_contacts__contact_id__dismiss_duplicate__other_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+                other_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -2321,6 +3612,26 @@ export interface operations {
             };
         };
     };
+    sync_gmail_api_v1_contacts_sync_gmail_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SyncStartedData_"];
+                };
+            };
+        };
+    };
     sync_twitter_api_v1_contacts_sync_twitter_post: {
         parameters: {
             query?: never;
@@ -2361,9 +3672,76 @@ export interface operations {
             };
         };
     };
-    refresh_contact_bios_api_v1_contacts__contact_id__refresh_bios_post: {
+    bulk_update_contacts_api_v1_contacts_bulk_update_post: {
         parameters: {
             query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkUpdateBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enrich_contact_api_v1_contacts__contact_id__enrich_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_EnrichData_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_contact_bios_api_v1_contacts__contact_id__refresh_bios_post: {
+        parameters: {
+            query?: {
+                /** @description Bypass 24h rate limit (for manual refresh) */
+                force?: boolean;
+            };
             header?: never;
             path: {
                 contact_id: string;
@@ -2388,6 +3766,263 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_contact_avatar_api_v1_contacts__contact_id__refresh_avatar_post: {
+        parameters: {
+            query?: {
+                /** @description Bypass 24h rate limit (for manual refresh) */
+                force?: boolean;
+            };
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_AvatarRefreshData_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_contact_emails_api_v1_contacts__contact_id__sync_emails_post: {
+        parameters: {
+            query?: {
+                /** @description Bypass 1h rate limit (for manual refresh) */
+                force?: boolean;
+            };
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_contact_telegram_api_v1_contacts__contact_id__sync_telegram_post: {
+        parameters: {
+            query?: {
+                /** @description Bypass 1h rate limit (for manual refresh) */
+                force?: boolean;
+            };
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_contact_twitter_api_v1_contacts__contact_id__sync_twitter_post: {
+        parameters: {
+            query?: {
+                /** @description Bypass 1h rate limit (for manual refresh) */
+                force?: boolean;
+            };
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_message_api_v1_contacts__contact_id__send_message_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SendMessageData_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auto_tag_contact_api_v1_contacts__contact_id__auto_tag_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_AutoTagResult_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compose_message_api_v1_contacts__contact_id__compose_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ComposeBody"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reconcile_last_interaction_api_v1_contacts_reconcile_last_interaction_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"];
                 };
             };
         };
@@ -2510,7 +4145,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Token"];
+                    "application/json": components["schemas"]["Envelope_TokenData_"];
                 };
             };
             /** @description Validation Error */
@@ -3174,6 +4809,351 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_NotificationReadData_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_organizations_api_v1_organizations_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                /** @description Filter by name (case-insensitive) */
+                search?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_list_OrganizationResponse__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_organization_api_v1_organizations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_OrganizationResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_organization_api_v1_organizations__org_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_OrganizationResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_organization_api_v1_organizations__org_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_organization_api_v1_organizations__org_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrganizationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_OrganizationResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_organization_stats_api_v1_organizations__org_id__stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                org_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_OrgStatsResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    merge_organizations_api_v1_organizations_merge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeOrganizationsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_MergeOrganizationsResult_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_priority_api_v1_settings_priority_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_PrioritySettingsData_"];
+                };
+            };
+        };
+    };
+    update_priority_api_v1_settings_priority_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrioritySettingsInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_PrioritySettingsData_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    push_linkedin_data_api_v1_linkedin_push_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkedInPushRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_LinkedInPushResult_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_recent_activity_api_v1_activity_recent_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
                 };
             };
             /** @description Validation Error */

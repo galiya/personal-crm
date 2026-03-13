@@ -33,27 +33,27 @@
 
 ### 10.5 Frontend Test Coverage Expansion (Medium)
 
-- [ ] `cc:TODO` Add tests for nav component (dropdown rendering, active state, submenu links)
-- [ ] `cc:TODO` Add tests for archive page (renders, search, unarchive button)
-- [ ] `cc:TODO` Add tests for identity page (scan, merge flow)
+- [x] `cc:完了` Add tests for nav component (dropdown rendering, active state, submenu links)
+- [x] `cc:完了` Add tests for archive page (renders, search, unarchive button)
+- [x] `cc:完了` Add tests for identity page (scan, merge flow)
 
 ### 10.6 PKCE Verifier Storage (Medium)
 
-- [ ] `cc:TODO` Move Twitter PKCE verifiers from in-memory dict to Redis (required for multi-worker production deployment)
+- [x] `cc:完了` Move Twitter PKCE verifiers from in-memory dict to Redis (required for multi-worker production deployment)
 
 ### 10.7 Celery Beat Schedule Review (Low)
 
-- [ ] `cc:TODO` Verify Telegram sync interval (12h) is appropriate post-split into 3 sub-tasks
-- [ ] `cc:TODO` Consider adding Google Calendar sync to beat schedule (currently manual-only)
+- [x] `cc:完了` Verify Telegram sync interval (12h) is appropriate post-split into 3 sub-tasks
+- [x] `cc:完了` Consider adding Google Calendar sync to beat schedule (currently manual-only)
 
 ### 10.8 Docker Deployment (Low)
 
-- [ ] `cc:TODO` Create `docker-compose.yml` with PostgreSQL, Redis, backend, frontend, Celery worker, Celery beat
-- [ ] `cc:TODO` Create `Dockerfile` for backend and frontend
+- [x] `cc:完了` Create `docker-compose.yml` with PostgreSQL, Redis, backend, frontend, Celery worker, Celery beat
+- [x] `cc:完了` Create `Dockerfile` for backend and frontend
 
 ### 10.9 OpenAPI Schema Regeneration (Low)
 
-- [ ] `cc:TODO` Regenerate `backend/openapi.json` and `frontend` openapi-fetch types to include new `archived_only` param and any other recent API changes
+- [x] `cc:完了` Regenerate `backend/openapi.json` and `frontend` openapi-fetch types to include new `archived_only` param and any other recent API changes
 
 ---
 

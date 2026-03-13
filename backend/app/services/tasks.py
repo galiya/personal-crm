@@ -1096,6 +1096,29 @@ def sync_google_calendar_for_user(self, user_id: str) -> dict:
         raise self.retry(exc=exc, countdown=60) from exc
 
 
+@shared_task(name="app.services.tasks.sync_google_calendar_all")
+def sync_google_calendar_all() -> dict:
+    """Beat-scheduled task: enqueue a ``sync_google_calendar_for_user`` task for every
+    user that has a google_refresh_token set.
+
+    Returns:
+        A dict with ``queued`` count.
+    """
+    async def _get_user_ids() -> list[str]:
+        async with task_session() as db:
+            result = await db.execute(
+                select(User.id).where(User.google_refresh_token.isnot(None))
+            )
+            return [str(row) for row in result.scalars().all()]
+
+    user_ids = _run(_get_user_ids())
+    for uid in user_ids:
+        sync_google_calendar_for_user.delay(uid)
+
+    logger.info("sync_google_calendar_all: queued %d user(s).", len(user_ids))
+    return {"queued": len(user_ids)}
+
+
 # ---------------------------------------------------------------------------
 # Snooze reactivation task
 # ---------------------------------------------------------------------------
