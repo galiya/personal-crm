@@ -2,13 +2,15 @@
 
 export const dynamic = "force-dynamic";
 
-import { Suspense, useState, useCallback, useRef } from "react";
+import { Suspense, useState, useCallback, useRef, memo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Search, Building2, CheckSquare, GitMerge, Trash2, BarChart3, MessageSquare, Clock, Users } from "lucide-react";
 import Link from "next/link";
 import { client } from "@/lib/api-client";
 import { formatDistanceToNow } from "date-fns";
+
+const EMPTY_SET = new Set<string>();
 
 interface Organization {
   id: string;
@@ -28,19 +30,20 @@ interface Organization {
 
 /* ── Favicon helper ── */
 
-function OrgIcon({ domain }: { domain: string | null }) {
-  if (domain) {
-    return (
-      <img
-        src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`}
-        alt=""
-        className="w-5 h-5 rounded-sm"
-        onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling?.classList.remove("hidden"); }}
-      />
-    );
+const OrgIcon = memo(function OrgIcon({ domain }: { domain: string | null }) {
+  const [failed, setFailed] = useState(false);
+  if (!domain || failed) {
+    return <Building2 className="w-4 h-4 text-blue-600" />;
   }
-  return <Building2 className="w-4 h-4 text-blue-600" />;
-}
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`}
+      alt=""
+      className="w-5 h-5 rounded-sm"
+      onError={() => setFailed(true)}
+    />
+  );
+});
 
 /* ── Merge Modal ── */
 
@@ -188,7 +191,7 @@ function OrganizationsPageContent() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const page = Number(searchParams.get("page") ?? "1");
 
-  const [selectedOrgIds, setSelectedOrgIds] = useState<Set<string>>(new Set());
+  const [selectedOrgIds, setSelectedOrgIds] = useState<Set<string>>(EMPTY_SET);
   const [showMergeModal, setShowMergeModal] = useState(false);
 
   const setParams = useCallback(
@@ -226,7 +229,7 @@ function OrganizationsPageContent() {
       return data;
     },
     onSuccess: () => {
-      setSelectedOrgIds(new Set());
+      setSelectedOrgIds(EMPTY_SET);
       setShowMergeModal(false);
       void queryClient.invalidateQueries({ queryKey: ["organizations"] });
     },
@@ -255,7 +258,7 @@ function OrganizationsPageContent() {
 
   const toggleSelectAll = () => {
     if (selectedOrgIds.size === organizations.length) {
-      setSelectedOrgIds(new Set());
+      setSelectedOrgIds(EMPTY_SET);
     } else {
       setSelectedOrgIds(new Set(organizations.map((o) => o.id)));
     }
@@ -264,10 +267,10 @@ function OrganizationsPageContent() {
   const handleDeleteSelected = async () => {
     const count = selectedOrgIds.size;
     if (!confirm(`Delete ${count} organization${count > 1 ? "s" : ""}? Contacts will be unlinked but not deleted.`)) return;
-    for (const id of selectedOrgIds) {
-      await deleteOrg.mutateAsync(id);
-    }
-    setSelectedOrgIds(new Set());
+    await Promise.all(
+      Array.from(selectedOrgIds).map((id) => deleteOrg.mutateAsync(id))
+    );
+    setSelectedOrgIds(EMPTY_SET);
   };
 
   const handleDeleteSingle = (org: Organization) => {
@@ -319,7 +322,7 @@ function OrganizationsPageContent() {
             isPending={mergeOrgs.isPending || deleteOrg.isPending}
             onMergeOrgs={() => setShowMergeModal(true)}
             onDeleteOrgs={handleDeleteSelected}
-            onClear={() => setSelectedOrgIds(new Set())}
+            onClear={() => setSelectedOrgIds(EMPTY_SET)}
           />
         )}
 
@@ -403,7 +406,6 @@ function OrganizationsPageContent() {
                         >
                           <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
                             <OrgIcon domain={org.domain} />
-                            <Building2 className="w-4 h-4 text-blue-600 hidden" />
                           </div>
                           <div className="min-w-0">
                             <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">

@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   experimental: {
     proxyTimeout: 120_000,
+    optimizePackageImports: ["lucide-react", "date-fns"],
   },
   async rewrites() {
     return [
