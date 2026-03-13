@@ -718,9 +718,24 @@ async def _cached_resolve_handles(
         else:
             uncached.append(handle)
 
-    # Batch resolve uncached handles (up to 100 per request)
-    for i in range(0, len(uncached), 100):
-        batch = uncached[i : i + 100]
+    # Primary: resolve via bird CLI (one at a time, no API credits needed)
+    from app.integrations.bird import is_available as bird_available, resolve_user_id_bird
+
+    still_unresolved: list[str] = []
+    if bird_available():
+        for handle in uncached:
+            twitter_id = await resolve_user_id_bird(handle)
+            if twitter_id:
+                result[handle.lower()] = twitter_id
+                await redis.set(f"tw:h2id:{handle.lower()}", twitter_id, ex=_HANDLE_CACHE_TTL)
+            else:
+                still_unresolved.append(handle)
+    else:
+        still_unresolved = uncached
+
+    # Fallback: batch resolve remaining via Twitter API (if bird missed any)
+    for i in range(0, len(still_unresolved), 100):
+        batch = still_unresolved[i : i + 100]
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.get(
@@ -735,7 +750,7 @@ async def _cached_resolve_handles(
                     result[username] = twitter_id
                     await redis.set(f"tw:h2id:{username}", twitter_id, ex=_HANDLE_CACHE_TTL)
         except Exception:
-            logger.warning("_cached_resolve_handles: batch lookup failed at offset %d", i)
+            logger.warning("_cached_resolve_handles: API fallback failed at offset %d", i)
             continue
 
         # Cache misses as empty string so we don't re-query

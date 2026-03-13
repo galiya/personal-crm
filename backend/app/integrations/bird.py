@@ -124,6 +124,30 @@ def _extract_tweets(data: dict | list | None) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
+async def resolve_user_id_bird(handle: str) -> str | None:
+    """Resolve a Twitter handle to a numeric user ID via bird CLI.
+
+    Uses ``bird user-tweets --json-full`` to extract ``rest_id`` from the
+    GraphQL user object.  Returns the ID string or None on failure.
+    """
+    handle = handle.lstrip("@").strip()
+    if not handle:
+        return None
+    data = await _run_bird("user-tweets", f"@{handle}", "-n", "1", "--json-full")
+    tweets = _extract_tweets(data)
+    if not tweets:
+        return None
+    user = (
+        tweets[0]
+        .get("_raw", {})
+        .get("core", {})
+        .get("user_results", {})
+        .get("result", {})
+    )
+    rest_id = user.get("rest_id")
+    return str(rest_id) if rest_id else None
+
+
 async def fetch_user_tweets_bird(handle: str, count: int = 5) -> list[dict[str, Any]]:
     """Fetch a user's recent tweets via ``bird user-tweets``."""
     handle = handle.lstrip("@").strip()
