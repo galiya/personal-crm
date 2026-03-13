@@ -54,6 +54,8 @@ The main screen provides a real-time overview of your networking activity:
 #### Contact Detail (`/contacts/[id]`)
 
 - **Inline editing** -- click any field to edit directly (name, email, company, title, phone, tags, notes, Twitter handle, Telegram username, LinkedIn URL)
+- **Company autocomplete** -- when editing the Company field, search existing organizations with a dropdown. Select an org to link the contact, or type a new name
+- **Quick message composer** -- always-visible collapsed bar above the timeline. Click to expand into a full message editor with channel selection (email, Telegram, Twitter)
 - **Interaction timeline** -- chronological feed of all touchpoints across email, Telegram, Twitter, and manual notes, with platform icons and direction indicators
 - **Add manual notes** -- record offline conversations or meetings
 - **Telegram common groups** -- view shared Telegram groups with a contact (cached for 24 hours)
@@ -109,9 +111,32 @@ Automatically detects when contacts across different platforms are the same pers
   - Username similarity: 10%
   - Mutual signals: 10%
   - Auto-merges above 85% confidence
+  - Colleague guard: caps score when names differ but company/email domain match (prevents false positives for coworkers)
 - **Tier 4: Manual review** -- side-by-side comparison cards for low-confidence matches
 - **Merge or reject** -- one-click actions to combine duplicate profiles or dismiss false matches
 - **Scan button** -- trigger identity resolution on demand
+
+### Organizations (`/organizations`)
+
+Manage companies and organizations your contacts belong to:
+
+#### Organization List (`/organizations`)
+
+- Flat table with sortable column headers (name, contacts, avg score, interactions, last activity)
+- Click any column header to sort; active sort shows arrow indicator
+- **Domain favicon** -- automatically fetches favicon from the org's domain as a logo
+- **Search** -- filter organizations by name
+- **Select and merge** -- checkbox selection with bulk merge for duplicate organizations
+- **Per-row delete** -- trash icon on each row with confirmation dialog
+- **Bulk actions bar** -- appears on selection with merge and delete options
+- Pagination for large datasets
+
+#### Organization Detail (`/organizations/[id]`)
+
+- **Inline editing** -- hover any field to reveal pencil icon, click to edit in place (name, domain, industry, location, website, LinkedIn, Twitter, notes)
+- **Stats cards** -- contacts count, avg relationship score, total interactions, last activity
+- **Contacts table** -- sortable list of contacts in the organization with score badges
+- **Delete organization** -- unlinks contacts but does not delete them
 
 ### Smart Follow-Up Suggestions (`/suggestions`)
 
@@ -228,7 +253,7 @@ Guided 4-step setup flow for new users:
 | **Google APIs** | google-api-python-client + google-auth-oauthlib |
 | **Auth** | python-jose (JWT) + passlib (bcrypt) |
 | **HTTP Client** | httpx (async) + openapi-fetch (frontend) |
-| **Testing** | pytest (backend, 245 tests) + Vitest (frontend, 121 tests) |
+| **Testing** | pytest (backend, 245 tests) + Vitest (frontend, 479 tests) |
 
 ---
 
@@ -473,6 +498,7 @@ pingcrm/
 │   │   │   ├── suggestions.py       # Follow-up suggestions
 │   │   │   ├── telegram.py          # Telegram auth + sync + common groups
 │   │   │   ├── twitter.py           # Twitter OAuth PKCE + sync
+│   │   │   ├── organizations.py      # Organization CRUD + merge
 │   │   │   ├── identity.py          # Identity resolution endpoints
 │   │   │   └── notifications.py     # Notification management
 │   │   ├── models/                  # SQLAlchemy ORM models
@@ -483,6 +509,7 @@ pingcrm/
 │   │   │   ├── detected_event.py
 │   │   │   ├── follow_up.py         # FollowUpSuggestion model
 │   │   │   ├── identity_match.py
+│   │   │   ├── organization.py
 │   │   │   ├── notification.py
 │   │   │   └── google_account.py
 │   │   ├── schemas/                 # Pydantic request/response schemas (typed Envelope[T])
@@ -517,6 +544,7 @@ pingcrm/
     │   ├── app/                     # App Router pages
     │   │   ├── dashboard/           # Main dashboard
     │   │   ├── contacts/            # Contact list + detail + new
+    │   │   ├── organizations/       # Organization list + detail (inline editing)
     │   │   ├── suggestions/         # Follow-up suggestions
     │   │   ├── identity/            # Identity resolution UI
     │   │   ├── notifications/       # Notification center
@@ -641,6 +669,16 @@ All sync endpoints dispatch Celery tasks and return immediately with `{ "status"
 | PUT | `/api/v1/notifications/{id}/read` | Mark a notification as read |
 | PUT | `/api/v1/notifications/read-all` | Mark all notifications as read |
 
+### Organizations
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/organizations` | List organizations (paginated, searchable) |
+| POST | `/api/v1/organizations/merge` | Merge multiple organizations into one |
+| GET | `/api/v1/organizations/{id}` | Get organization detail with contacts |
+| PATCH | `/api/v1/organizations/{id}` | Update organization fields |
+| DELETE | `/api/v1/organizations/{id}` | Delete organization (unlinks contacts) |
+
 ### Health Check
 
 | Method | Endpoint | Description |
@@ -654,6 +692,7 @@ All sync endpoints dispatch Celery tasks and return immediately with `{ "status"
 | Task | Interval |
 |------|----------|
 | Gmail sync (all users) | Every 6 hours |
+| Google Calendar sync (all users) | Every 30 minutes |
 | Telegram sync (all users) | Every 12 hours |
 | Twitter activity + DM poll | Every 12 hours |
 | Relationship score recalculation | Daily |
