@@ -52,26 +52,20 @@ export function useDashboardStats() {
   const overdueQuery = useQuery({
     queryKey: ["contacts", "overdue"],
     queryFn: async () => {
-      const res = await fetch("/api/v1/contacts/overdue?limit=5", {
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${typeof window !== "undefined" ? localStorage.getItem("access_token") : ""}`,
-        },
+      const { data } = await client.GET("/api/v1/contacts/overdue" as any, {
+        params: { query: { limit: 5 } },
       });
-      return res.json();
+      return data;
     },
   });
 
   const activityQuery = useQuery({
     queryKey: ["activity", "recent"],
     queryFn: async () => {
-      const res = await fetch("/api/v1/activity/recent?limit=5", {
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${typeof window !== "undefined" ? localStorage.getItem("access_token") : ""}`,
-        },
+      const { data } = await client.GET("/api/v1/activity/recent" as any, {
+        params: { query: { limit: 5 } },
       });
-      return res.json();
+      return data;
     },
   });
 
@@ -87,7 +81,8 @@ export function useDashboardStats() {
     activityQuery.isLoading;
 
   const isError =
-    suggestionsQuery.isError || statsQuery.isError;
+    suggestionsQuery.isError || statsQuery.isError ||
+    overdueQuery.isError || activityQuery.isError;
 
   return {
     suggestions,
