@@ -281,7 +281,7 @@ def test_encryption_key_empty_in_production_raises_runtime_error():
 
     async def _run():
         with patch("app.main.settings") as mock_settings:
-            mock_settings.SECRET_KEY = "strong-secret-key"
+            mock_settings.SECRET_KEY = "a-very-long-secret-key-that-passes-the-32-char-minimum-check"
             mock_settings.ENCRYPTION_KEY = ""
             mock_settings.ENVIRONMENT = "production"
             async with lifespan(_app):
@@ -303,7 +303,7 @@ def test_encryption_key_empty_in_development_logs_warning(caplog):
 
     async def _run():
         with patch("app.main.settings") as mock_settings:
-            mock_settings.SECRET_KEY = "strong-secret-key"
+            mock_settings.SECRET_KEY = "a-very-long-secret-key-that-passes-the-32-char-minimum-check"
             mock_settings.ENCRYPTION_KEY = ""
             mock_settings.ENVIRONMENT = "development"
             async with lifespan(_app):
@@ -326,7 +326,7 @@ def test_encryption_key_set_does_not_raise():
 
     async def _run():
         with patch("app.main.settings") as mock_settings:
-            mock_settings.SECRET_KEY = "strong-secret-key"
+            mock_settings.SECRET_KEY = "a-very-long-secret-key-that-passes-the-32-char-minimum-check"
             mock_settings.ENCRYPTION_KEY = "HiuobeEdnSk93dMtnycRm8Kob9D3-7-vCw3_L0YG9Ek="
             mock_settings.ENVIRONMENT = "production"
             async with lifespan(_app):

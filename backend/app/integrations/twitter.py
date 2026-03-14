@@ -259,24 +259,20 @@ async def refresh_twitter_token(refresh_token: str) -> dict[str, Any]:
 async def _user_bearer_headers(user: User, db: AsyncSession) -> dict[str, str] | None:
     """Get Bearer headers using user's OAuth 2.0 token, refreshing if needed.
 
-    Creates a system notification when token refresh fails so the user
-    knows to reconnect Twitter in Settings.
+    Returns the current token headers directly (no probe request).
+    Call ``_refresh_and_retry`` when a 401 is encountered during an actual API call.
     """
     if not user.twitter_access_token:
         return None
+    return {"Authorization": f"Bearer {user.twitter_access_token}"}
 
-    headers = {"Authorization": f"Bearer {user.twitter_access_token}"}
 
-    # Try a simple /users/me call to check validity
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(f"{_TWITTER_API_BASE}/users/me", headers=headers)
-            if resp.status_code == 200:
-                return headers
-    except Exception:
-        pass
+async def _refresh_and_retry(user: User, db: AsyncSession) -> dict[str, str] | None:
+    """Attempt to refresh an expired OAuth 2.0 token.
 
-    # Token expired — refresh
+    Called when an API call returns 401. Creates a notification only if
+    the refresh itself fails (not on transient network errors).
+    """
     if not user.twitter_refresh_token:
         from app.models.notification import Notification
         db.add(Notification(
@@ -296,17 +292,22 @@ async def _user_bearer_headers(user: User, db: AsyncSession) -> dict[str, str] |
             user.twitter_refresh_token = tokens["refresh_token"]
         await db.flush()
         return {"Authorization": f"Bearer {tokens['access_token']}"}
+    except httpx.HTTPStatusError as e:
+        logger.error("Twitter token refresh failed for user %s: %s %s", user.id, e.response.status_code, e.response.text[:200])
+        # Only notify on definitive auth failures (400/401), not rate limits (429) or server errors (5xx)
+        if e.response.status_code in (400, 401):
+            from app.models.notification import Notification
+            db.add(Notification(
+                user_id=user.id,
+                notification_type="system",
+                title="Twitter connection expired",
+                body="Failed to refresh your Twitter token. Please reconnect in Settings to restore Twitter sync.",
+                link="/settings",
+            ))
+            await db.flush()
+        return None
     except Exception:
-        logger.exception("Failed to refresh Twitter token for user %s", user.id)
-        from app.models.notification import Notification
-        db.add(Notification(
-            user_id=user.id,
-            notification_type="system",
-            title="Twitter connection expired",
-            body="Failed to refresh your Twitter token. Please reconnect in Settings to restore Twitter sync.",
-            link="/settings",
-        ))
-        await db.flush()
+        logger.exception("Twitter token refresh failed for user %s (network error)", user.id)
         return None
 
 

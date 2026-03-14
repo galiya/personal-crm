@@ -5,6 +5,8 @@ import asyncio
 import logging
 import uuid
 
+import httpx
+
 from celery import shared_task
 from sqlalchemy import select
 
@@ -809,6 +811,7 @@ def sync_twitter_dms_for_user(self, user_id: str) -> dict:
             sync_twitter_mentions,
             sync_twitter_replies,
             _user_bearer_headers,
+            _refresh_and_retry,
             _build_twitter_id_to_contact_map,
         )
         from app.models.notification import Notification
@@ -825,9 +828,24 @@ def sync_twitter_dms_for_user(self, user_id: str) -> dict:
                 return {"status": "skipped", "reason": "no_twitter_token", "new_interactions": 0}
 
             headers = await _user_bearer_headers(user, db)
-            id_map = await _build_twitter_id_to_contact_map(user, db, headers) if headers else None
+            if not headers:
+                return {"status": "skipped", "reason": "no_twitter_token", "new_interactions": 0}
 
-            dm_result = await sync_twitter_dms(user, db, _id_map=id_map, _headers=headers)
+            id_map = await _build_twitter_id_to_contact_map(user, db, headers)
+
+            try:
+                dm_result = await sync_twitter_dms(user, db, _id_map=id_map, _headers=headers)
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 401:
+                    # Token expired during call — refresh and retry once
+                    headers = await _refresh_and_retry(user, db)
+                    if not headers:
+                        return {"status": "auth_failed", "new_interactions": 0}
+                    id_map = await _build_twitter_id_to_contact_map(user, db, headers)
+                    dm_result = await sync_twitter_dms(user, db, _id_map=id_map, _headers=headers)
+                else:
+                    raise
+
             mentions = await sync_twitter_mentions(user, db, _id_map=id_map, _headers=headers)
             replies = await sync_twitter_replies(user, db, _id_map=id_map, _headers=headers)
 
