@@ -4,7 +4,7 @@
   "version": "0.3.1",
   "description": "Passively syncs LinkedIn profile and message data to your PingCRM instance",
   "permissions": ["storage", "activeTab"],
-  "host_permissions": ["https://www.linkedin.com/*"],
+  "host_permissions": ["https://www.linkedin.com/*", "http://localhost/*", "http://127.0.0.1/*", "https://*/*"],
   "background": {
     "service_worker": "background/service-worker.js"
   },

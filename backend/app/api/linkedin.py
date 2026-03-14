@@ -129,7 +129,6 @@ async def push_linkedin_data(
                 linkedin_bio=profile.about,
                 company=profile.company,
                 location=profile.location,
-                source="linkedin-extension",
             )
             db.add(contact)
             await db.flush()
@@ -188,7 +187,6 @@ async def push_linkedin_data(
                 user_id=current_user.id,
                 full_name=msg.profile_name,
                 linkedin_profile_id=msg.profile_id,
-                source="linkedin-extension",
             )
             db.add(contact)
             await db.flush()
