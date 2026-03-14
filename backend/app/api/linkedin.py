@@ -226,7 +226,7 @@ async def push_linkedin_data(
             .values(status="dismissed")
         )
 
-    await db.commit()
+    await db.flush()
 
     return {
         "data": LinkedInPushResult(

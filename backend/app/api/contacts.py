@@ -863,7 +863,7 @@ async def dismiss_duplicate(
             status="rejected",
             resolved_at=datetime.now(UTC),
         ))
-    await db.commit()
+    await db.flush()
     return envelope({"dismissed": True})
 
 
@@ -1344,7 +1344,7 @@ async def sync_contact_emails(
             .where(FollowUpSuggestion.contact_id == contact_id, FollowUpSuggestion.status == "pending")
             .values(status="dismissed")
         )
-        await db.commit()
+        await db.flush()
 
     await r.setex(cache_key, _EMAIL_SYNC_TTL, "1")
     return envelope({"new_interactions": new_count})
@@ -1396,7 +1396,7 @@ async def sync_contact_telegram(
             .where(FollowUpSuggestion.contact_id == contact_id, FollowUpSuggestion.status == "pending")
             .values(status="dismissed")
         )
-        await db.commit()
+        await db.flush()
 
     await r.setex(cache_key, _TELEGRAM_SYNC_TTL, "1")
     return envelope(changes)
@@ -1447,7 +1447,7 @@ async def sync_contact_twitter(
             .where(FollowUpSuggestion.contact_id == contact_id, FollowUpSuggestion.status == "pending")
             .values(status="dismissed")
         )
-        await db.commit()
+        await db.flush()
 
     await r.setex(cache_key, _TWITTER_SYNC_TTL, "1")
     return envelope(changes)
