@@ -1308,6 +1308,12 @@ export default function ContactDetailPage() {
         ...(contact?.telegram_username ? [client.POST("/api/v1/contacts/{contact_id}/sync-telegram" as any, { params: { path: { contact_id: id }, query: { force: true } } })] : []),
         ...(contact?.twitter_handle ? [client.POST("/api/v1/contacts/{contact_id}/sync-twitter" as any, { params: { path: { contact_id: id }, query: { force: true } } })] : []),
       ]);
+      // Force-refresh common groups by clearing the Redis cache via a fresh GET
+      if (contact?.telegram_username) {
+        await client.GET("/api/v1/contacts/{contact_id}/telegram/common-groups", {
+          params: { path: { contact_id: id }, query: { force: true } },
+        } as any).catch(() => {});
+      }
       void queryClient.invalidateQueries({ queryKey: ["contacts", id] });
       void queryClient.invalidateQueries({ queryKey: ["interactions", id] });
     } finally {

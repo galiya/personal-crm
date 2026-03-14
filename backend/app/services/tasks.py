@@ -300,7 +300,7 @@ def sync_telegram_groups_for_user(self, user_id: str) -> dict:
 
 
 @shared_task(name="app.services.tasks.sync_telegram_bios_for_user", bind=True, max_retries=3, soft_time_limit=600, time_limit=900)
-def sync_telegram_bios_for_user(self, user_id: str) -> dict:
+def sync_telegram_bios_for_user(self, user_id: str, exclude_2nd_tier: bool = False, stale_days: int = 7) -> dict:
     """Sync Telegram bios (about text, birthdays, Twitter handles) for a single user."""
     async def _sync(uid: uuid.UUID) -> dict:
         from app.integrations.telegram import sync_telegram_bios
@@ -311,7 +311,7 @@ def sync_telegram_bios_for_user(self, user_id: str) -> dict:
             if user is None:
                 return {"status": "user_not_found"}
 
-            await sync_telegram_bios(user, db)
+            await sync_telegram_bios(user, db, exclude_2nd_tier=exclude_2nd_tier, stale_days=stale_days)
             await db.commit()
 
         return {"status": "ok"}
@@ -328,6 +328,31 @@ def sync_telegram_bios_for_user(self, user_id: str) -> dict:
         if self.request.retries >= self.max_retries:
             notify_sync_failure.delay(str(uid), "Telegram bios", str(exc))
         raise self.retry(exc=exc, countdown=60) from exc
+
+
+@shared_task(name="app.services.tasks.recheck_telegram_bios_all")
+def recheck_telegram_bios_all() -> dict:
+    """Periodic task (every 3 days): recheck Telegram bios for non-2nd-tier contacts
+    whose telegram_bio_checked_at is older than 3 days or NULL."""
+    from datetime import UTC, datetime, timedelta
+    from sqlalchemy import or_
+
+    async def _run_recheck() -> int:
+        async with task_session() as db:
+            result = await db.execute(
+                select(User.id).where(User.telegram_session.isnot(None))
+            )
+            user_ids = [str(uid) for uid in result.scalars().all()]
+
+        count = 0
+        for uid in user_ids:
+            sync_telegram_bios_for_user.delay(uid, exclude_2nd_tier=True, stale_days=3)
+            count += 1
+        return count
+
+    queued = _run(_run_recheck())
+    logger.info("recheck_telegram_bios_all: queued %d user(s).", queued)
+    return {"queued": queued}
 
 
 @shared_task(name="app.services.tasks.sync_telegram_notify", ignore_result=True)
@@ -442,10 +467,10 @@ def sync_telegram_for_user(user_id: str) -> None:
         chain(*tasks).apply_async()
     else:
         # Incremental sync: most recent 100 dialogs
+        # Groups and bios are fetched on-demand (contact detail page visit / Refresh Details)
+        # and via periodic recheck tasks — not in the daily chain.
         chain(
             sync_telegram_chats_for_user.s(user_id, 100),
-            sync_telegram_groups_for_user.si(user_id),
-            sync_telegram_bios_for_user.si(user_id),
             sync_telegram_notify.si([], user_id),
         ).apply_async()
 

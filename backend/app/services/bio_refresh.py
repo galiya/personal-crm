@@ -14,7 +14,7 @@ from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
-_BIO_CHECK_TTL = 86400  # 24 hours
+_BIO_CHECK_TTL = 604800  # 7 days
 
 
 async def refresh_contact_bios(

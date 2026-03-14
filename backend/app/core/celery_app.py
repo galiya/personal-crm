@@ -67,5 +67,10 @@ celery_app.conf.update(
             "task": "app.services.tasks.refresh_org_stats",
             "schedule": crontab(minute=30),
         },
+        # Recheck Telegram bios every 3 days for non-2nd-tier contacts
+        "recheck-telegram-bios-every-3d": {
+            "task": "app.services.tasks.recheck_telegram_bios_all",
+            "schedule": crontab(minute=0, hour=5, day_of_month="1,4,7,10,13,16,19,22,25,28"),
+        },
     },
 )

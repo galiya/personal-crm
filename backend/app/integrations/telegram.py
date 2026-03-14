@@ -1150,10 +1150,16 @@ async def fetch_common_groups(
         await client.disconnect()
 
 
-async def sync_telegram_bios(user: User, db: AsyncSession) -> dict[str, int]:
-    """Fetch and store Telegram bios for all contacts with a telegram_username.
+async def sync_telegram_bios(
+    user: User, db: AsyncSession, *, exclude_2nd_tier: bool = False, stale_days: int = 7,
+) -> dict[str, int]:
+    """Fetch and store Telegram bios for contacts with a telegram username/ID.
 
     Creates notifications for bio changes. Returns counts.
+
+    Args:
+        exclude_2nd_tier: If True, skip contacts tagged "2nd tier".
+        stale_days: Only recheck contacts whose bio was last checked more than this many days ago.
     """
     from app.models.notification import Notification
     from telethon.tl.functions.users import GetFullUserRequest
@@ -1169,21 +1175,23 @@ async def sync_telegram_bios(user: User, db: AsyncSession) -> dict[str, int]:
     client = _make_client(user.telegram_session)
     await _ensure_connected(client)
 
-    # Only fetch contacts whose bios haven't been checked in 7 days
-    bio_stale_cutoff = datetime.now(UTC) - timedelta(days=7)
+    bio_stale_cutoff = datetime.now(UTC) - timedelta(days=stale_days)
+    filters = [
+        Contact.user_id == user.id,
+        or_(
+            Contact.telegram_username.isnot(None),
+            Contact.telegram_user_id.isnot(None),
+        ),
+        or_(
+            Contact.telegram_bio_checked_at.is_(None),
+            Contact.telegram_bio_checked_at < bio_stale_cutoff,
+        ),
+    ]
+    if exclude_2nd_tier:
+        filters.append(or_(Contact.tags.is_(None), ~Contact.tags.contains(["2nd tier"])))
+
     result = await db.execute(
-        select(Contact).where(
-            Contact.user_id == user.id,
-            or_(
-                Contact.telegram_username.isnot(None),
-                Contact.telegram_user_id.isnot(None),
-            ),
-            or_(
-                Contact.telegram_bio_checked_at.is_(None),
-                Contact.telegram_bio_checked_at < bio_stale_cutoff,
-            ),
-        ).order_by(
-            # Prioritize contacts missing avatars
+        select(Contact).where(*filters).order_by(
             Contact.avatar_url.isnot(None).asc(),
         ).limit(MAX_BIO_SYNC_CONTACTS)
     )

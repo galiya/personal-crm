@@ -251,12 +251,14 @@ async def sync_telegram(
 )
 async def get_common_groups(
     contact_id: str,
+    force: bool = Query(False, description="Bypass cache and re-fetch from Telegram"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Envelope[list[dict]]:
     """Return Telegram groups in common with a contact.
 
-    Results are cached on the contact for 24 hours to avoid repeated Telegram API calls.
+    Results are cached on the contact. Auto-refreshes on contact detail visit
+    if not already cached. Use force=true for manual refresh.
     """
     if not current_user.telegram_session:
         return {"data": [], "error": None}
@@ -277,12 +279,11 @@ async def get_common_groups(
     if not contact.telegram_username and not contact.telegram_user_id:
         return {"data": [], "error": None}
 
-    # Rate-limit: skip Telegram API call if checked within 24h
     from app.core.redis import get_redis
     r = get_redis()
     cache_key = f"tg_groups_check:{contact_id}"
-    if await r.exists(cache_key):
-        # Return DB-cached groups without hitting Telegram
+
+    if not force and await r.exists(cache_key):
         return {"data": contact.telegram_common_groups or [], "error": None}
 
     from app.services.telegram_service import get_common_groups_cached
