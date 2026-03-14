@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, UTC
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,8 +51,8 @@ class LinkedInMessagePush(BaseModel):
 
 
 class LinkedInPushRequest(BaseModel):
-    profiles: list[LinkedInProfilePush] = []
-    messages: list[LinkedInMessagePush] = []
+    profiles: list[LinkedInProfilePush] = Field(default=[], max_length=50)
+    messages: list[LinkedInMessagePush] = Field(default=[], max_length=500)
 
 
 @router.post("/push", response_model=Envelope[LinkedInPushResult])
