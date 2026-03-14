@@ -203,6 +203,7 @@ export interface ActivityData {
     count_90d: number;
     platforms: string[];
     interaction_count: number;
+    first_interaction_at: string | null;
   };
   monthly_trend: { month: string; count: number }[];
 }
