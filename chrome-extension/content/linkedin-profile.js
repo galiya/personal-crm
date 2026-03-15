@@ -168,7 +168,28 @@
     return true;
   }
 
-  function captureAndSend() {
+  /**
+   * Download an image URL as a base64 data URI.
+   * Uses the page's fetch (which has LinkedIn cookies) so CDN requests succeed.
+   */
+  async function fetchAvatarAsBase64(url) {
+    try {
+      const resp = await fetch(url, { credentials: 'include' });
+      if (!resp.ok) return null;
+      const blob = await resp.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.debug('[PingCRM] Avatar fetch failed:', e.message);
+      return null;
+    }
+  }
+
+  async function captureAndSend() {
     try {
       const profile = extractProfile();
       if (!profile) {
@@ -178,6 +199,14 @@
       if (!shouldCapture(profile.profile_id)) {
         console.debug('[PingCRM] Skipping (recently captured):', profile.profile_id);
         return;
+      }
+
+      // Download avatar as base64 (browser has LinkedIn cookies, server doesn't)
+      if (profile.avatar_url && !profile.avatar_url.startsWith('data:')) {
+        const base64 = await fetchAvatarAsBase64(profile.avatar_url);
+        if (base64) {
+          profile.avatar_data = base64;  // data:image/jpeg;base64,...
+        }
       }
 
       console.log('[PingCRM] Captured profile:', profile.full_name, profile.profile_id);

@@ -29,6 +29,39 @@ def _has_local_avatar(avatar_url: str | None) -> bool:
     return bool(avatar_url and avatar_url.startswith("/static/avatars/"))
 
 
+async def _save_avatar(profile: "LinkedInProfilePush", contact_id: str) -> str | None:
+    """Save avatar from base64 data (preferred) or URL download (fallback).
+
+    Returns the local path on success, None on failure.
+    """
+    import base64
+    from pathlib import Path
+
+    AVATARS_DIR = Path(__file__).resolve().parent.parent.parent / "static" / "avatars"
+
+    # Prefer base64 data URI from browser (bypasses LinkedIn CDN 403)
+    if profile.avatar_data and profile.avatar_data.startswith("data:image"):
+        try:
+            # data:image/jpeg;base64,/9j/4AAQ...
+            header, b64 = profile.avatar_data.split(",", 1)
+            image_bytes = base64.b64decode(b64)
+            if len(image_bytes) > 5_000_000:  # 5MB cap
+                return None
+            AVATARS_DIR.mkdir(parents=True, exist_ok=True)
+            filename = f"{contact_id}.jpg"
+            filepath = AVATARS_DIR / filename
+            filepath.write_bytes(image_bytes)
+            return f"/static/avatars/{filename}"
+        except Exception:
+            pass  # fall through to URL download
+
+    # Fallback: server-side download (may fail with 403 on LinkedIn CDN)
+    if profile.avatar_url:
+        return await download_linkedin_avatar(profile.avatar_url, contact_id)
+
+    return None
+
+
 class LinkedInProfilePush(BaseModel):
     profile_id: str
     profile_url: str
@@ -38,6 +71,7 @@ class LinkedInProfilePush(BaseModel):
     location: str | None = None
     about: str | None = None
     avatar_url: str | None = None
+    avatar_data: str | None = None  # base64 data URI from browser (data:image/...;base64,...)
 
 
 class LinkedInMessagePush(BaseModel):
@@ -119,11 +153,9 @@ async def push_linkedin_data(
             # Clear broken remote LinkedIn URLs (403 from servers, can't be displayed)
             if contact.avatar_url and not _has_local_avatar(contact.avatar_url):
                 contact.avatar_url = None
-            # Download avatar when no local copy exists
-            if profile.avatar_url and not _has_local_avatar(contact.avatar_url):
-                local_path = await download_linkedin_avatar(
-                    profile.avatar_url, str(contact.id)
-                )
+            # Save avatar: prefer base64 data from browser, fall back to URL download
+            if not _has_local_avatar(contact.avatar_url):
+                local_path = await _save_avatar(profile, str(contact.id))
                 if local_path:
                     contact.avatar_url = local_path
             contacts_updated += 1
@@ -141,13 +173,10 @@ async def push_linkedin_data(
             db.add(contact)
             await db.flush()
             contacts_created += 1
-            # Download avatar for the newly created contact
-            if profile.avatar_url:
-                local_path = await download_linkedin_avatar(
-                    profile.avatar_url, str(contact.id)
-                )
-                if local_path:
-                    contact.avatar_url = local_path
+            # Save avatar for the newly created contact
+            local_path = await _save_avatar(profile, str(contact.id))
+            if local_path:
+                contact.avatar_url = local_path
 
     # --- Messages ---
     for msg in body.messages:
