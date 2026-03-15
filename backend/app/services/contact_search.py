@@ -192,6 +192,9 @@ async def list_contacts_paginated(
             else_=func.concat("z", bday_mmdd),  # 'z' > any MM-DD, so past dates sort last
         )
         order_clause = [Contact.birthday.is_(None).asc(), days_proxy.asc()]
+    elif sort_by == "overdue":
+        # Sort by how long since last interaction (most overdue first)
+        order_clause = [Contact.last_interaction_at.asc().nullsfirst(), Contact.relationship_score.asc()]
     else:
         order_clause = [Contact.relationship_score.desc(), Contact.created_at.desc()]
 
