@@ -1050,7 +1050,7 @@ function MessageComposerCard({ contact, contactId }: { contact: Contact; contact
 
 const TIMELINE_PAGE_SIZE = 50;
 
-function NoteItem({ item, contactId }: { item: TimelineItem; contactId: string }) {
+function NoteItem({ item, contactId }: { item: InteractionResponse; contactId: string }) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item.content_preview || "");
@@ -1129,10 +1129,12 @@ function NoteItem({ item, contactId }: { item: TimelineItem; contactId: string }
 
 function ChatTimeline({
   interactions,
+  contactId,
   contactName,
   onAddNote,
 }: {
   interactions: InteractionResponse[];
+  contactId: string;
   contactName: string;
   onAddNote: (content: string) => void;
 }) {
@@ -1181,7 +1183,7 @@ function ChatTimeline({
 
             {/* Note */}
             {isManual && (
-              <NoteItem item={item} contactId={id} />
+              <NoteItem item={item} contactId={contactId} />
             )}
 
             {/* Meeting event */}
@@ -1702,6 +1704,7 @@ export default function ContactDetailPage() {
             {/* Timeline */}
             <ChatTimeline
               interactions={allInteractions}
+              contactId={id}
               contactName={contact.full_name || contact.given_name || "Contact"}
               onAddNote={(content) => addNoteMutation.mutate(content)}
             />
