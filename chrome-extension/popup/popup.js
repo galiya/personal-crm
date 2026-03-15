@@ -157,8 +157,8 @@
       });
       const token = loginResult.token;
       await Storage.saveConfig({ apiUrl: cleanUrl, token });
-      // Task 3.3: persist the email for display in the connected state
-      await Storage.set({ userEmail: email });
+      // Persist credentials for auto-re-login when JWT expires
+      await Storage.set({ userEmail: email, userPassword: password });
       await render();
     } catch (e) {
       showError(e.message);
@@ -176,7 +176,7 @@
   // Task 3.1: disconnect only clears auth state, preserves apiUrl
   disconnectBtn.addEventListener('click', async () => {
     await Storage.clearToken();
-    await Storage.set({ userEmail: null, lastSyncError: null });
+    await Storage.set({ userEmail: null, userPassword: null, lastSyncError: null });
     await render();
   });
 

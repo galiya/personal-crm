@@ -64,6 +64,37 @@ const Api = {
       body: JSON.stringify({ profiles, messages }),
     });
     if (response.status === 401) {
+      // Try auto-re-login using stored credentials
+      const { apiUrl, userEmail, userPassword } = await Storage.get(['apiUrl', 'userEmail', 'userPassword']);
+      if (apiUrl && userEmail && userPassword) {
+        try {
+          const body = new URLSearchParams();
+          body.append('username', userEmail);
+          body.append('password', userPassword);
+          const loginResp = await fetch(`${apiUrl}/api/v1/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body,
+          });
+          if (loginResp.ok) {
+            const result = await loginResp.json();
+            const newToken = result.data.access_token;
+            await Storage.set({ token: newToken });
+            // Retry the push with new token
+            const retryResp = await fetch(`${apiUrl}/api/v1/linkedin/push`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${newToken}`,
+              },
+              body: JSON.stringify({ profiles, messages }),
+            });
+            if (retryResp.ok) return retryResp.json();
+          }
+        } catch (e) {
+          console.error('[PingCRM] Auto-re-login failed:', e.message);
+        }
+      }
       await Storage.clearToken();
       throw new Error('AUTH_EXPIRED');
     }
