@@ -262,3 +262,97 @@ async def test_push_matches_contact_by_linkedin_url(
     await db.refresh(existing)
     assert existing.linkedin_profile_id == "eve-adams"
     assert existing.linkedin_headline == "Designer"
+
+
+# ---------------------------------------------------------------------------
+# Avatar: base64 data URI from browser
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_push_saves_avatar_from_base64_data(
+    client: AsyncClient,
+    auth_headers: dict,
+    db: AsyncSession,
+    test_user,
+):
+    """Profile push with avatar_data (base64) saves the image locally."""
+    import base64
+    from pathlib import Path
+
+    # Tiny 1x1 red JPEG
+    tiny_jpeg = base64.b64decode(
+        "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoH"
+        "BwYIDAoMCwsKCwsKDA8QDQ0PDAsLDhEREhMRExoLFBweGxsSGRI//8AAEQABAAEB"
+        "AwERAAIRAQMRAf/EABQAAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAA"
+        "AAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oA"
+        "DAMBAAIRAxEAPwCwAB//2Q=="
+    )
+    b64_data = "data:image/jpeg;base64," + base64.b64encode(tiny_jpeg).decode()
+
+    payload = {
+        "profiles": [
+            {
+                "profile_id": "avatar-test",
+                "profile_url": "https://www.linkedin.com/in/avatar-test",
+                "full_name": "Avatar Test",
+                "avatar_data": b64_data,
+            }
+        ],
+        "messages": [],
+    }
+
+    resp = await client.post(PUSH_URL, json=payload, headers=auth_headers)
+    assert resp.status_code == 200
+    assert resp.json()["data"]["contacts_created"] == 1
+
+    result = await db.execute(
+        select(Contact).where(Contact.linkedin_profile_id == "avatar-test")
+    )
+    contact = result.scalar_one()
+    assert contact.avatar_url is not None
+    assert contact.avatar_url.startswith("/static/avatars/")
+
+    # Verify file exists on disk
+    avatar_path = Path(__file__).resolve().parent.parent / contact.avatar_url.lstrip("/")
+    assert avatar_path.exists()
+    assert avatar_path.stat().st_size > 0
+
+    # Cleanup
+    avatar_path.unlink(missing_ok=True)
+
+
+@pytest.mark.asyncio
+async def test_push_clears_broken_remote_avatar_url(
+    client: AsyncClient,
+    auth_headers: dict,
+    db: AsyncSession,
+    test_user,
+):
+    """Push clears a non-local avatar_url (broken LinkedIn CDN URL)."""
+    existing = Contact(
+        user_id=test_user.id,
+        full_name="Broken Avatar",
+        linkedin_profile_id="broken-avatar",
+        avatar_url="https://media.licdn.com/broken/image.jpg",
+    )
+    db.add(existing)
+    await db.commit()
+
+    payload = {
+        "profiles": [
+            {
+                "profile_id": "broken-avatar",
+                "profile_url": "https://www.linkedin.com/in/broken-avatar",
+                "full_name": "Broken Avatar",
+            }
+        ],
+        "messages": [],
+    }
+
+    resp = await client.post(PUSH_URL, json=payload, headers=auth_headers)
+    assert resp.status_code == 200
+
+    await db.refresh(existing)
+    # Remote URL should be cleared (not displayable from server)
+    assert existing.avatar_url is None
