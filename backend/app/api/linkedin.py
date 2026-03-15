@@ -53,7 +53,8 @@ async def _save_avatar(profile: "LinkedInProfilePush", contact_id: str) -> str |
             filepath.write_bytes(image_bytes)
             return f"/static/avatars/{filename}"
         except Exception:
-            pass  # fall through to URL download
+            logger.exception("_save_avatar: base64 decode failed for contact %s", contact_id)
+            # fall through to URL download
 
     # Fallback: server-side download (may fail with 403 on LinkedIn CDN)
     if profile.avatar_url:

@@ -13,7 +13,7 @@ from typing import Any
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from telethon import TelegramClient
-from telethon.errors import FloodWaitError, SessionPasswordNeededError
+from telethon.errors import FloodWaitError, RPCError, SessionPasswordNeededError
 from telethon.sessions import StringSession
 from telethon.tl.types import Channel, Chat, InputPeerUser, User as TelegramUser
 
@@ -260,7 +260,7 @@ async def verify_telegram(
         if me and me.username:
             user.telegram_username = me.username
     except Exception:
-        pass
+        logger.exception("Failed to fetch Telegram username for user %s", user.id)
     await db.flush()
     await client.disconnect()
 
@@ -290,7 +290,7 @@ async def verify_telegram_2fa(user: User, password: str, db: AsyncSession) -> bo
         if me and me.username:
             user.telegram_username = me.username
     except Exception:
-        pass
+        logger.exception("Failed to fetch Telegram username after 2FA for user %s", user.id)
     await db.flush()
     await client.disconnect()
 
@@ -692,6 +692,7 @@ async def sync_telegram_chats_batch(
                     last_name = getattr(full_entity, "last_name", None) or ""
                     phone = getattr(full_entity, "phone", None)
                 except Exception:
+                    logger.debug("sync_telegram_chats_batch: failed to fetch full entity for %d, using defaults", eid)
                     username, first_name, last_name, phone = None, str(eid), "", None
 
                 if username:
@@ -737,7 +738,7 @@ async def sync_telegram_chats_batch(
                         if existing.scalar_one_or_none():
                             continue
             except Exception:
-                pass  # On error, fall through to full sync
+                logger.debug("sync_telegram_chats_batch: skip-check failed for entity %d, falling through to full sync", eid)
 
             # Pre-load existing raw_reference_ids for this contact to avoid per-message SELECTs
             existing_result = await db.execute(
@@ -1221,8 +1222,13 @@ async def sync_telegram_bios(
                 contact.telegram_bio_checked_at = datetime.now(UTC)
                 await asyncio.sleep(e.seconds + 5)
                 continue
+            except RPCError:
+                logger.debug("sync_telegram_bios: Telegram RPC error fetching bio for @%s", username)
+                contact.telegram_bio_checked_at = datetime.now(UTC)
+                await asyncio.sleep(random.uniform(0.5, 1.0))
+                continue
             except Exception:
-                logger.debug("sync_telegram_bios: failed to fetch bio for @%s", username)
+                logger.exception("sync_telegram_bios: unexpected error fetching bio for contact %s", contact.id)
                 contact.telegram_bio_checked_at = datetime.now(UTC)
                 await asyncio.sleep(random.uniform(0.5, 1.0))
                 continue

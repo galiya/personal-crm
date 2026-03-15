@@ -126,7 +126,7 @@ def sync_gmail_for_user(self, user_id: str) -> dict:
                     try:
                         await calculate_score(cid, db)
                     except Exception:
-                        logger.warning("gmail: score recalc failed for contact %s", cid)
+                        logger.warning("gmail: score recalc failed for contact %s", cid, exc_info=True)
 
             await db.commit()
 
@@ -197,7 +197,7 @@ def sync_telegram_chats_for_user(self, user_id: str, max_dialogs: int = 100) -> 
                 try:
                     await calculate_score(cid, db)
                 except Exception:
-                    logger.warning("telegram_chats: score recalc failed for contact %s", cid)
+                    logger.warning("telegram_chats: score recalc failed for contact %s", cid, exc_info=True)
 
             if affected:
                 await dismiss_suggestions_for_contacts(affected)
@@ -255,7 +255,7 @@ def sync_telegram_chats_batch_task(self, user_id: str, entity_ids: list[int]) ->
                 try:
                     await calculate_score(cid, db)
                 except Exception:
-                    logger.warning("telegram_chats_batch: score recalc failed for %s", cid)
+                    logger.warning("telegram_chats_batch: score recalc failed for %s", cid, exc_info=True)
 
             if affected:
                 await dismiss_suggestions_for_contacts(affected)
@@ -305,7 +305,7 @@ def sync_telegram_groups_for_user(self, user_id: str) -> dict:
                 try:
                     await calculate_score(cid, db)
                 except Exception:
-                    logger.warning("telegram_groups: score recalc failed for contact %s", cid)
+                    logger.warning("telegram_groups: score recalc failed for contact %s", cid, exc_info=True)
 
             await db.commit()
 
@@ -449,7 +449,7 @@ def sync_telegram_notify(user_id: str) -> dict:
         _r = _redis.from_url(settings.REDIS_URL)
         _r.delete(f"tg_sync_lock:{user_id}")
     except Exception:
-        logger.warning("sync_telegram_notify: failed to release lock for %s", user_id)
+        logger.warning("sync_telegram_notify: failed to release lock for %s", user_id, exc_info=True)
 
     return {"status": "ok"}
 
@@ -885,7 +885,7 @@ def sync_twitter_dms_for_user(self, user_id: str) -> dict:
                 for (cid,) in contacts_result.all():
                     await calculate_score(cid, db)
             except Exception:
-                logger.warning("sync_twitter: score recalc failed for %s", uid)
+                logger.warning("sync_twitter: score recalc failed for %s", uid, exc_info=True)
 
             # Notification
             parts = []
@@ -1104,7 +1104,7 @@ def sync_google_contacts_for_user(self, user_id: str) -> dict:
                     try:
                         await calculate_score(cid, db)
                     except Exception:
-                        logger.warning("google_contacts: score recalc failed for contact %s", cid)
+                        logger.warning("google_contacts: score recalc failed for contact %s", cid, exc_info=True)
 
             parts = []
             if created_count:
@@ -1196,7 +1196,7 @@ def sync_google_calendar_for_user(self, user_id: str) -> dict:
                     try:
                         await calculate_score(cid, db)
                     except Exception:
-                        logger.warning("google_calendar: score recalc failed for contact %s", cid)
+                        logger.warning("google_calendar: score recalc failed for contact %s", cid, exc_info=True)
 
             parts = []
             if cal_result.get("new_contacts"):

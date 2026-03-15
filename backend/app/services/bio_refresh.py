@@ -74,7 +74,7 @@ async def refresh_contact_bios(
                     await _r.delete(f"twitter_bio_fail:{current_user.id}")
                     await _r.aclose()
                 except Exception:
-                    pass
+                    logger.exception("Failed to reset Twitter bio failure counter for user %s", current_user.id)
 
                 if new_bio and new_bio != (contact.twitter_bio or ""):
                     old_bio = contact.twitter_bio
@@ -102,7 +102,7 @@ async def refresh_contact_bios(
                             occurred_at=datetime.now(UTC),
                         ))
         except Exception:
-            logger.warning(
+            logger.exception(
                 "bio_refresh: Twitter bio fetch failed for contact %s", contact.id
             )
             # Track consecutive failures per user; notify after 3+
@@ -124,7 +124,7 @@ async def refresh_contact_bios(
                     ))
                 await r.aclose()
             except Exception:
-                pass  # Don't let notification logic break bio refresh
+                logger.debug("bio_refresh: failed to update Twitter failure counter for user %s", current_user.id)
 
     # ------------------------------------------------------------------
     # Telegram bio check
@@ -189,7 +189,7 @@ async def refresh_contact_bios(
                 finally:
                     await client.disconnect()
         except Exception:
-            logger.warning(
+            logger.exception(
                 "bio_refresh: Telegram bio fetch failed for contact %s", contact.id
             )
 

@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import datetime
 
@@ -13,6 +14,8 @@ from app.models.follow_up import FollowUpSuggestion
 from app.models.user import User
 from app.schemas.follow_up import FollowUpResponse, FollowUpUpdate
 from app.schemas.responses import Envelope, RegenerateResult
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/suggestions", tags=["suggestions"])
 
@@ -234,7 +237,7 @@ async def generate_suggestions(
             try:
                 await calculate_score(cid, db)
             except Exception:
-                pass
+                logger.exception("Score recalculation failed for contact %s", cid)
         await db.flush()
 
     suggestions = await _generate(current_user.id, db)

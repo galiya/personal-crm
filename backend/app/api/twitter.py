@@ -108,7 +108,7 @@ async def twitter_callback(
                 current_user.twitter_user_id = user_data.get("id") or current_user.twitter_user_id
                 current_user.twitter_username = user_data.get("username")
     except Exception:
-        logger.warning("Failed to fetch Twitter username for user %s", current_user.id)
+        logger.exception("Failed to fetch Twitter username for user %s", current_user.id)
 
     await db.flush()
     return {"data": {"connected": True, "username": current_user.twitter_username}, "error": None}

@@ -382,7 +382,7 @@ async def _lookup_twitter_users_by_ids(
                 for u in resp.json().get("data", []):
                     result[u["id"]] = {"username": u.get("username", ""), "name": u.get("name", "")}
         except Exception:
-            logger.warning("_lookup_twitter_users_by_ids: failed for batch starting at %d", i)
+            logger.exception("_lookup_twitter_users_by_ids: failed for batch starting at %d", i)
     return result
 
 
@@ -458,7 +458,7 @@ async def _cached_resolve_handles(
                     twitter_id = u["id"]
                     result[username] = twitter_id
         except Exception:
-            logger.warning("_cached_resolve_handles: API fallback failed at offset %d", i)
+            logger.exception("_cached_resolve_handles: API fallback failed at offset %d", i)
             continue
 
         # Cache misses as empty string so we don't re-query deleted/invalid handles

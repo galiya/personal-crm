@@ -87,7 +87,7 @@ async def _fetch_twitter_context(contact: Contact) -> str:
                 date = t.get("createdAt", "")[:16]
                 lines.append(f"  - {text} ({date})")
     except Exception:
-        logger.warning("_fetch_twitter_context: failed for @%s", contact.twitter_handle)
+        logger.exception("_fetch_twitter_context: failed for @%s", contact.twitter_handle)
 
     if not lines:
         return ""
@@ -317,10 +317,10 @@ Message:"""
             messages=[{"role": "user", "content": prompt}],
         )
         draft = message.content[0].text.strip()
-    except (asyncio.TimeoutError, Exception) as exc:
-        logger.warning(
-            "compose_followup_message: API call failed for contact %s: %s",
-            contact_id, exc,
+    except (asyncio.TimeoutError, Exception):
+        logger.exception(
+            "compose_followup_message: API call failed for contact %s",
+            contact_id,
         )
         # Fallback to a simple template-based message
         draft = f"Hey {first_name}, just wanted to check in — how have things been going?"

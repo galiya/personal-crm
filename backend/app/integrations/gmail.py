@@ -237,7 +237,7 @@ async def sync_gmail_for_user(user: User, db: AsyncSession) -> int:
                 .execute()
             )
         except Exception:
-            logger.warning("Failed to fetch thread %s for user %s.", thread_id, user.id)
+            logger.exception("Failed to fetch thread %s for user %s.", thread_id, user.id)
             continue
 
         meta = _thread_to_metadata(thread_data)
@@ -372,7 +372,7 @@ async def sync_contact_emails(user: User, contact: Contact, db: AsyncSession) ->
                 .execute()
             )
         except Exception:
-            logger.warning("Failed to fetch thread %s for contact %s.", thread_id, contact.id)
+            logger.exception("Failed to fetch thread %s for contact %s.", thread_id, contact.id)
             continue
 
         meta = _thread_to_metadata(thread_data)

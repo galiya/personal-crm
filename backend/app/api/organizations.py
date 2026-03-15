@@ -164,7 +164,7 @@ async def _get_org_stats_map(db: AsyncSession, org_ids: list[uuid.UUID]) -> dict
         return stats_map
     except Exception:
         # Mat view may not exist yet (migration not run)
-        logger.warning("organization_stats_mv not available, returning empty stats")
+        logger.exception("organization_stats_mv not available, returning empty stats")
         return {}
 
 

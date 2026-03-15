@@ -74,7 +74,7 @@ async def download_org_logo(website_or_domain: str, org_id: uuid.UUID) -> str | 
                 if resp.status_code == 200 and resp.content:
                     return await _save_bytes(resp.content)
             except Exception:
-                pass
+                logger.exception("Failed to download favicon.ico for org %s from %s", org_id, favicon_url)
 
             # --- Attempt 2: parse <link rel="icon"> from homepage HTML ---
             try:
@@ -103,7 +103,7 @@ async def download_org_logo(website_or_domain: str, org_id: uuid.UUID) -> str | 
                         if icon_resp.status_code == 200 and icon_resp.content:
                             return await _save_bytes(icon_resp.content)
             except Exception:
-                pass
+                logger.exception("Failed to parse homepage icon for org %s from %s", org_id, base_url)
 
     except Exception:
         logger.debug("download_org_logo: failed for org %s / %s", org_id, website_or_domain)
