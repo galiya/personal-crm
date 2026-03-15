@@ -685,13 +685,58 @@ async def sync_twitter_dms(
     return {"new_interactions": new_count, "new_contacts": created_contacts}
 
 
+async def fetch_dm_conversation_with(
+    participant_id: str, headers: dict[str, str]
+) -> list[dict[str, Any]]:
+    """Fetch DM events with a specific user using Twitter API v2.
+
+    Uses GET /2/dm_conversations/with/:participant_id/dm_events
+    which returns DMs for a 1-on-1 conversation. Paginates up to MAX_DM_PAGES.
+    """
+    all_events: list[dict[str, Any]] = []
+    pagination_token: str | None = None
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        for page in range(MAX_DM_PAGES):
+            params: dict[str, str] = {
+                "dm_event.fields": "created_at,sender_id,text,dm_conversation_id,participant_ids",
+                "event_types": "MessageCreate",
+                "max_results": "100",
+            }
+            if pagination_token:
+                params["pagination_token"] = pagination_token
+
+            resp = await client.get(
+                f"{_TWITTER_API_BASE}/dm_conversations/with/{participant_id}/dm_events",
+                headers=headers,
+                params=params,
+            )
+            body = resp.json()
+            if resp.status_code != 200:
+                error_detail = body.get("detail") or body.get("title") or str(body)
+                logger.warning("fetch_dm_conversation_with: HTTP %s — %s", resp.status_code, error_detail)
+                if resp.status_code == 401:
+                    raise httpx.HTTPStatusError("Unauthorized", request=resp.request, response=resp)
+                break
+
+            events = body.get("data", [])
+            all_events.extend(events)
+
+            pagination_token = body.get("meta", {}).get("next_token")
+            if not pagination_token:
+                break
+
+    logger.info("fetch_dm_conversation_with(%s): fetched %d DM events", participant_id, len(all_events))
+    return all_events
+
+
 async def sync_twitter_contact_dms(
     user: User, contact: "Contact", db: AsyncSession
 ) -> dict[str, Any]:
     """Sync Twitter DMs for a single *contact*.
 
-    Fetches all DM events, filters to those involving the contact's
-    twitter_user_id, and creates/deduplicates Interaction rows.
+    Uses the per-conversation DM endpoint when the contact's twitter_user_id
+    is known, falling back to the global DM fetch + filter approach.
 
     Returns ``{"new_interactions": N}``.
     """
@@ -727,7 +772,16 @@ async def sync_twitter_contact_dms(
     if not contact_twitter_id:
         return {"new_interactions": 0, "skipped": True, "reason": "no_twitter_id"}
 
-    dm_events = await fetch_dm_conversations(headers)
+    # Use per-conversation endpoint (more efficient, targeted)
+    try:
+        dm_events = await fetch_dm_conversation_with(contact_twitter_id, headers)
+    except httpx.HTTPStatusError:
+        # Token may be expired — try refresh
+        headers = await _refresh_and_retry(user, db)
+        if not headers:
+            return {"new_interactions": 0, "skipped": True, "reason": "auth_failed"}
+        dm_events = await fetch_dm_conversation_with(contact_twitter_id, headers)
+
     if not dm_events:
         return {"new_interactions": 0}
 
