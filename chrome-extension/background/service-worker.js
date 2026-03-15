@@ -220,11 +220,23 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     })();
     return true; // async sendResponse
   } else if (message.type === 'DOWNLOAD_AVATAR') {
-    // Download image as base64 — service worker has host_permissions (bypasses CORS)
+    // Download image as base64 — include LinkedIn cookies for CDN auth
     (async () => {
       try {
-        const resp = await fetch(message.url);
+        // Get LinkedIn cookies to authenticate with CDN
+        const headers = {};
+        try {
+          const cookies = await chrome.cookies.getAll({ domain: '.linkedin.com' });
+          if (cookies.length) {
+            headers['Cookie'] = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+          }
+        } catch (e) {
+          console.debug('[PingCRM] Could not get cookies:', e.message);
+        }
+
+        const resp = await fetch(message.url, { headers });
         if (!resp.ok) {
+          console.debug('[PingCRM] Avatar download HTTP', resp.status);
           sendResponse({ data: null });
           return;
         }
