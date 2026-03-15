@@ -44,13 +44,13 @@ function setupMocks({
     user,
     isLoading,
     logout: vi.fn(),
-  } as ReturnType<typeof useAuth>);
+  } as unknown as ReturnType<typeof useAuth>);
   mockedUseUnreadCount.mockReturnValue({
     data: { data: { count: notificationCount } },
   } as ReturnType<typeof useUnreadCount>);
   mockedUseContacts.mockReturnValue({
     data: { data: [] },
-  } as ReturnType<typeof useContacts>);
+  } as unknown as ReturnType<typeof useContacts>);
 }
 
 describe("Nav", () => {
@@ -159,7 +159,7 @@ describe("Nav", () => {
       user: defaultUser,
       isLoading: false,
       logout,
-    } as ReturnType<typeof useAuth>);
+    } as unknown as ReturnType<typeof useAuth>);
 
     render(<Nav />);
     const userButton = screen.getByText("Alice Smith").closest("button")!;

@@ -19,6 +19,7 @@ function makeData(overrides?: Partial<ActivityData>): ActivityData {
       count_90d: 8,
       platforms: ["email", "telegram"],
       interaction_count: 42,
+      first_interaction_at: "2024-06-15T00:00:00Z",
     },
     monthly_trend: [
       { month: "2026-01", count: 4 },
@@ -136,6 +137,7 @@ describe("ActivityBreakdown", () => {
           count_90d: 0,
           platforms: [],
           interaction_count: 0,
+          first_interaction_at: null,
         },
       });
       render(<ActivityBreakdown data={data} />);
@@ -154,6 +156,7 @@ describe("ActivityBreakdown", () => {
           count_90d: 0,
           platforms: [],
           interaction_count: 0,
+          first_interaction_at: null,
         },
       });
       render(<ActivityBreakdown data={data} />);
@@ -170,6 +173,7 @@ describe("ActivityBreakdown", () => {
           count_90d: 4,
           platforms: [],
           interaction_count: 8,
+          first_interaction_at: "2024-06-15T00:00:00Z",
         },
       });
       render(<ActivityBreakdown data={data} />);
@@ -192,6 +196,7 @@ describe("ActivityBreakdown", () => {
           count_90d: 1,
           platforms: ["fax"],
           interaction_count: 1,
+          first_interaction_at: "2024-06-15T00:00:00Z",
         },
       });
       const { container } = render(<ActivityBreakdown data={data} />);

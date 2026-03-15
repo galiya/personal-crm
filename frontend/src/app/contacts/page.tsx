@@ -22,6 +22,7 @@ import {
   MessageCircle,
   Twitter,
   SearchX,
+  Building2,
 } from "lucide-react";
 import { useContacts } from "@/hooks/use-contacts";
 import { ScoreBadge } from "@/components/score-badge";
@@ -138,6 +139,8 @@ function BulkActionBar({
   onArchive,
   onDelete,
   onMerge,
+  onSetPriority,
+  onSetCompany,
   onClear,
   isPending,
 }: {
@@ -148,12 +151,17 @@ function BulkActionBar({
   onArchive: () => void;
   onDelete: () => void;
   onMerge: () => void;
+  onSetPriority: (level: string) => void;
+  onSetCompany: (company: string) => void;
   onClear: () => void;
   isPending: boolean;
 }) {
   const [tagInput, setTagInput] = useState("");
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [tagMode, setTagMode] = useState<"add" | "remove">("add");
+  const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
+  const [showCompanyInput, setShowCompanyInput] = useState(false);
+  const [companyInput, setCompanyInput] = useState("");
 
   const filteredTags = allTags.filter(
     (t) => !tagInput || t.toLowerCase().includes(tagInput.toLowerCase())
@@ -233,16 +241,72 @@ function BulkActionBar({
         )}
       </div>
 
+      {/* Priority dropdown */}
+      <div className="relative">
+        <button
+          onClick={() => { setShowPriorityDropdown((v) => !v); setShowCompanyInput(false); setShowTagDropdown(false); }}
+          disabled={isPending}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors disabled:opacity-50"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" /> Priority
+        </button>
+        {showPriorityDropdown && (
+          <div className="absolute left-0 bottom-full mb-1 w-40 bg-white rounded-lg border border-stone-200 shadow-lg z-50 p-1">
+            {[
+              { value: "high", label: "High", color: "text-red-600" },
+              { value: "normal", label: "Normal", color: "text-stone-700" },
+              { value: "low", label: "Low", color: "text-stone-400" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => { onSetPriority(opt.value); setShowPriorityDropdown(false); }}
+                className={`w-full text-left px-2.5 py-1.5 text-sm ${opt.color} hover:bg-stone-100 rounded-md`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Company input */}
+      <div className="relative">
+        <button
+          onClick={() => { setShowCompanyInput((v) => !v); setShowPriorityDropdown(false); setShowTagDropdown(false); }}
+          disabled={isPending}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors disabled:opacity-50"
+        >
+          <Building2 className="w-3.5 h-3.5" /> Company
+        </button>
+        {showCompanyInput && (
+          <div className="absolute left-0 bottom-full mb-1 w-56 bg-white rounded-lg border border-stone-200 shadow-lg z-50 p-2">
+            <input
+              type="text"
+              placeholder="Set company name..."
+              value={companyInput}
+              onChange={(e) => setCompanyInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && companyInput.trim()) {
+                  onSetCompany(companyInput.trim());
+                  setCompanyInput("");
+                  setShowCompanyInput(false);
+                }
+              }}
+              className="w-full px-2.5 py-1.5 text-sm text-stone-900 rounded-md border border-stone-300 focus:outline-none focus:ring-2 focus:ring-teal-400"
+              autoFocus
+            />
+          </div>
+        )}
+      </div>
+
       {selectedCount >= 2 && (
-        <>
-          <button
-            onClick={onMerge}
-            disabled={isPending}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors disabled:opacity-50"
-          >
-            <GitMerge className="w-3.5 h-3.5" /> Merge
-          </button>
-        </>
+        <button
+          onClick={onMerge}
+          disabled={isPending}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors disabled:opacity-50"
+        >
+          <GitMerge className="w-3.5 h-3.5" /> Merge
+        </button>
       )}
 
       <button
@@ -427,6 +491,7 @@ function ContactsPageContent() {
       add_tags?: string[];
       remove_tags?: string[];
       priority_level?: string;
+      company?: string;
     }) => {
       const { data, error } = await client.POST("/api/v1/contacts/bulk-update" as any, { body });
       if (error) throw new Error((error as { detail?: string })?.detail ?? "Bulk update failed");
@@ -942,6 +1007,8 @@ function ContactsPageContent() {
             isPending={isPending}
             onAddTag={(tag) => bulkUpdate.mutate({ contact_ids: selectedArray, add_tags: [tag] })}
             onRemoveTag={(tag) => bulkUpdate.mutate({ contact_ids: selectedArray, remove_tags: [tag] })}
+            onSetPriority={(level) => bulkUpdate.mutate({ contact_ids: selectedArray, priority_level: level })}
+            onSetCompany={(company) => bulkUpdate.mutate({ contact_ids: selectedArray, company })}
             onArchive={() => bulkUpdate.mutate({ contact_ids: selectedArray, priority_level: "archived" })}
             onDelete={() => {
               if (confirm(`Delete ${selectedArray.length} contact${selectedArray.length > 1 ? "s" : ""}? This cannot be undone.`)) {

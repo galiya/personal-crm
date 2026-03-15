@@ -1097,6 +1097,7 @@ class BulkUpdateBody(BaseModel):
     add_tags: list[str] | None = None
     remove_tags: list[str] | None = None
     priority_level: str | None = None
+    company: str | None = None
 
 
 @router.post("/bulk-update", response_model=Envelope[dict])
@@ -1122,6 +1123,8 @@ async def bulk_update_contacts(
         if body.remove_tags:
             existing = set(contact.tags or [])
             contact.tags = list(existing - set(body.remove_tags))
+        if body.company is not None:
+            contact.company = body.company
         if body.priority_level is not None:
             contact.priority_level = body.priority_level
             if body.priority_level == "archived":
