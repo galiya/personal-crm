@@ -13,11 +13,19 @@ export default function WaitlistForm() {
 
     setStatus("loading");
 
+    const formId = process.env.NEXT_PUBLIC_LOOPS_FORM_ID;
+    if (!formId) {
+      setStatus("error");
+      setMessage("Waitlist not configured.");
+      return;
+    }
+
     try {
-      const res = await fetch("/api/waitlist", {
+      const formBody = `email=${encodeURIComponent(email)}`;
+      const res = await fetch(`https://app.loops.so/api/newsletter-form/${formId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formBody,
       });
 
       if (res.ok) {
