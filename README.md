@@ -8,7 +8,7 @@
 
 Auto-syncs Gmail, Telegram, and Twitter/X. Detects life events. Drafts contextual follow-ups. Tells you who to reach out to and why.
 
-> **[Full Documentation](https://sneg55.github.io/pingcrm/)** · **[Join the Waitlist](https://pingcrm.xyz)** · **[Self-Host Guide](https://sneg55.github.io/pingcrm/setup)**
+> **[Full Documentation](https://docs.pingcrm.xyz/)** · **[Join the Waitlist](https://pingcrm.xyz)** · **[Self-Host Guide](https://docs.pingcrm.xyz/setup)**
 
 ## Why PingCRM?
 

@@ -11,11 +11,8 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://sneg55.github.io',
-  baseUrl: '/pingcrm/',
-
-  organizationName: 'sneg55',
-  projectName: 'pingcrm',
+  url: 'https://docs.pingcrm.xyz',
+  baseUrl: '/',
 
   onBrokenLinks: 'throw',
 
