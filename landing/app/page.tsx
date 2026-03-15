@@ -1,7 +1,7 @@
 import WaitlistForm from "./waitlist-form";
 import { Nav, Footer } from "./nav";
 
-const GITHUB_URL = "https://github.com/anthropics/pingcrm";
+const GITHUB_URL = "https://github.com/sneg55/pingcrm";
 
 const FEATURES = [
   {

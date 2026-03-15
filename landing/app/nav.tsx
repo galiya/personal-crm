@@ -1,6 +1,6 @@
 "use client";
 
-const GITHUB_URL = "https://github.com/anthropics/pingcrm";
+const GITHUB_URL = "https://github.com/sneg55/pingcrm";
 
 function GitHubIcon({ size = 20 }: { size?: number }) {
   return (
