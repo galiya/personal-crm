@@ -164,8 +164,8 @@ export default function ContactDetailPage() {
         {/* Two-column grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Main column (2/3) */}
-          <div className="lg:col-span-2 space-y-4">
+          {/* Main column (2/3) — DOM order 2, visual order 2 on desktop */}
+          <div className="lg:col-span-2 lg:order-2 space-y-4">
             <MessageComposerCard contact={contact} contactId={id} />
             <AddNoteInput onSave={(content) => ctrl.addNoteMutation.mutate(content)} />
             <ChatTimeline
@@ -176,8 +176,8 @@ export default function ContactDetailPage() {
             />
           </div>
 
-          {/* Sidebar (1/3) */}
-          <div className="space-y-6">
+          {/* Sidebar (1/3) — DOM order 1, visual order 1 on desktop */}
+          <div className="lg:order-1 space-y-6">
             {/* Relationship Health */}
             {ctrl.activityLoading ? (
               <div className="bg-white rounded-xl border border-stone-200 p-5 animate-pulse">
