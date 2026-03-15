@@ -8,7 +8,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useContactDuplicates, useMergeContacts } from "@/hooks/use-contacts";
 import { client } from "@/lib/api-client";
-import { avatarColor, getInitials } from "../_lib/formatters";
+import { ContactAvatar } from "@/components/contact-avatar";
+import { Search } from "lucide-react";
 
 /* ── Duplicate Row ── */
 
@@ -103,14 +104,7 @@ function DuplicateRow({
           href={`/contacts/${dup.id}`}
           className="flex items-center gap-2.5 mb-2.5 group/dup"
         >
-          <div
-            className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0",
-              avatarColor(name)
-            )}
-          >
-            {getInitials(name)}
-          </div>
+          <ContactAvatar avatarUrl={dup.avatar_url} name={name} size="xs" />
           <div className="min-w-0">
             <p className="text-xs font-medium text-stone-900 group-hover/dup:text-teal-700 transition-colors">
               {name}
@@ -190,6 +184,7 @@ export function DuplicatesCard({ contactId }: { contactId: string }) {
   const { data, isLoading } = useContactDuplicates(contactId, true);
   const duplicates = (data?.data ?? []).filter((d: any) => d.id !== contactId);
   const [showModal, setShowModal] = useState(false);
+  const [search, setSearch] = useState("");
 
   if (isLoading || duplicates.length === 0) return null;
 
@@ -231,8 +226,29 @@ export function DuplicatesCard({ contactId }: { contactId: string }) {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="overflow-auto p-4 space-y-3">
-              {duplicates.map((dup: any) => (
+            <div className="px-4 pt-3 pb-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                <input
+                  type="text"
+                  placeholder="Search duplicates..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-xs border border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="overflow-auto px-4 pb-4 space-y-3">
+              {duplicates
+                .filter((dup: any) => {
+                  if (!search.trim()) return true;
+                  const q = search.toLowerCase();
+                  const name = (dup.full_name || dup.given_name || "").toLowerCase();
+                  const email = (dup.emails?.[0] || "").toLowerCase();
+                  return name.includes(q) || email.includes(q);
+                })
+                .map((dup: any) => (
                 <DuplicateRow key={dup.id} dup={dup} contactId={contactId} />
               ))}
             </div>
