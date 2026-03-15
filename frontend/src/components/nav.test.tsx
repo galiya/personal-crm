@@ -13,6 +13,11 @@ vi.mock("@/hooks/use-notifications", () => ({
   useUnreadCount: vi.fn(),
 }));
 
+// Mock useTelegramSyncProgress
+vi.mock("@/hooks/use-telegram-sync", () => ({
+  useTelegramSyncProgress: () => ({ data: { active: false } }),
+}));
+
 // Mock useContacts
 vi.mock("@/hooks/use-contacts", () => ({
   useContacts: vi.fn(),

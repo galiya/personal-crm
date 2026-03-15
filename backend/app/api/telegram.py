@@ -240,6 +240,30 @@ async def sync_telegram(
 
 
 # ---------------------------------------------------------------------------
+# Sync progress endpoint
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/api/v1/telegram/sync-progress",
+    status_code=status.HTTP_200_OK,
+)
+async def get_sync_progress(
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Return current Telegram sync progress for the authenticated user.
+
+    Returns ``active: false`` when no sync is running or recently completed.
+    """
+    from app.services.sync_progress import get_progress
+
+    progress = await get_progress(str(current_user.id))
+    if not progress:
+        return {"data": {"active": False}, "error": None}
+    return {"data": {**progress, "active": progress.get("phase") != "done"}, "error": None}
+
+
+# ---------------------------------------------------------------------------
 # Common groups endpoint
 # ---------------------------------------------------------------------------
 

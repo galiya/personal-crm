@@ -262,6 +262,12 @@ def sync_telegram_chats_batch_task(self, user_id: str, entity_ids: list[int]) ->
 
             await db.commit()
 
+            from app.services.sync_progress import increment_progress
+            await increment_progress(user_id, "batches_completed")
+            await increment_progress(user_id, "dialogs_processed", len(entity_ids))
+            await increment_progress(user_id, "messages_synced", batch_result.get("new_interactions", 0))
+            await increment_progress(user_id, "contacts_found", batch_result.get("new_contacts", 0))
+
         return {
             "status": "ok",
             "new_interactions": batch_result.get("new_interactions", 0),
@@ -289,6 +295,9 @@ def sync_telegram_chats_batch_task(self, user_id: str, entity_ids: list[int]) ->
 @shared_task(name="app.services.tasks.sync_telegram_groups_for_user", bind=True, max_retries=3, soft_time_limit=600, time_limit=900)
 def sync_telegram_groups_for_user(self, user_id: str) -> dict:
     """Sync Telegram group members for a single user."""
+    from app.services.sync_progress import set_progress
+    _run(set_progress(user_id, phase="groups"))
+
     async def _sync(uid: uuid.UUID) -> dict:
         from app.integrations.telegram import sync_telegram_group_members
         from app.services.scoring import calculate_score
@@ -332,6 +341,9 @@ def sync_telegram_groups_for_user(self, user_id: str) -> dict:
 @shared_task(name="app.services.tasks.sync_telegram_bios_for_user", bind=True, max_retries=3, soft_time_limit=600, time_limit=900)
 def sync_telegram_bios_for_user(self, user_id: str, exclude_2nd_tier: bool = False, stale_days: int = 7) -> dict:
     """Sync Telegram bios (about text, birthdays, Twitter handles) for a single user."""
+    from app.services.sync_progress import set_progress
+    _run(set_progress(user_id, phase="bios"))
+
     async def _sync(uid: uuid.UUID) -> dict:
         from app.integrations.telegram import sync_telegram_bios
 
@@ -442,6 +454,17 @@ def sync_telegram_notify(user_id: str) -> dict:
     _run(_notify(uid))
     _run(_mark_synced(uid))
 
+    # Mark progress as done with a short TTL so the frontend can see "done" briefly
+    from app.services.sync_progress import set_progress
+    from app.core.redis import get_redis
+
+    async def _mark_done() -> None:
+        await set_progress(user_id, phase="done")
+        r = get_redis()
+        await r.expire(f"tg_sync_progress:{user_id}", 300)
+
+    _run(_mark_done())
+
     # Release the sync lock so the next sync is not blocked
     try:
         from app.core.config import settings
@@ -487,6 +510,20 @@ def sync_telegram_for_user(user_id: str) -> None:
 
     if is_first_sync:
         # First sync: collect dialog IDs and chunk into batches
+        from app.services.sync_progress import set_progress
+        from datetime import UTC, datetime as _dt
+
+        _run(set_progress(user_id,
+            phase="collecting",
+            total_dialogs=0,
+            dialogs_processed=0,
+            batches_total=0,
+            batches_completed=0,
+            contacts_found=0,
+            messages_synced=0,
+            started_at=_dt.now(UTC).isoformat(),
+        ))
+
         async def _collect() -> list[int]:
             async with task_session() as db:
                 result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
@@ -509,6 +546,17 @@ def sync_telegram_for_user(user_id: str) -> None:
             "sync_telegram_for_user: first sync for %s — %d dialogs in %d batches.",
             user_id, len(all_entity_ids), len(batches),
         )
+
+        _run(set_progress(user_id,
+            phase="chats",
+            total_dialogs=len(all_entity_ids),
+            dialogs_processed=0,
+            batches_total=len(batches),
+            batches_completed=0,
+            contacts_found=0,
+            messages_synced=0,
+            started_at=_dt.now(UTC).isoformat(),
+        ))
 
         # Build chain: batch1 → batch2 → ... → groups → bios → notify (releases lock)
         tasks = [sync_telegram_chats_batch_task.si(user_id, batch) for batch in batches]

@@ -15,6 +15,11 @@ vi.mock("@/lib/api-client", () => ({
   },
 }));
 
+// Mock useTelegramSyncProgress
+vi.mock("@/hooks/use-telegram-sync", () => ({
+  useTelegramSyncProgress: () => ({ data: { active: false } }),
+}));
+
 import { client } from "@/lib/api-client";
 
 const mockedClient = client as unknown as {

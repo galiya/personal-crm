@@ -14,6 +14,7 @@ import { client } from "@/lib/api-client";
 import { CsvImport } from "@/components/csv-import";
 import { TagTaxonomyPanel } from "@/components/tag-taxonomy-panel";
 import { cn } from "@/lib/utils";
+import { useTelegramSyncProgress } from "@/hooks/use-telegram-sync";
 
 /* ═══════════════════════════════════════════════════════════ */
 /*  Types                                                       */
@@ -185,6 +186,82 @@ function SyncResultPanel({ details, status }: { details: SyncDetails; status: Sy
       {!hasStats && !hasErrors && status === "error" && (
         <p className="text-red-600">{details.message || "Sync failed"}</p>
       )}
+    </div>
+  );
+}
+
+/* ── Telegram Sync Progress Card ── */
+const PHASE_LABELS: Record<string, string> = {
+  chats: "Collecting dialogs...",
+  messages: "Syncing messages...",
+  groups: "Scanning groups...",
+  bios: "Checking bios...",
+  done: "Done!",
+};
+
+function TelegramSyncProgressCard({ progress }: { progress: { active: boolean; phase?: string; total_dialogs?: number; dialogs_processed?: number; contacts_found?: number; messages_synced?: number; started_at?: string } }) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!progress.started_at) return;
+    const start = new Date(progress.started_at).getTime();
+    const tick = () => setElapsed(Math.floor((Date.now() - start) / 1000));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [progress.started_at]);
+
+  const phase = progress.phase ?? "";
+  const phaseLabel = PHASE_LABELS[phase] ?? phase;
+  const total = progress.total_dialogs ?? 0;
+  const processed = progress.dialogs_processed ?? 0;
+  const pct = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
+  const isDone = phase === "done";
+
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  const elapsedStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+  return (
+    <div className={cn(
+      "mt-3 rounded-lg border p-3 text-xs transition-all",
+      isDone ? "bg-emerald-50 border-emerald-100" : "bg-sky-50 border-sky-100"
+    )}>
+      <div className="flex items-center justify-between mb-2">
+        <span className={cn("font-medium flex items-center gap-1.5", isDone ? "text-emerald-700" : "text-sky-700")}>
+          {isDone ? (
+            <CheckCircle2 className="w-3.5 h-3.5" />
+          ) : (
+            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+          )}
+          {phaseLabel}
+        </span>
+        {progress.started_at && (
+          <span className="text-stone-400">{elapsedStr}</span>
+        )}
+      </div>
+      {total > 0 && (
+        <div className="mb-2">
+          <div className="flex justify-between text-stone-500 mb-1">
+            <span>{processed} / {total} dialogs</span>
+            <span>{pct}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all duration-500",
+                isDone ? "bg-emerald-500" : "bg-sky-400 animate-pulse"
+              )}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        </div>
+      )}
+      <div className="flex items-center gap-3 text-stone-500">
+        <span>{progress.contacts_found ?? 0} contacts</span>
+        <span className="text-stone-300">·</span>
+        <span>{progress.messages_synced ?? 0} messages</span>
+      </div>
     </div>
   );
 }
@@ -833,6 +910,7 @@ function SettingsPageInner() {
   const [googleSync, setGoogleSync] = useState<SyncState>(defaultState);
   const [telegramConnect, setTelegramConnect] = useState<SyncState>(defaultState);
   const [telegramSync, setTelegramSync] = useState<SyncState>(defaultState);
+  const { data: telegramSyncProgress } = useTelegramSyncProgress();
   const [twitterConnect, setTwitterConnect] = useState<SyncState>(defaultState);
   const [twitterSync, setTwitterSync] = useState<SyncState>(defaultState);
 
@@ -1269,6 +1347,9 @@ function SettingsPageInner() {
                 </p>
               )}
               {telegramSync.details && <SyncResultPanel details={telegramSync.details} status={telegramSync.status} />}
+              {telegramSyncProgress?.active && (
+                <TelegramSyncProgressCard progress={telegramSyncProgress} />
+              )}
             </div>
 
             {/* Twitter Card */}
