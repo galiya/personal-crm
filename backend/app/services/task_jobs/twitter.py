@@ -28,20 +28,16 @@ def poll_twitter_activity(self, user_id: str) -> dict:
         A dict with ``contacts_processed`` and ``events_created`` counts.
     """
     async def _poll(uid: uuid.UUID) -> dict:
-        import uuid as _uuid_mod
-
         from app.integrations import bird
         from app.integrations.twitter import poll_contacts_activity
         from app.models.notification import Notification
-        from app.services.event_classifier import process_contact_activity
-        from app.services.notifications import notify_detected_event
 
         async with task_session() as db:
             result = await db.execute(select(User).where(User.id == uid))
             user = result.scalar_one_or_none()
             if user is None:
                 logger.warning("poll_twitter_activity: user %s not found.", uid)
-                return {"status": "user_not_found", "contacts_processed": 0, "events_created": 0}
+                return {"status": "user_not_found", "contacts_processed": 0}
 
             activity_records = await poll_contacts_activity(user, db)
 
@@ -63,42 +59,13 @@ def poll_twitter_activity(self, user_id: str) -> dict:
                     await _r.setex(dedup_key, 86400, "1")  # 24h dedup
                 await _r.aclose()
 
-            total_events = 0
-            for record in activity_records:
-                contact_name = record.get("twitter_handle", "Unknown")
-                bio_change_payload = None
-                if record.get("bio_changed"):
-                    bio_change_payload = {
-                        "old_bio": record.get("previous_bio", ""),
-                        "new_bio": record.get("current_bio", ""),
-                        "contact_name": contact_name,
-                    }
-
-                contact_uuid = _uuid_mod.UUID(record["contact_id"])
-                events = await process_contact_activity(
-                    contact_id=contact_uuid,
-                    tweets=record.get("tweets", []),
-                    bio_change=bio_change_payload,
-                    db=db,
-                )
-                total_events += len(events)
-
-                # Create notifications for detected events
-                for event in events:
-                    await notify_detected_event(
-                        user_id=uid,
-                        event_summary=event.summary,
-                        contact_name=contact_name,
-                        contact_id=contact_uuid,
-                        db=db,
-                    )
-
+            bio_changes = sum(1 for r in activity_records if r.get("bio_changed"))
             await db.commit()
 
         return {
             "status": "ok",
             "contacts_processed": len(activity_records),
-            "events_created": total_events,
+            "bio_changes": bio_changes,
             "bird_error": bird_error,
         }
 

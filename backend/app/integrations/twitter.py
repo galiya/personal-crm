@@ -85,11 +85,15 @@ async def poll_contacts_activity(
     user: User,
     db: AsyncSession,
 ) -> list[dict[str, Any]]:
-    """For each contact with a twitter_handle, fetch recent tweets and bio.
+    """For each contact with a twitter_handle, fetch profile/bio.
 
     Detects bio changes by comparing the fetched description with the
     contact's ``twitter_bio`` column.  When a change is detected the column
     is updated and a Notification record is created.
+
+    NOTE: Tweet fetching and LLM classification are NOT done here.
+    Tweets are fetched on-demand when composing follow-up suggestions
+    (see message_composer._fetch_twitter_context with 12h Redis cache).
 
     Returns:
         A list of activity dicts, one per contact that has a twitter_handle.
@@ -107,7 +111,7 @@ async def poll_contacts_activity(
     activity_records: list[dict[str, Any]] = []
 
     from app.integrations import bird
-    from app.integrations.bird import fetch_user_tweets_bird, fetch_user_profile_bird
+    from app.integrations.bird import fetch_user_profile_bird
 
     bird.last_error = None  # reset before batch
 
@@ -120,7 +124,6 @@ async def poll_contacts_activity(
             return None
 
         async with semaphore:
-            tweets = await fetch_user_tweets_bird(handle)
             profile = await fetch_user_profile_bird(handle)
 
         current_bio = profile.get("description", "")
@@ -174,7 +177,6 @@ async def poll_contacts_activity(
         return {
             "contact_id": str(contact.id),
             "twitter_handle": handle,
-            "tweets": tweets,
             "current_bio": current_bio,
             "previous_bio": stored_bio,
             "bio_changed": bio_changed,
