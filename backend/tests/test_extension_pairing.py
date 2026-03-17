@@ -12,6 +12,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.extension_pairing import ExtensionPairing
 from app.models.user import User
 
+
+# ---------------------------------------------------------------------------
+# Helper: create a scoped extension JWT directly (mirrors _create_extension_token)
+# ---------------------------------------------------------------------------
+
+
+def _make_extension_token(user_id: str) -> str:
+    """Create an extension-scoped JWT (aud: pingcrm-extension) for tests."""
+    from jose import jwt
+
+    from app.core.config import settings
+
+    payload = {
+        "sub": user_id,
+        "aud": "pingcrm-extension",
+        "exp": datetime.now(UTC) + timedelta(days=30),
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
 PAIR_URL = "/api/v1/extension/pair"
 
 
@@ -241,3 +260,148 @@ async def test_delete_pair_requires_auth(client: AsyncClient):
     """DELETE /pair without auth returns 401."""
     resp = await client.delete(PAIR_URL)
     assert resp.status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# Extension JWT — suggestions list endpoint
+# ---------------------------------------------------------------------------
+
+
+SUGGESTIONS_URL = "/api/v1/suggestions"
+REGEN_URL_TEMPLATE = "/api/v1/suggestions/{suggestion_id}/regenerate"
+
+
+@pytest.mark.asyncio
+async def test_suggestions_list_accepts_extension_jwt(
+    client: AsyncClient,
+    test_user: User,
+):
+    """GET /suggestions must accept a JWT issued with aud: pingcrm-extension."""
+    token = _make_extension_token(str(test_user.id))
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = await client.get(SUGGESTIONS_URL, headers=headers)
+    # 200 with an empty list — the important thing is it is not 401/403
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "data" in body
+    assert isinstance(body["data"], list)
+
+
+# ---------------------------------------------------------------------------
+# Extension JWT — suggestion regenerate endpoint
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_suggestion_regenerate_accepts_extension_jwt(
+    client: AsyncClient,
+    auth_headers: dict,
+    test_user: User,
+    db: AsyncSession,
+):
+    """POST /suggestions/{id}/regenerate must accept an extension JWT.
+
+    We create a suggestion via the DB directly, then call regenerate with an
+    extension-scoped token and verify we get 200 (not 401/403).  The
+    compose_followup_message service may return an empty string in the test
+    environment — that is acceptable; the auth layer is what we are testing.
+    """
+    import uuid as _uuid
+
+    from app.models.contact import Contact
+    from app.models.follow_up import FollowUpSuggestion
+
+    # Create a minimal contact + suggestion owned by test_user
+    contact = Contact(
+        id=_uuid.uuid4(),
+        user_id=test_user.id,
+        full_name="Regen Test",
+        source="manual",
+        linkedin_url="https://www.linkedin.com/in/regen-test",
+    )
+    db.add(contact)
+    await db.flush()
+
+    suggestion = FollowUpSuggestion(
+        id=_uuid.uuid4(),
+        contact_id=contact.id,
+        user_id=test_user.id,
+        trigger_type="time_based",
+        suggested_message="Original message",
+        suggested_channel="linkedin",
+        status="pending",
+    )
+    db.add(suggestion)
+    await db.commit()
+
+    token = _make_extension_token(str(test_user.id))
+    headers = {"Authorization": f"Bearer {token}"}
+    url = REGEN_URL_TEMPLATE.format(suggestion_id=str(suggestion.id))
+
+    resp = await client.post(url, json={}, headers=headers)
+    # The endpoint must not reject the extension token (not 401/403).
+    assert resp.status_code not in (401, 403)
+
+
+# ---------------------------------------------------------------------------
+# Extension JWT — enrichment includes linkedin_profile_id and linkedin_url
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_suggestions_list_enrichment_includes_linkedin_fields(
+    client: AsyncClient,
+    test_user: User,
+    db: AsyncSession,
+):
+    """Suggestion contact object must expose linkedin_profile_id and linkedin_url."""
+    import uuid as _uuid
+
+    from app.models.contact import Contact
+    from app.models.follow_up import FollowUpSuggestion
+
+    # Create a contact that has LinkedIn data and a reachable channel
+    contact = Contact(
+        id=_uuid.uuid4(),
+        user_id=test_user.id,
+        full_name="LinkedIn Person",
+        source="linkedin",
+        linkedin_profile_id="linkedin-person-slug",
+        linkedin_url="https://www.linkedin.com/in/linkedin-person-slug",
+    )
+    db.add(contact)
+    await db.flush()
+
+    suggestion = FollowUpSuggestion(
+        id=_uuid.uuid4(),
+        contact_id=contact.id,
+        user_id=test_user.id,
+        trigger_type="time_based",
+        suggested_message="Hey LinkedIn Person",
+        suggested_channel="linkedin",
+        status="pending",
+    )
+    db.add(suggestion)
+    await db.commit()
+
+    token = _make_extension_token(str(test_user.id))
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = await client.get(SUGGESTIONS_URL, headers=headers)
+    assert resp.status_code == 200
+
+    items = resp.json()["data"]
+    assert len(items) >= 1
+
+    # Find the suggestion we just created
+    found = next(
+        (item for item in items if str(item.get("id")) == str(suggestion.id)),
+        None,
+    )
+    assert found is not None, "Suggestion not found in list response"
+
+    contact_data = found.get("contact")
+    assert contact_data is not None
+    assert contact_data["linkedin_profile_id"] == "linkedin-person-slug"
+    assert contact_data["linkedin_url"] == "https://www.linkedin.com/in/linkedin-person-slug"

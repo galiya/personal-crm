@@ -437,3 +437,160 @@ async def test_push_clears_broken_remote_avatar_url(
     await db.refresh(existing)
     # Remote URL should be cleared (not displayable from server)
     assert existing.avatar_url is None
+
+
+# ---------------------------------------------------------------------------
+# backfill_needed — contact missing only avatar_url (has title + company)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_push_returns_backfill_needed_for_missing_avatar(
+    client: AsyncClient,
+    auth_headers: dict,
+    db: AsyncSession,
+    test_user,
+):
+    """A contact that has title and company but no avatar should appear in backfill_needed."""
+    payload = {
+        "profiles": [
+            {
+                "profile_id": "needs-avatar-only",
+                "profile_url": "https://www.linkedin.com/in/needs-avatar-only",
+                "full_name": "Needs Avatar Only",
+                "headline": "Engineer at WidgetCo",
+                "company": "WidgetCo",
+                # no avatar_data and no avatar_url → contact gets no avatar
+            }
+        ],
+        "messages": [],
+    }
+
+    resp = await client.post(PUSH_URL, json=payload, headers=auth_headers)
+    assert resp.status_code == 200
+
+    data = resp.json()["data"]
+    assert data["contacts_created"] == 1
+
+    backfill = data["backfill_needed"]
+    ids = [item["linkedin_profile_id"] for item in backfill]
+    assert "needs-avatar-only" in ids
+
+
+# ---------------------------------------------------------------------------
+# Contact creation — full_name is split into given_name / family_name
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_push_splits_full_name_into_given_family(
+    client: AsyncClient,
+    auth_headers: dict,
+    db: AsyncSession,
+):
+    """A newly created contact must have given_name and family_name set from full_name."""
+    payload = {
+        "profiles": [
+            {
+                "profile_id": "name-split-test",
+                "profile_url": "https://www.linkedin.com/in/name-split-test",
+                "full_name": "Alice Wonderland",
+            }
+        ],
+        "messages": [],
+    }
+
+    resp = await client.post(PUSH_URL, json=payload, headers=auth_headers)
+    assert resp.status_code == 200
+    assert resp.json()["data"]["contacts_created"] == 1
+
+    result = await db.execute(
+        select(Contact).where(Contact.linkedin_profile_id == "name-split-test")
+    )
+    contact = result.scalar_one()
+    assert contact.given_name == "Alice"
+    assert contact.family_name == "Wonderland"
+
+
+@pytest.mark.asyncio
+async def test_push_handles_single_word_name(
+    client: AsyncClient,
+    auth_headers: dict,
+    db: AsyncSession,
+):
+    """A contact with a single-word name gets given_name set and family_name left None."""
+    payload = {
+        "profiles": [
+            {
+                "profile_id": "mononym-test",
+                "profile_url": "https://www.linkedin.com/in/mononym-test",
+                "full_name": "Cher",
+            }
+        ],
+        "messages": [],
+    }
+
+    resp = await client.post(PUSH_URL, json=payload, headers=auth_headers)
+    assert resp.status_code == 200
+    assert resp.json()["data"]["contacts_created"] == 1
+
+    result = await db.execute(
+        select(Contact).where(Contact.linkedin_profile_id == "mononym-test")
+    )
+    contact = result.scalar_one()
+    assert contact.given_name == "Cher"
+    assert contact.family_name is None
+
+
+# ---------------------------------------------------------------------------
+# Name-based contact matching — profile_id is a Voyager URN (ACoAAA...)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_push_matches_contact_by_name_when_profile_id_is_urn(
+    client: AsyncClient,
+    auth_headers: dict,
+    db: AsyncSession,
+    test_user,
+):
+    """When a message arrives with a Voyager URN as profile_id, the backend
+    should match an existing contact by full_name and back-fill the profile_id.
+    """
+    # Pre-create a contact without a linkedin_profile_id (imported from CSV, etc.)
+    existing = Contact(
+        user_id=test_user.id,
+        full_name="Frank Castle",
+        source="import",
+    )
+    db.add(existing)
+    await db.commit()
+    await db.refresh(existing)
+
+    urn_id = "ACoAABcDEfGhIjKl"
+    payload = {
+        "profiles": [],
+        "messages": [
+            {
+                "profile_id": urn_id,
+                "profile_name": "Frank Castle",
+                "direction": "inbound",
+                "content_preview": "Hey Frank, long time!",
+                "timestamp": "2026-03-01T10:00:00+00:00",
+                "conversation_id": "conv-urn-001",
+                "content_hash": "hash-urn-001",
+            }
+        ],
+    }
+
+    resp = await client.post(PUSH_URL, json=payload, headers=auth_headers)
+    assert resp.status_code == 200
+
+    data = resp.json()["data"]
+    # Should match existing contact, not create a new one
+    assert data["contacts_created"] == 0
+    assert data["interactions_created"] == 1
+
+    # Existing contact should now have the URN stored as linkedin_profile_id
+    await db.refresh(existing)
+    assert existing.linkedin_profile_id == urn_id

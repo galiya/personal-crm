@@ -29,7 +29,7 @@ A **2-hour throttle** prevents excessive syncs during a browsing session. The po
 
 ## What Gets Synced
 
-The extension syncs contacts you have **LinkedIn conversations** with. If you've exchanged messages with someone, they become a contact in Ping CRM with their most recent message, profile info, and avatar.
+The extension syncs contacts you have **LinkedIn conversations** with. If you've exchanged messages with someone, they become a contact in Ping CRM with their most recent message, profile info, and avatar. You can also pull and regenerate AI follow-up suggestions directly from LinkedIn using the **P** and **R** buttons injected into the messaging composer.
 
 **Synced automatically:**
 - Contacts you've messaged (inbound and outbound)
@@ -40,6 +40,26 @@ The extension syncs contacts you have **LinkedIn conversations** with. If you've
 - LinkedIn connections you've never messaged
 - Profiles you browse but don't message
 - Group chat messages
+
+## Suggestion Buttons (P and R)
+
+When you open a LinkedIn message composer, the extension injects two small buttons into the toolbar:
+
+- **P (Pull)** — fetches your current pending follow-up suggestions for the contact whose conversation is open and displays them in a compact overlay above the composer.
+- **R (Regenerate)** — asks the backend to generate a fresh AI-drafted message for that suggestion, then updates the overlay with the new text.
+
+Clicking a suggestion in the overlay pastes it directly into the composer via a simulated keyboard event, so the LinkedIn send button activates normally. Both buttons use the extension's scoped JWT (`aud: pingcrm-extension`) to authenticate against the same `/api/v1/suggestions` endpoints used by the web app.
+
+The overlay is injected into LinkedIn's shadow DOM alongside the compose area and is removed automatically when the composer closes.
+
+## Extension Architecture
+
+The extension is built from two main pieces:
+
+- **Content script** — monitors the LinkedIn page for compose areas inside LinkedIn's shadow DOM. When a compose area appears, it injects the P and R buttons and manages the suggestion overlay lifecycle.
+- **Service worker** — handles sync logic: reads LinkedIn session cookies, calls the Voyager GraphQL API to fetch conversations and profiles, resolves a contact by matching the Voyager member ID or profile slug against the backend, and pushes parsed results to `/api/v1/linkedin/push`.
+
+When the **P** button is clicked, the content script sends a message to the service worker, which calls `/api/v1/suggestions` with the extension JWT and returns suggestions filtered to the current contact. The **R** button calls `/api/v1/suggestions/{id}/regenerate`. Text is inserted into the composer via a `paste` event simulation so LinkedIn's React input detects the change correctly.
 
 ## Profile Backfill
 
