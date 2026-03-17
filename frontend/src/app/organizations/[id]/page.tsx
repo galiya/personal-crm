@@ -66,7 +66,7 @@ interface OrganizationData {
 
 function StatCard({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
       <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
         <Icon className="h-4 w-4" />
         {label}
@@ -115,7 +115,7 @@ function OrgInlineField({
 
   return (
     <div className="group/field flex items-center gap-2 text-sm py-1">
-      <Icon className="h-4 w-4 shrink-0 text-zinc-400" />
+      <Icon className="h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500" />
       <span className="text-zinc-500 dark:text-zinc-400 shrink-0">{label}:</span>
       {editing ? (
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -125,25 +125,25 @@ function OrgInlineField({
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") cancel(); }}
             onBlur={save}
-            className="flex-1 min-w-0 text-sm rounded border border-zinc-300 px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+            className="flex-1 min-w-0 text-sm rounded border border-zinc-300 dark:border-zinc-700 px-2 py-0.5 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400"
           />
         </div>
       ) : (
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {value ? (
             href ? (
-              <a href={href} target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:underline truncate">
+              <a href={href} target="_blank" rel="noopener noreferrer" className="text-teal-600 dark:text-teal-400 hover:underline truncate">
                 {value}
               </a>
             ) : (
               <span className="text-zinc-900 dark:text-zinc-100 truncate">{value}</span>
             )
           ) : (
-            <span className="italic text-zinc-400">—</span>
+            <span className="italic text-zinc-400 dark:text-zinc-500">—</span>
           )}
           <button
             onClick={() => { setDraft(value ?? ""); setEditing(true); }}
-            className="p-0.5 rounded text-zinc-300 hover:text-zinc-500 opacity-0 group-hover/field:opacity-100 transition-opacity shrink-0"
+            className="p-0.5 rounded text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-400 opacity-0 group-hover/field:opacity-100 transition-opacity shrink-0"
           >
             <Pencil className="w-3 h-3" />
           </button>
@@ -185,25 +185,25 @@ function OrgNotesField({ value, onSave }: { value: string | null; onSave: (v: st
         <div className="space-y-2">
           <textarea
             ref={textareaRef}
-            className="w-full rounded border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+            className="w-full rounded border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-400"
             rows={3}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Escape") cancel(); }}
           />
           <div className="flex items-center gap-2 justify-end">
-            <button onClick={cancel} className="px-2.5 py-1 text-xs font-medium rounded-md text-zinc-600 hover:bg-zinc-100 border border-zinc-200">Cancel</button>
+            <button onClick={cancel} className="px-2.5 py-1 text-xs font-medium rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">Cancel</button>
             <button onClick={save} className="px-2.5 py-1 text-xs font-medium rounded-md bg-teal-600 text-white hover:bg-teal-700">Save</button>
           </div>
         </div>
       ) : (
         <div className="flex items-start gap-1.5">
           <p className="text-sm text-zinc-600 dark:text-zinc-400 flex-1">
-            {value || <span className="italic text-zinc-400">No notes</span>}
+            {value || <span className="italic text-zinc-400 dark:text-zinc-500">No notes</span>}
           </p>
           <button
             onClick={() => { setDraft(value ?? ""); setEditing(true); }}
-            className="p-0.5 rounded text-zinc-300 hover:text-zinc-500 opacity-0 group-hover/field:opacity-100 transition-opacity shrink-0 mt-0.5"
+            className="p-0.5 rounded text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-400 opacity-0 group-hover/field:opacity-100 transition-opacity shrink-0 mt-0.5"
           >
             <Pencil className="w-3 h-3" />
           </button>
@@ -238,7 +238,7 @@ function OrgNameField({ value, onSave }: { value: string; onSave: (v: string) =>
       {editing ? (
         <input
           ref={inputRef}
-          className="rounded border border-zinc-300 px-2 py-1 text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-teal-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+          className="rounded border border-zinc-300 dark:border-zinc-700 px-2 py-1 text-2xl font-bold bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-400"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") { setDraft(value); setEditing(false); } }}
@@ -249,7 +249,7 @@ function OrgNameField({ value, onSave }: { value: string; onSave: (v: string) =>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{value}</h1>
           <button
             onClick={() => { setDraft(value); setEditing(true); }}
-            className="p-1 rounded text-zinc-300 hover:text-zinc-500 opacity-0 group-hover/field:opacity-100 transition-opacity"
+            className="p-1 rounded text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-400 opacity-0 group-hover/field:opacity-100 transition-opacity"
           >
             <Pencil className="w-4 h-4" />
           </button>
@@ -319,7 +319,7 @@ export default function OrganizationDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center text-zinc-500">
+      <div className="flex min-h-[50vh] items-center justify-center text-zinc-500 dark:text-zinc-400">
         Loading organization...
       </div>
     );
@@ -346,7 +346,7 @@ export default function OrganizationDetailPage() {
           <button
             aria-label="Back to organizations"
             onClick={() => router.push("/organizations")}
-            className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800"
+            className="rounded-md p-1 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-300"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -378,7 +378,7 @@ export default function OrganizationDetailPage() {
       </div>
 
       {/* Info Panel — inline editable */}
-      <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="mb-6 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
           Details
         </h2>
@@ -395,7 +395,7 @@ export default function OrganizationDetailPage() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="w-full max-w-sm rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-xl">
             <h3 className="mb-2 text-base font-semibold text-zinc-900 dark:text-zinc-100">
               Delete organization?
             </h3>
@@ -405,7 +405,7 @@ export default function OrganizationDetailPage() {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-md border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 Cancel
               </button>
@@ -425,21 +425,21 @@ export default function OrganizationDetailPage() {
       )}
 
       {/* Contacts Table */}
-      <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
+      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-5 py-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             Contacts ({contacts.length})
           </h2>
           <div className="flex items-center gap-1 text-xs">
-            <span className="text-zinc-400">Sort:</span>
+            <span className="text-zinc-400 dark:text-zinc-500">Sort:</span>
             {(["score", "name", "recent"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setSortBy(s)}
                 className={`rounded px-2 py-1 ${
                   sortBy === s
-                    ? "bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-400"
-                    : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    ? "bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-400"
+                    : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 }`}
               >
                 {s === "score" ? "Score" : s === "name" ? "Name" : "Recent"}
@@ -449,11 +449,11 @@ export default function OrganizationDetailPage() {
         </div>
 
         {contacts.length === 0 ? (
-          <div className="px-5 py-8 text-center text-sm text-zinc-400">No contacts in this organization.</div>
+          <div className="px-5 py-8 text-center text-sm text-zinc-400 dark:text-zinc-500">No contacts in this organization.</div>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-zinc-100 text-left text-xs text-zinc-500 dark:border-zinc-800">
+              <tr className="border-b border-zinc-100 dark:border-zinc-800 text-left text-xs text-zinc-500 dark:text-zinc-400">
                 <th scope="col" className="px-5 py-2 font-medium">Name</th>
                 <th scope="col" className="px-5 py-2 font-medium">Title</th>
                 <th scope="col" className="px-5 py-2 font-medium text-center">Score</th>
@@ -464,12 +464,12 @@ export default function OrganizationDetailPage() {
               {sortedContacts.map((contact) => (
                 <tr
                   key={contact.id}
-                  className="border-b border-zinc-50 hover:bg-zinc-50 dark:border-zinc-800/50 dark:hover:bg-zinc-800/30"
+                  className="border-b border-zinc-50 dark:border-zinc-800/50 hover:bg-zinc-50 dark:hover:bg-zinc-800/30"
                 >
                   <td className="px-5 py-3">
                     <Link
                       href={`/contacts/${contact.id}`}
-                      className="flex items-center gap-3 text-sm font-medium text-zinc-900 hover:text-teal-600 dark:text-zinc-100"
+                      className="flex items-center gap-3 text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:text-teal-600 dark:hover:text-teal-400"
                     >
                       <ContactAvatar
                         avatarUrl={contact.avatar_url}

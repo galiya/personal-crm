@@ -30,8 +30,8 @@ export function RelatedContactsCard({ contactId }: { contactId: string }) {
   if (related.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-stone-200 p-5">
-      <h3 className="text-sm font-semibold text-stone-900 mb-3 flex items-center gap-2">
+    <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-5">
+      <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-3 flex items-center gap-2">
         <Users className="w-4 h-4 text-violet-500" />
         Related Contacts
       </h3>
@@ -57,19 +57,19 @@ export function RelatedContactsCard({ contactId }: { contactId: string }) {
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/contacts/${c.id}`}
-                  className="text-xs font-medium text-stone-800 hover:text-teal-600 truncate block"
+                  className="text-xs font-medium text-stone-800 dark:text-stone-200 hover:text-teal-600 dark:hover:text-teal-400 truncate block"
                 >
                   {c.full_name}
                 </Link>
                 {subtitle && (
-                  <p className="text-[10px] text-stone-500 truncate">{subtitle}</p>
+                  <p className="text-[10px] text-stone-500 dark:text-stone-400 truncate">{subtitle}</p>
                 )}
                 {filteredReasons.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1">
                     {filteredReasons.map((reason) => (
                       <span
                         key={reason}
-                        className="text-[10px] font-medium bg-stone-100 text-stone-600 rounded-full px-2 py-0.5"
+                        className="text-[10px] font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 rounded-full px-2 py-0.5"
                       >
                         {reason}
                       </span>

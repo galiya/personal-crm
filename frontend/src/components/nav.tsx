@@ -9,6 +9,7 @@ import { useContacts } from "@/hooks/use-contacts";
 import { useTelegramSyncProgress } from "@/hooks/use-telegram-sync";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -49,7 +50,7 @@ function NotificationBell() {
   return (
     <Link
       href="/notifications"
-      className="relative p-2 rounded-md text-stone-500 hover:bg-stone-100 hover:text-stone-700 transition-colors"
+      className="relative p-2 rounded-md text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200 transition-colors"
     >
       <Bell className="w-5 h-5" />
       {count > 0 && (
@@ -92,18 +93,20 @@ function NavDropdown({
         href={href}
         className={cn(
           "relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-          isActive ? "text-teal-700" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900",
+          isActive
+            ? "text-teal-700 dark:text-teal-400"
+            : "text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100",
         )}
       >
         <Icon className="w-4 h-4" />
         {label}
-        <ChevronDown className="w-3 h-3 text-stone-400" />
+        <ChevronDown className="w-3 h-3 text-stone-400 dark:text-stone-500" />
         {isActive && (
-          <span className="absolute bottom-[-9px] left-2 right-2 h-[2px] bg-teal-600 rounded-full" />
+          <span className="absolute bottom-[-9px] left-2 right-2 h-[2px] bg-teal-600 dark:bg-teal-400 rounded-full" />
         )}
       </Link>
       {open && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg border border-stone-200 shadow-md py-1 z-50">
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-md py-1 z-50">
           {children.map((child) => {
             const ChildIcon = child.icon;
             const childActive = pathname === child.href || (child.href === "/identity" && pathname.startsWith("/identity"));
@@ -115,8 +118,8 @@ function NavDropdown({
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 text-sm transition-colors",
                   childActive
-                    ? "text-teal-700 bg-teal-50"
-                    : "text-stone-600 hover:bg-stone-50 hover:text-stone-900",
+                    ? "text-teal-700 bg-teal-50 dark:text-teal-400 dark:bg-teal-950"
+                    : "text-stone-600 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100",
                 )}
               >
                 <ChildIcon className="w-4 h-4" />
@@ -185,11 +188,11 @@ function NavSearch() {
           setOpen(true);
           setTimeout(() => inputRef.current?.focus(), 0);
         }}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-stone-400 border border-stone-200 hover:border-stone-300 hover:text-stone-500 transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-stone-400 border border-stone-200 hover:border-stone-300 hover:text-stone-500 dark:text-stone-500 dark:border-stone-700 dark:hover:border-stone-600 dark:hover:text-stone-400 transition-colors"
       >
         <Search className="w-3.5 h-3.5" />
         <span className="hidden sm:inline">Search contacts</span>
-        <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-stone-100 rounded text-stone-400">
+        <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-stone-100 dark:bg-stone-800 rounded text-stone-400 dark:text-stone-500">
           ⌘K
         </kbd>
       </button>
@@ -198,8 +201,8 @@ function NavSearch() {
 
   return (
     <div ref={dropdownRef} className="relative">
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-teal-300 bg-white ring-2 ring-teal-100">
-        <Search className="w-3.5 h-3.5 text-stone-400" />
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-teal-300 bg-white dark:bg-stone-900 dark:border-teal-700 ring-2 ring-teal-100 dark:ring-teal-900">
+        <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
         <input
           ref={inputRef}
           type="text"
@@ -211,30 +214,30 @@ function NavSearch() {
             }
           }}
           placeholder="Search contacts..."
-          className="w-40 sm:w-56 text-sm bg-transparent outline-none placeholder:text-stone-400"
+          className="w-40 sm:w-56 text-sm bg-transparent outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 dark:text-stone-100"
         />
       </div>
       {query.length >= 2 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border border-stone-200 shadow-lg z-50 flex flex-col">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-lg z-50 flex flex-col">
           <div className="max-h-72 overflow-auto">
             {results.length === 0 ? (
-              <p className="px-3 py-4 text-sm text-stone-400 text-center">No contacts found</p>
+              <p className="px-3 py-4 text-sm text-stone-400 dark:text-stone-500 text-center">No contacts found</p>
             ) : (
               results.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => navigate(c.id)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-stone-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-medium shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xs font-medium shrink-0">
                     {(c.full_name || c.emails?.[0] || "?")[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-stone-900 truncate">
+                    <p className="text-sm font-medium text-stone-900 dark:text-stone-100 truncate">
                       {c.full_name || c.emails?.[0] || "Unnamed"}
                     </p>
                     {c.company && (
-                      <p className="text-xs text-stone-400 truncate">{c.company}</p>
+                      <p className="text-xs text-stone-400 dark:text-stone-500 truncate">{c.company}</p>
                     )}
                   </div>
                 </button>
@@ -248,7 +251,7 @@ function NavSearch() {
                 setQuery("");
                 router.push(`/contacts?q=${encodeURIComponent(query)}`);
               }}
-              className="shrink-0 w-full px-3 py-2 text-xs text-teal-600 hover:bg-teal-50 border-t border-stone-100 transition-colors rounded-b-lg"
+              className="shrink-0 w-full px-3 py-2 text-xs text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950 border-t border-stone-100 dark:border-stone-800 transition-colors rounded-b-lg"
             >
               View all results for &ldquo;{query}&rdquo;
             </button>
@@ -281,13 +284,13 @@ export function Nav() {
   if (isPublicPage) return null;
 
   return (
-    <nav className="sticky top-0 z-40 bg-white border-b border-stone-200">
+    <nav className="sticky top-0 z-40 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
         {/* Logo */}
         <div className="flex items-center gap-1.5 shrink-0">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 text-lg font-display font-bold text-teal-600 hover:text-teal-700 transition-colors"
+            className="flex items-center gap-2 text-lg font-display font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
           >
             <span className="w-2.5 h-2.5 rounded-full bg-teal-500" />
             Ping
@@ -325,54 +328,55 @@ export function Nav() {
                 className={cn(
                   "relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
                   isActive
-                    ? "text-teal-700"
-                    : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                    ? "text-teal-700 dark:text-teal-400"
+                    : "text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
                 )}
               >
                 <Icon className="w-4 h-4" />
                 {label}
                 {isActive && (
-                  <span className="absolute bottom-[-9px] left-2 right-2 h-[2px] bg-teal-600 rounded-full" />
+                  <span className="absolute bottom-[-9px] left-2 right-2 h-[2px] bg-teal-600 dark:bg-teal-400 rounded-full" />
                 )}
               </Link>
             );
           })}
         </div>
 
-        {/* Right: bell + user */}
+        {/* Right: theme toggle + bell + user */}
         <div className="flex items-center gap-1.5">
+          <ThemeToggle />
           <NotificationBell />
 
           {/* User menu */}
           <div ref={menuRef} className="relative">
             {isLoading ? (
-              <div className="w-24 h-7 bg-stone-100 rounded-md animate-pulse" />
+              <div className="w-24 h-7 bg-stone-100 dark:bg-stone-800 rounded-md animate-pulse" />
             ) : user ? (
               <>
                 <button
                   onClick={() => setMenuOpen((v) => !v)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-stone-700 hover:bg-stone-100 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
                 >
                   <span className="max-w-[120px] truncate">
                     {user.full_name ?? user.email}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
+                  <ChevronDown className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg border border-stone-200 shadow-md py-1 z-50">
-                    <div className="px-3 py-2 border-b border-stone-100">
-                      <p className="text-xs font-medium text-stone-900 truncate">
+                  <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-md py-1 z-50">
+                    <div className="px-3 py-2 border-b border-stone-100 dark:border-stone-800">
+                      <p className="text-xs font-medium text-stone-900 dark:text-stone-100 truncate">
                         {user.full_name ?? ""}
                       </p>
-                      <p className="text-xs text-stone-400 truncate">{user.email}</p>
+                      <p className="text-xs text-stone-400 dark:text-stone-500 truncate">{user.email}</p>
                     </div>
                     <button
                       onClick={() => {
                         setMenuOpen(false);
                         logout();
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign out
@@ -383,7 +387,7 @@ export function Nav() {
             ) : (
               <Link
                 href="/auth/login"
-                className="px-3 py-1.5 rounded-md text-sm font-medium text-teal-600 hover:bg-teal-50 transition-colors"
+                className="px-3 py-1.5 rounded-md text-sm font-medium text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950 transition-colors"
               >
                 Sign in
               </Link>

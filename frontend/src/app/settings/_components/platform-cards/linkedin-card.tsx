@@ -111,27 +111,27 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-stone-200 p-5 hover:shadow-sm transition-shadow">
+      <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-5 hover:shadow-sm transition-shadow">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
             <div
               className={cn(
                 "w-11 h-11 rounded-lg flex items-center justify-center shrink-0",
-                isPaired ? "bg-blue-50" : "bg-stone-100"
+                isPaired ? "bg-blue-50 dark:bg-blue-950" : "bg-stone-100 dark:bg-stone-800"
               )}
             >
               <LinkedInIcon />
             </div>
             <div>
               <div className="flex items-center gap-2.5">
-                <h3 className="text-sm font-semibold text-stone-900">LinkedIn Extension</h3>
+                <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">LinkedIn Extension</h3>
                 <ConnectionBadge connected={isPaired} />
               </div>
-              <p className="text-xs text-stone-500 mt-0.5">
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                 Sync LinkedIn messages and profiles via browser extension
               </p>
               {isPaired && connected.linkedin_extension_paired_at && (
-                <p className="text-xs text-teal-600 mt-1">
+                <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">
                   Connected via extension &middot; Paired {formatTimeAgo(connected.linkedin_extension_paired_at)}
                 </p>
               )}
@@ -145,12 +145,12 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
                   <button
                     onClick={handleSync}
                     disabled={syncStatus === "loading"}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors disabled:opacity-50"
                   >
                     {syncStatus === "loading" ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                     ) : syncStatus === "success" ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     ) : (
                       <RefreshCw className="w-3.5 h-3.5" />
                     )}
@@ -175,7 +175,7 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
             ) : (
               <button
                 onClick={openModal}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
               >
                 <Link2 className="w-3.5 h-3.5" />
                 Connect
@@ -187,25 +187,25 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="dialog" aria-modal="true">
-          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
+          <div className="bg-white dark:bg-stone-900 rounded-xl p-6 w-full max-w-sm shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-stone-900">Connect LinkedIn Extension</h3>
+              <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Connect LinkedIn Extension</h3>
               <button
                 onClick={closeModal}
                 aria-label="Close"
-                className="text-stone-400 hover:text-stone-600"
+                className="text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-sm text-stone-500 mb-4">
+            <p className="text-sm text-stone-500 dark:text-stone-400 mb-4">
               Install the PingCRM extension, open it, and enter the pairing code shown below.
             </p>
 
             <label
               htmlFor="linkedin-pair-code"
-              className="block text-sm font-medium text-stone-700 mb-1"
+              className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1"
             >
               Pairing code
             </label>
@@ -215,11 +215,11 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
               value={code}
               onChange={(e) => setCode(formatCode(e.target.value))}
               placeholder="PING-XXXXXX"
-              className="w-full px-3 py-2 rounded-lg border border-stone-300 text-sm mb-4 font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="w-full px-3 py-2 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 text-sm mb-4 font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-400"
             />
 
             {status === "error" && (
-              <p className="text-xs mb-3 flex items-center gap-1 text-red-500">
+              <p className="text-xs mb-3 flex items-center gap-1 text-red-500 dark:text-red-400">
                 <AlertCircle className="w-3 h-3" />
                 Invalid or expired code — check the extension and try again
               </p>
@@ -228,7 +228,7 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
             <div className="flex gap-2">
               <button
                 onClick={closeModal}
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-300 text-stone-600 hover:bg-stone-50"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
               >
                 Cancel
               </button>

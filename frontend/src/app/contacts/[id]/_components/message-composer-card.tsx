@@ -124,21 +124,21 @@ export function MessageComposerCard({
   return (
     <div
       className={cn(
-        "bg-white rounded-xl border overflow-hidden transition-all",
+        "bg-white dark:bg-stone-900 rounded-xl border overflow-hidden transition-all",
         expanded
           ? hasSuggestion
-            ? "border-amber-200 shadow-sm"
-            : "border-teal-200 shadow-sm"
-          : "border-stone-200"
+            ? "border-amber-200 dark:border-amber-800 shadow-sm"
+            : "border-teal-200 dark:border-teal-800 shadow-sm"
+          : "border-stone-200 dark:border-stone-700"
       )}
     >
       {/* Collapsed header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-stone-50 transition-colors"
+        className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
       >
         {hasSuggestion ? (
-          <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-950 flex items-center justify-center shrink-0 mt-0.5">
             <Sparkles className="w-4 h-4 text-amber-500" />
           </div>
         ) : (
@@ -148,21 +148,21 @@ export function MessageComposerCard({
           {sent ? (
             <span className="text-sm text-green-600 font-medium">{sent}</span>
           ) : hasSuggestion ? (
-            <span className="text-sm text-stone-700 line-clamp-1">
-              <span className="font-medium text-stone-900">Follow-up suggested</span>
+            <span className="text-sm text-stone-700 dark:text-stone-300 line-clamp-1">
+              <span className="font-medium text-stone-900 dark:text-stone-100">Follow-up suggested</span>
               {!expanded && suggestion?.suggested_message && (
-                <span className="text-stone-400">
+                <span className="text-stone-400 dark:text-stone-500">
                   {" "}
                   — {suggestion.suggested_message.slice(0, 60)}...
                 </span>
               )}
             </span>
           ) : (
-            <span className="text-sm text-stone-500">Write a message...</span>
+            <span className="text-sm text-stone-500 dark:text-stone-400">Write a message...</span>
           )}
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-stone-400 shrink-0 mt-0.5 transition-transform ${
+          className={`w-4 h-4 text-stone-400 dark:text-stone-500 shrink-0 mt-0.5 transition-transform ${
             expanded ? "rotate-180" : ""
           }`}
         />
@@ -171,7 +171,7 @@ export function MessageComposerCard({
       {/* Expanded editor */}
       {expanded && (
         <div
-          className="px-4 pb-4 border-t border-stone-100 pt-3"
+          className="px-4 pb-4 border-t border-stone-100 dark:border-stone-800 pt-3"
           onClick={(e) => e.stopPropagation()}
         >
           {sent && (
@@ -180,7 +180,7 @@ export function MessageComposerCard({
             </div>
           )}
           {error && (
-            <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-3">
+            <div className="text-xs text-red-700 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md px-3 py-2 mb-3">
               {error}
             </div>
           )}
@@ -198,36 +198,36 @@ export function MessageComposerCard({
               <div className="relative" ref={snoozeRef}>
                 <button
                   onClick={() => setShowSnooze(!showSnooze)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-md text-amber-600 border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-md text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors"
                 >
                   <Clock className="w-3 h-3" /> Snooze <ChevronDown className="w-2.5 h-2.5" />
                 </button>
                 {showSnooze && (
-                  <div className="absolute left-0 bottom-full mb-1 w-32 bg-white rounded-lg border border-stone-200 shadow-lg py-1 z-50">
+                  <div className="absolute left-0 bottom-full mb-1 w-32 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-lg py-1 z-50">
                     <button
                       onClick={() => handleSnooze(14)}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50"
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
                     >
-                      <Clock className="w-3 h-3 text-stone-400" /> 2 weeks
+                      <Clock className="w-3 h-3 text-stone-400 dark:text-stone-500" /> 2 weeks
                     </button>
                     <button
                       onClick={() => handleSnooze(30)}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50"
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
                     >
-                      <Clock className="w-3 h-3 text-stone-400" /> 1 month
+                      <Clock className="w-3 h-3 text-stone-400 dark:text-stone-500" /> 1 month
                     </button>
                     <button
                       onClick={() => handleSnooze(90)}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50"
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
                     >
-                      <Clock className="w-3 h-3 text-stone-400" /> 3 months
+                      <Clock className="w-3 h-3 text-stone-400 dark:text-stone-500" /> 3 months
                     </button>
                   </div>
                 )}
               </div>
               <button
                 onClick={handleDismiss}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-md text-stone-400 border border-stone-200 hover:bg-stone-50 transition-colors"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-md text-stone-400 dark:text-stone-500 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
               >
                 <X className="w-3 h-3" /> Dismiss
               </button>

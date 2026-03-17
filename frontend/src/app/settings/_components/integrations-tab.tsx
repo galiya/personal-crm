@@ -92,26 +92,26 @@ export function IntegrationsTab({
       />
 
       {/* Sync Schedule */}
-      <div className="h-px bg-gradient-to-r from-transparent via-stone-200 to-transparent mt-6 mb-5" />
-      <div className="bg-white rounded-xl border border-stone-200 p-5">
-        <h3 className="text-sm font-semibold text-stone-900 mb-4">Sync Schedule</h3>
+      <div className="h-px bg-gradient-to-r from-transparent via-stone-200 dark:via-stone-700 to-transparent mt-6 mb-5" />
+      <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-5">
+        <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-4">Sync Schedule</h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-stone-700">Background sync</p>
-              <p className="text-xs text-stone-400">Automatically sync all connected platforms</p>
+              <p className="text-sm text-stone-700 dark:text-stone-300">Background sync</p>
+              <p className="text-xs text-stone-400 dark:text-stone-500">Automatically sync all connected platforms</p>
             </div>
             <Toggle checked={bgSync} onChange={setBgSync} />
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-stone-700">Sync frequency</p>
-              <p className="text-xs text-stone-400">How often background sync runs</p>
+              <p className="text-sm text-stone-700 dark:text-stone-300">Sync frequency</p>
+              <p className="text-xs text-stone-400 dark:text-stone-500">How often background sync runs</p>
             </div>
             <select
               value={syncFreq}
               onChange={(e) => setSyncFreq(e.target.value)}
-              className="text-sm border border-stone-200 rounded-lg px-3 py-1.5 text-stone-700 focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="text-sm border border-stone-200 dark:border-stone-700 rounded-lg px-3 py-1.5 text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-900 focus:outline-none focus:ring-2 focus:ring-teal-400"
             >
               <option value="3h">Every 3 hours</option>
               <option value="6h">Every 6 hours</option>

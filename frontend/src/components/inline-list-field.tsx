@@ -15,7 +15,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={copy}
       aria-label="Copy"
-      className="p-0.5 rounded text-stone-300 hover:text-stone-500 transition-colors shrink-0"
+      className="p-0.5 rounded text-stone-300 dark:text-stone-600 hover:text-stone-500 dark:hover:text-stone-400 transition-colors shrink-0"
     >
       {copied ? "✓" : "⧉"}
     </button>
@@ -72,7 +72,7 @@ export function InlineListField({
 
   return (
     <div className="group/row flex items-start justify-between gap-4 py-1.5">
-      <span className="text-xs text-stone-500 shrink-0 mt-0.5">{label}</span>
+      <span className="text-xs text-stone-500 dark:text-stone-400 shrink-0 mt-0.5">{label}</span>
       {editing ? (
         <div className="flex flex-col items-end gap-1.5 min-w-0 flex-1">
           <input
@@ -83,12 +83,12 @@ export function InlineListField({
               if (e.key === "Enter") save();
               if (e.key === "Escape") cancel();
             }}
-            className="w-full text-xs border border-stone-300 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 bg-white"
+            className="w-full text-xs border border-stone-300 dark:border-stone-600 rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100"
           />
           <div className="flex items-center gap-2">
             <button
               onClick={cancel}
-              className="px-2.5 py-1 text-xs font-medium rounded-md text-stone-600 hover:bg-stone-100 border border-stone-200"
+              className="px-2.5 py-1 text-xs font-medium rounded-md text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-700"
             >
               Cancel
             </button>
@@ -108,28 +108,28 @@ export function InlineListField({
                 href={`${linkPrefix}${displayValue}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-medium text-teal-600 hover:text-teal-700 truncate"
+                className="text-xs font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 truncate"
               >
                 {displayValue}
               </a>
             ) : (
-              <span className="text-xs font-medium text-stone-900 truncate">
+              <span className="text-xs font-medium text-stone-900 dark:text-stone-100 truncate">
                 {displayValue}
                 {values.length > 1 && (
-                  <span className="text-stone-400 ml-1">
+                  <span className="text-stone-400 dark:text-stone-500 ml-1">
                     +{values.length - 1}
                   </span>
                 )}
               </span>
             )
           ) : (
-            <span className="text-xs text-stone-400">—</span>
+            <span className="text-xs text-stone-400 dark:text-stone-500">—</span>
           )}
           {copyable && displayValue && <CopyButton text={displayValue} />}
           <button
             onClick={startEdit}
             aria-label="Edit"
-            className="p-0.5 rounded text-stone-300 hover:text-stone-500 opacity-0 group-hover/row:opacity-100 transition-opacity shrink-0"
+            className="p-0.5 rounded text-stone-300 dark:text-stone-600 hover:text-stone-500 dark:hover:text-stone-400 opacity-0 group-hover/row:opacity-100 transition-opacity shrink-0"
           >
             <Pencil className="w-3 h-3" />
           </button>

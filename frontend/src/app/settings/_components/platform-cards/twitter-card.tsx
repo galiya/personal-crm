@@ -27,22 +27,22 @@ export function TwitterCard({
   handleTwitterSync,
 }: TwitterCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-stone-200 p-5 hover:shadow-sm transition-shadow">
+    <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-5 hover:shadow-sm transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-4">
-          <div className="w-11 h-11 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-lg bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0">
             <TwitterIcon />
           </div>
           <div>
             <div className="flex items-center gap-2.5">
-              <h3 className="text-sm font-semibold text-stone-900">Twitter / X</h3>
+              <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Twitter / X</h3>
               <ConnectionBadge connected={connected.twitter} />
             </div>
-            <p className="text-xs text-stone-500 mt-0.5">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
               Sync DMs, mentions, and bio changes from X.
             </p>
             {connected.twitter && connected.twitter_username && (
-              <p className="text-xs text-teal-600 mt-1">
+              <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">
                 Connected as <strong>@{connected.twitter_username}</strong>
               </p>
             )}
@@ -55,12 +55,12 @@ export function TwitterCard({
                 <button
                   onClick={() => void handleTwitterSync()}
                   disabled={twitterSync.status === "loading"}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors disabled:opacity-50"
                 >
                   {twitterSync.status === "loading" ? (
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                   ) : twitterSync.status === "success" ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   ) : (
                     <RefreshCw className="w-3.5 h-3.5" />
                   )}
@@ -105,7 +105,7 @@ export function TwitterCard({
         <p
           className={cn(
             "text-xs mt-3 flex items-center gap-1",
-            twitterConnect.status === "error" ? "text-red-500" : "text-emerald-600"
+            twitterConnect.status === "error" ? "text-red-500" : "text-emerald-600 dark:text-emerald-400"
           )}
         >
           {twitterConnect.status === "error" ? (
@@ -120,7 +120,7 @@ export function TwitterCard({
         <p
           className={cn(
             "text-xs mt-3 flex items-center gap-1",
-            twitterSync.status === "error" ? "text-red-500" : "text-emerald-600"
+            twitterSync.status === "error" ? "text-red-500" : "text-emerald-600 dark:text-emerald-400"
           )}
         >
           {twitterSync.status === "error" ? (

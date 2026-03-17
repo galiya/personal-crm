@@ -19,19 +19,19 @@ const channelConfig: Record<Channel, ChannelConfig> = {
     label: "Email",
     icon: <Mail className="w-4 h-4" />,
     maxChars: 2000,
-    color: "text-blue-600 bg-blue-50 border-blue-200",
+    color: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800",
   },
   telegram: {
     label: "Telegram",
     icon: <MessageCircle className="w-4 h-4" />,
     maxChars: 4096,
-    color: "text-sky-600 bg-sky-50 border-sky-200",
+    color: "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950 border-sky-200 dark:border-sky-800",
   },
   twitter: {
     label: "Twitter/X",
     icon: <Twitter className="w-4 h-4" />,
     maxChars: 280,
-    color: "text-slate-600 bg-slate-50 border-slate-200",
+    color: "text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700",
   },
 };
 
@@ -169,10 +169,10 @@ export function MessageEditor({
               className={cn(
                 "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors",
                 isDisabled
-                  ? "text-gray-300 bg-gray-50 border-gray-100 cursor-not-allowed"
+                  ? "text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 cursor-not-allowed"
                   : isSelected
                     ? cfg.color
-                    : "text-gray-500 bg-white border-gray-200 hover:bg-gray-50"
+                    : "text-gray-500 dark:text-stone-400 bg-white dark:bg-stone-900 border-gray-200 dark:border-stone-700 hover:bg-gray-50 dark:hover:bg-stone-800"
               )}
             >
               {cfg.icon}
@@ -190,15 +190,15 @@ export function MessageEditor({
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
           className={cn(
-            "w-full text-sm border rounded-md p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors",
-            isOverLimit ? "border-red-300" : "border-gray-300"
+            "w-full text-sm border rounded-md p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500",
+            isOverLimit ? "border-red-300 dark:border-red-700" : "border-gray-300 dark:border-stone-600"
           )}
           placeholder="Write a message..."
         />
         <span
           className={cn(
             "absolute bottom-2 right-2 text-xs",
-            isOverLimit ? "text-red-500 font-medium" : "text-gray-400"
+            isOverLimit ? "text-red-500 dark:text-red-400 font-medium" : "text-gray-400 dark:text-stone-500"
           )}
         >
           {charCount}/{config.maxChars}
@@ -206,7 +206,7 @@ export function MessageEditor({
       </div>
       {/* Character limit progress bar */}
       {charCount > 0 && (
-        <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden -mt-2">
+        <div className="h-1 w-full bg-gray-100 dark:bg-stone-800 rounded-full overflow-hidden -mt-2">
           <div
             className={cn(
               "h-full transition-all duration-150 rounded-full",
@@ -228,8 +228,8 @@ export function MessageEditor({
             className={cn(
               "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md border transition-colors",
               showSchedule
-                ? "text-sky-700 bg-sky-50 border-sky-200"
-                : "text-gray-500 bg-white border-gray-200 hover:bg-gray-50"
+                ? "text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950 border-sky-200 dark:border-sky-800"
+                : "text-gray-500 dark:text-stone-400 bg-white dark:bg-stone-900 border-gray-200 dark:border-stone-700 hover:bg-gray-50 dark:hover:bg-stone-800"
             )}
           >
             <Clock className="w-3.5 h-3.5" />
@@ -241,7 +241,7 @@ export function MessageEditor({
               value={scheduledFor}
               onChange={(e) => setScheduledFor(e.target.value)}
               min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
-              className="text-xs border border-gray-200 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="text-xs border border-gray-200 dark:border-stone-700 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-sky-400 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100"
             />
           )}
         </div>
@@ -249,7 +249,7 @@ export function MessageEditor({
 
       {/* Rate limit banner */}
       {isRateLimited && (
-        <div className="flex items-center gap-2 px-3 py-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md">
+        <div className="flex items-center gap-2 px-3 py-2 text-sm text-amber-800 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-md">
           <Clock className="w-4 h-4 shrink-0" />
           Rate limited — retry in {rateLimitRemaining >= 60 ? `${Math.ceil(rateLimitRemaining / 60)}m` : `${rateLimitRemaining}s`}
         </div>
@@ -260,7 +260,7 @@ export function MessageEditor({
         <button
           onClick={handleRegenerate}
           disabled={isRegenerating}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md text-gray-600 border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md text-gray-600 dark:text-stone-300 border border-gray-200 dark:border-stone-700 hover:bg-gray-50 dark:hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <RefreshCw
             className={cn("w-4 h-4", isRegenerating && "animate-spin")}

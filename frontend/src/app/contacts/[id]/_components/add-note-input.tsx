@@ -15,7 +15,7 @@ export function AddNoteInput({ onSave }: { onSave: (content: string) => void }) 
   };
 
   return (
-    <div className="bg-white rounded-xl border border-stone-200 p-3 flex items-start gap-3">
+    <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-3 flex items-start gap-3">
       <StickyNote className="w-4 h-4 text-amber-400 mt-1.5 shrink-0" />
       <div className="flex-1">
         <textarea
@@ -24,16 +24,16 @@ export function AddNoteInput({ onSave }: { onSave: (content: string) => void }) 
           value={text}
           onChange={(e) => setText(e.target.value)}
           onFocus={() => setFocused(true)}
-          className="w-full text-sm border-0 resize-none focus:outline-none placeholder:text-stone-400 py-1"
+          className="w-full text-sm border-0 resize-none focus:outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 py-1 bg-transparent text-stone-900 dark:text-stone-100"
         />
         {focused && (
-          <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-stone-100">
+          <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-stone-100 dark:border-stone-800">
             <button
               onClick={() => {
                 setText("");
                 setFocused(false);
               }}
-              className="px-3 py-1.5 text-xs text-stone-500 hover:bg-stone-50 rounded-md transition-colors"
+              className="px-3 py-1.5 text-xs text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 rounded-md transition-colors"
             >
               Cancel
             </button>

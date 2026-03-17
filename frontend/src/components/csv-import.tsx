@@ -111,21 +111,21 @@ export function CsvImport() {
 
   if (result) {
     return (
-      <div className="rounded-lg border border-gray-200 p-4">
+      <div className="rounded-lg border border-gray-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-4">
         <div className="flex items-start gap-3">
-          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+          <CheckCircle className="w-5 h-5 text-green-500 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-sm font-medium text-gray-900 dark:text-stone-100">
               Import complete — {result.created} contact
               {result.created !== 1 ? "s" : ""} created
             </p>
             {result.errors.length > 0 && (
               <div className="mt-2">
-                <p className="text-xs text-red-600 font-medium mb-1">
+                <p className="text-xs text-red-600 dark:text-red-400 font-medium mb-1">
                   {result.errors.length} row{result.errors.length !== 1 ? "s" : ""} had
                   errors:
                 </p>
-                <ul className="text-xs text-red-500 space-y-0.5 max-h-24 overflow-y-auto">
+                <ul className="text-xs text-red-500 dark:text-red-400 space-y-0.5 max-h-24 overflow-y-auto">
                   {result.errors.map((e, i) => (
                     <li key={i}>{e}</li>
                   ))}
@@ -133,7 +133,7 @@ export function CsvImport() {
               </div>
             )}
           </div>
-          <button onClick={handleReset} className="text-gray-400 hover:text-gray-600">
+          <button onClick={handleReset} className="text-gray-400 dark:text-stone-500 hover:text-gray-600 dark:hover:text-stone-300">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -151,15 +151,15 @@ export function CsvImport() {
           onClick={() => inputRef.current?.click()}
           className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
             isDragging
-              ? "border-blue-400 bg-blue-50"
-              : "border-gray-300 hover:border-blue-300 hover:bg-gray-50"
+              ? "border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-950"
+              : "border-gray-300 dark:border-stone-600 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-gray-50 dark:hover:bg-stone-800"
           }`}
         >
-          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm font-medium text-gray-700">
+          <Upload className="w-8 h-8 text-gray-400 dark:text-stone-500 mx-auto mb-2" />
+          <p className="text-sm font-medium text-gray-700 dark:text-stone-300">
             Drop a CSV file here, or click to browse
           </p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-400 dark:text-stone-500 mt-1">
             Supported columns: name, email, phone, company, title, tags
           </p>
           <input
@@ -171,33 +171,33 @@ export function CsvImport() {
           />
         </div>
       ) : (
-        <div className="rounded-lg border border-gray-200 p-4">
+        <div className="rounded-lg border border-gray-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium text-gray-800">{file.name}</span>
-              <span className="text-xs text-gray-400">
+              <FileText className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+              <span className="text-sm font-medium text-gray-800 dark:text-stone-100">{file.name}</span>
+              <span className="text-xs text-gray-400 dark:text-stone-500">
                 ({(file.size / 1024).toFixed(1)} KB)
               </span>
             </div>
-            <button onClick={handleReset} className="text-gray-400 hover:text-gray-600">
+            <button onClick={handleReset} className="text-gray-400 dark:text-stone-500 hover:text-gray-600 dark:hover:text-stone-300">
               <X className="w-4 h-4" />
             </button>
           </div>
 
           {preview && preview.rows.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs text-gray-500 mb-1.5">
+              <p className="text-xs text-gray-500 dark:text-stone-400 mb-1.5">
                 Preview (first {preview.rows.length} rows):
               </p>
-              <div className="overflow-x-auto rounded-md border border-gray-100">
+              <div className="overflow-x-auto rounded-md border border-gray-100 dark:border-stone-700">
                 <table className="text-xs w-full">
                   <thead>
-                    <tr className="bg-gray-50">
+                    <tr className="bg-gray-50 dark:bg-stone-800">
                       {preview.headers.map((h) => (
                         <th
                           key={h}
-                          className="px-2 py-1.5 text-left text-gray-600 font-medium border-b border-gray-100 whitespace-nowrap"
+                          className="px-2 py-1.5 text-left text-gray-600 dark:text-stone-300 font-medium border-b border-gray-100 dark:border-stone-700 whitespace-nowrap"
                         >
                           {h}
                         </th>
@@ -206,11 +206,11 @@ export function CsvImport() {
                   </thead>
                   <tbody>
                     {preview.rows.map((row, i) => (
-                      <tr key={i} className="border-b border-gray-50 last:border-0">
+                      <tr key={i} className="border-b border-gray-50 dark:border-stone-800 last:border-0">
                         {preview.headers.map((h) => (
                           <td
                             key={h}
-                            className="px-2 py-1.5 text-gray-700 max-w-[120px] truncate"
+                            className="px-2 py-1.5 text-gray-700 dark:text-stone-300 max-w-[120px] truncate"
                           >
                             {row[h]}
                           </td>
@@ -224,7 +224,7 @@ export function CsvImport() {
           )}
 
           {uploadError && (
-            <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-3">
+            <div className="flex items-start gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md px-3 py-2 mb-3">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               {uploadError}
             </div>

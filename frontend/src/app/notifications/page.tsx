@@ -32,15 +32,15 @@ interface TypeStyle {
 }
 
 const typeStyles: Record<string, TypeStyle> = {
-  suggestion: { Icon: Sparkles, bg: "bg-teal-50", text: "text-teal-600" },
-  event: { Icon: Activity, bg: "bg-amber-50", text: "text-amber-500" },
-  digest: { Icon: Mail, bg: "bg-emerald-50", text: "text-emerald-600" },
-  system: { Icon: Settings, bg: "bg-stone-100", text: "text-stone-500" },
-  bio_change: { Icon: ScanSearch, bg: "bg-violet-50", text: "text-violet-500" },
-  sync: { Icon: RefreshCw, bg: "bg-sky-50", text: "text-sky-500" },
+  suggestion: { Icon: Sparkles, bg: "bg-teal-50 dark:bg-teal-950", text: "text-teal-600 dark:text-teal-400" },
+  event: { Icon: Activity, bg: "bg-amber-50 dark:bg-amber-950", text: "text-amber-500 dark:text-amber-400" },
+  digest: { Icon: Mail, bg: "bg-emerald-50 dark:bg-emerald-950", text: "text-emerald-600 dark:text-emerald-400" },
+  system: { Icon: Settings, bg: "bg-stone-100 dark:bg-stone-800", text: "text-stone-500 dark:text-stone-400" },
+  bio_change: { Icon: ScanSearch, bg: "bg-violet-50 dark:bg-violet-950", text: "text-violet-500 dark:text-violet-400" },
+  sync: { Icon: RefreshCw, bg: "bg-sky-50 dark:bg-sky-950", text: "text-sky-500 dark:text-sky-400" },
 };
 
-const defaultStyle: TypeStyle = { Icon: Bell, bg: "bg-stone-100", text: "text-stone-500" };
+const defaultStyle: TypeStyle = { Icon: Bell, bg: "bg-stone-100 dark:bg-stone-800", text: "text-stone-500 dark:text-stone-400" };
 
 function getStyle(type: string): TypeStyle {
   return typeStyles[type] ?? defaultStyle;
@@ -113,7 +113,7 @@ function CopyButton({ text: copyText }: { text: string }) {
     <button
       onClick={handleCopy}
       title="Copy error message"
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs text-stone-400 hover:text-stone-600 transition-colors"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
     >
       {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
       {copied ? "Copied" : "Copy"}
@@ -154,7 +154,7 @@ function NotificationRow({
   return (
     <div className={cn("notif-row", isRead && "read")}>
       <div
-        className="flex items-start gap-4 px-5 py-4 cursor-pointer hover:bg-stone-50 transition-colors"
+        className="flex items-start gap-4 px-5 py-4 cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
         onClick={handleClick}
       >
         {/* Icon */}
@@ -164,12 +164,12 @@ function NotificationRow({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <p className={cn("text-sm", isRead ? "font-medium text-stone-700" : "font-semibold text-stone-900")}>
+          <p className={cn("text-sm", isRead ? "font-medium text-stone-700 dark:text-stone-300" : "font-semibold text-stone-900 dark:text-stone-100")}>
             {notification.title}
           </p>
           {summary && (
             <div className="flex items-start gap-1.5 mt-0.5">
-              <p className={cn("text-sm text-stone-500 leading-snug flex-1", isRead && "opacity-60")}>
+              <p className={cn("text-sm text-stone-500 dark:text-stone-400 leading-snug flex-1", isRead && "opacity-60")}>
                 {summary}
               </p>
               {isSystem && <CopyButton text={notification.body ?? notification.title} />}
@@ -179,7 +179,7 @@ function NotificationRow({
 
         {/* Time + unread dot */}
         <div className="flex flex-col items-end gap-2 shrink-0">
-          <span className={cn("text-xs text-stone-400 whitespace-nowrap", isRead && "opacity-50")}>
+          <span className={cn("text-xs text-stone-400 dark:text-stone-500 whitespace-nowrap", isRead && "opacity-50")}>
             {notification.created_at
               ? formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })
               : ""}
@@ -191,16 +191,16 @@ function NotificationRow({
       {/* Expanded detail */}
       {expanded && details && (
         <div className="px-5 pb-4 ml-[52px]">
-          <div className="bg-stone-50 rounded-lg p-3 border border-stone-100">
+          <div className="bg-stone-50 dark:bg-stone-800 rounded-lg p-3 border border-stone-100 dark:border-stone-700">
             <div className="flex items-start justify-between gap-2">
-              <pre className="text-xs font-mono text-stone-600 whitespace-pre-wrap flex-1">{details}</pre>
+              <pre className="text-xs font-mono text-stone-600 dark:text-stone-300 whitespace-pre-wrap flex-1">{details}</pre>
               {isSystem && <CopyButton text={details} />}
             </div>
           </div>
           {notification.link && (
             <button
               onClick={handleCta}
-              className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-teal-600 hover:text-teal-700"
+              className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300"
             >
               {ctaLabel(notification.notification_type)} <ArrowRight className="w-3 h-3" />
             </button>
@@ -240,14 +240,14 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <main className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-stone-900">Notifications</h1>
+            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Notifications</h1>
             {unreadCount > 0 && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-700">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-400">
                 {unreadCount} unread
               </span>
             )}
@@ -256,7 +256,7 @@ export default function NotificationsPage() {
             <button
               onClick={() => markAllRead.mutate()}
               disabled={markAllRead.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950 rounded-lg transition-colors disabled:opacity-50"
             >
               <CheckCheck className="w-4 h-4" />
               Mark all as read
@@ -274,7 +274,7 @@ export default function NotificationsPage() {
                 "px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors",
                 filter === f.key
                   ? "bg-teal-600 text-white"
-                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                  : "bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700"
               )}
             >
               {f.label}
@@ -284,36 +284,36 @@ export default function NotificationsPage() {
 
         {/* Content */}
         {isLoading ? (
-          <div className="bg-white rounded-xl border border-stone-200 divide-y divide-stone-100">
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 divide-y divide-stone-100 dark:divide-stone-800">
             {[1, 2, 3].map((n) => (
               <div key={n} className="h-20 animate-pulse" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           /* Empty state */
-          <div className="bg-white rounded-xl border border-stone-200 p-12 text-center">
-            <div className="w-14 h-14 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-4">
-              <Bell className="w-7 h-7 text-teal-400" />
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-12 text-center">
+            <div className="w-14 h-14 rounded-full bg-teal-50 dark:bg-teal-950 flex items-center justify-center mx-auto mb-4">
+              <Bell className="w-7 h-7 text-teal-400 dark:text-teal-500" />
             </div>
-            <h2 className="text-base font-bold text-stone-900 mb-1">You&apos;re all caught up</h2>
-            <p className="text-sm text-stone-500 max-w-sm mx-auto">
+            <h2 className="text-base font-bold text-stone-900 dark:text-stone-100 mb-1">You&apos;re all caught up</h2>
+            <p className="text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
               Notifications will appear here when there&apos;s activity in your network.
             </p>
           </div>
         ) : (
           /* Notification list */
-          <div className="bg-white rounded-xl border border-stone-200 divide-y divide-stone-100 overflow-hidden">
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 divide-y divide-stone-100 dark:divide-stone-800 overflow-hidden">
             {groups.map((group, gi) => (
               <div key={group.label}>
                 {/* Group header */}
-                <div className={cn("px-5 py-2.5 bg-stone-50", gi === 0 && "rounded-t-xl")}>
-                  <span className="text-xs font-semibold text-stone-400 uppercase tracking-wide">
+                <div className={cn("px-5 py-2.5 bg-stone-50 dark:bg-stone-800", gi === 0 && "rounded-t-xl")}>
+                  <span className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wide">
                     {group.label}
                   </span>
                 </div>
                 {/* Rows */}
                 {group.items.map((n) => (
-                  <div key={n.id} className="border-t border-stone-100">
+                  <div key={n.id} className="border-t border-stone-100 dark:border-stone-800">
                     <NotificationRow
                       notification={n}
                       expanded={expandedId === n.id}

@@ -15,14 +15,14 @@ function getScoreVariant(score: number, lastInteractionAt?: string | null): {
     return {
       label: "Strong",
       dotClass: "bg-emerald-500",
-      textClass: "text-emerald-700",
+      textClass: "text-emerald-700 dark:text-emerald-400",
     };
   }
   if (score >= 4) {
     return {
       label: "Warm",
       dotClass: "bg-amber-400",
-      textClass: "text-amber-700",
+      textClass: "text-amber-700 dark:text-amber-400",
     };
   }
   // Score 0-3: check recency before labeling "Cold"
@@ -32,14 +32,14 @@ function getScoreVariant(score: number, lastInteractionAt?: string | null): {
       return {
         label: "New",
         dotClass: "bg-sky-400",
-        textClass: "text-sky-700",
+        textClass: "text-sky-700 dark:text-sky-400",
       };
     }
   }
   return {
     label: "Cold",
     dotClass: "bg-red-400",
-    textClass: "text-red-600",
+    textClass: "text-red-600 dark:text-red-400",
   };
 }
 

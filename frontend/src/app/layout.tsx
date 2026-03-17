@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/lib/query-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Nav } from "@/components/nav";
 
 const dmSans = DM_Sans({
@@ -31,14 +32,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("pingcrm-theme");var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme:dark)").matches);if(d)document.documentElement.classList.add("dark")}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body
-        className={`${dmSans.variable} ${jakarta.variable} ${jetbrainsMono.variable} font-body`}
+        className={`${dmSans.variable} ${jakarta.variable} ${jetbrainsMono.variable} font-body bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-50`}
         suppressHydrationWarning
       >
-        <QueryProvider>
-          <Nav />
-          {children}
-        </QueryProvider>
+        <ThemeProvider>
+          <QueryProvider>
+            <Nav />
+            {children}
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

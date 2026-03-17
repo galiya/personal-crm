@@ -50,20 +50,20 @@ function MergeModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6"
+        className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md mx-4 p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 mb-4">
           <GitMerge className="w-5 h-5 text-blue-600" />
-          <h2 className="text-lg font-bold text-gray-900">Merge Organizations</h2>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Merge Organizations</h2>
         </div>
 
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           All contacts from the selected organizations will be moved under one organization. Select which to keep:
         </p>
 
         <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Keep as target organization:
           </label>
           <div className="space-y-1.5 max-h-48 overflow-y-auto">
@@ -72,8 +72,8 @@ function MergeModal({
                 key={org.id}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
                   targetId === org.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:bg-gray-50"
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                    : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                 }`}
               >
                 <input
@@ -83,8 +83,8 @@ function MergeModal({
                   onChange={() => setTargetId(org.id)}
                   className="text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-900">{org.name}</span>
-                <span className="text-xs text-gray-400 ml-auto">{org.contact_count} contacts</span>
+                <span className="text-sm text-gray-900 dark:text-gray-100">{org.name}</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">{org.contact_count} contacts</span>
               </label>
             ))}
           </div>
@@ -93,7 +93,7 @@ function MergeModal({
         <div className="flex gap-2 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Cancel
           </button>
@@ -286,13 +286,13 @@ function OrganizationsPageContent() {
   const selectedMergeOrgs = organizations.filter((o) => selectedOrgIds.has(o.id));
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Organizations</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Organizations</h1>
             {meta && (
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 {meta.total} organization{meta.total !== 1 ? "s" : ""}
               </p>
             )}
@@ -301,7 +301,7 @@ function OrganizationsPageContent() {
 
         <div className="mb-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search organizations..."
@@ -314,7 +314,7 @@ function OrganizationsPageContent() {
                   setParams({ q: value || undefined });
                 }, 300);
               }}
-              className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
         </div>
@@ -343,7 +343,7 @@ function OrganizationsPageContent() {
         )}
 
         {isLoading && (
-          <div className="text-center py-12 text-gray-400">Loading organizations...</div>
+          <div className="text-center py-12 text-gray-400 dark:text-gray-500">Loading organizations...</div>
         )}
 
         {isError && (
@@ -353,16 +353,16 @@ function OrganizationsPageContent() {
         )}
 
         {!isLoading && !isError && organizations.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-gray-400 dark:text-gray-500">
             No organizations found.
           </div>
         )}
 
         {organizations.length > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
+                <tr className="border-b border-gray-100 dark:border-gray-700 text-left text-xs text-gray-500 dark:text-gray-400">
                   <th className="w-10 px-4 py-3">
                     <input
                       type="checkbox"
@@ -371,7 +371,7 @@ function OrganizationsPageContent() {
                         if (el) el.indeterminate = selectedOrgIds.size > 0 && selectedOrgIds.size < organizations.length;
                       }}
                       onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
                       aria-label="Select all organizations"
                     />
                   </th>
@@ -400,17 +400,17 @@ function OrganizationsPageContent() {
                   <th className="w-10 px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
                 {sortedOrganizations.map((org) => {
                   const isSelected = selectedOrgIds.has(org.id);
                   return (
-                    <tr key={org.id} className={`hover:bg-gray-50 transition-colors ${isSelected ? "bg-blue-50/50" : ""}`}>
+                    <tr key={org.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${isSelected ? "bg-blue-50/50 dark:bg-blue-950/30" : ""}`}>
                       <td className="px-4 py-3">
                         <input
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelectOrg(org.id)}
-                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
                           aria-label={`Select ${org.name}`}
                         />
                       </td>
@@ -419,29 +419,29 @@ function OrganizationsPageContent() {
                           href={`/organizations/${org.id}`}
                           className="flex items-center gap-3 group"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950 flex items-center justify-center flex-shrink-0 overflow-hidden">
                             <CompanyFavicon logoUrl={org.logo_url} domain={org.domain} size="w-5 h-5" />
                           </div>
                           <div className="min-w-0">
-                            <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">
                               {org.name}
                             </span>
                             {org.domain && (
-                              <span className="ml-2 text-xs text-gray-400">{org.domain}</span>
+                              <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">{org.domain}</span>
                             )}
                           </div>
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                      <td className="px-4 py-3 text-center text-sm text-gray-600 dark:text-gray-400">
                         {org.contact_count}
                       </td>
-                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                      <td className="px-4 py-3 text-center text-sm text-gray-600 dark:text-gray-400">
                         {org.avg_relationship_score || "-"}
                       </td>
-                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                      <td className="px-4 py-3 text-center text-sm text-gray-600 dark:text-gray-400">
                         {org.total_interactions || "-"}
                       </td>
-                      <td className="px-4 py-3 text-right text-xs text-gray-400">
+                      <td className="px-4 py-3 text-right text-xs text-gray-400 dark:text-gray-500">
                         {org.last_interaction_at
                           ? formatDistanceToNow(new Date(org.last_interaction_at), { addSuffix: true })
                           : "Never"}
@@ -449,7 +449,7 @@ function OrganizationsPageContent() {
                       <td className="px-4 py-3">
                         <button
                           onClick={() => handleDeleteSingle(org)}
-                          className="p-1 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          className="p-1 rounded text-gray-300 dark:text-gray-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
                           title={`Delete ${org.name}`}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -468,17 +468,17 @@ function OrganizationsPageContent() {
             <button
               disabled={page <= 1}
               onClick={() => setParams({ page: String(page - 1) })}
-              className="px-3 py-1.5 text-sm rounded-md border border-gray-300 disabled:opacity-40 hover:bg-gray-100"
+              className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               Previous
             </button>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               Page {page} of {meta.total_pages}
             </span>
             <button
               disabled={page >= meta.total_pages}
               onClick={() => setParams({ page: String(page + 1) })}
-              className="px-3 py-1.5 text-sm rounded-md border border-gray-300 disabled:opacity-40 hover:bg-gray-100"
+              className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               Next
             </button>
@@ -490,7 +490,7 @@ function OrganizationsPageContent() {
 }
 
 function PageLoading() {
-  return <div className="min-h-screen bg-stone-50 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full" /></div>;
+  return <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full" /></div>;
 }
 
 export default function OrganizationsPage() {

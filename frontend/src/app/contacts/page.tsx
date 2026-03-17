@@ -36,15 +36,15 @@ import { client } from "@/lib/api-client";
 // ---------------------------------------------------------------------------
 
 const priorityConfig = [
-  { key: "high", label: "High", icon: "\uD83D\uDD25", activeColor: "bg-red-50 text-red-700 border-red-200 ring-1 ring-red-300 ring-offset-1" },
-  { key: "medium", label: "Medium", icon: "\u26A1", activeColor: "bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-amber-300 ring-offset-1" },
-  { key: "low", label: "Low", icon: "\uD83D\uDCA4", activeColor: "bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-300 ring-offset-1" },
+  { key: "high", label: "High", icon: "\uD83D\uDD25", activeColor: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 ring-1 ring-red-300 ring-offset-1" },
+  { key: "medium", label: "Medium", icon: "\u26A1", activeColor: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 ring-1 ring-amber-300 ring-offset-1" },
+  { key: "low", label: "Low", icon: "\uD83D\uDCA4", activeColor: "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 ring-1 ring-blue-300 ring-offset-1" },
 ] as const;
 
 const scoreConfig = [
-  { key: "strong", label: "Strong", dotColor: "bg-emerald-500", activeColor: "bg-emerald-50 text-emerald-700 border-emerald-200 ring-1 ring-emerald-300 ring-offset-1" },
-  { key: "active", label: "Warm", dotColor: "bg-amber-400", activeColor: "bg-amber-50 text-amber-700 border-amber-200 ring-1 ring-amber-300 ring-offset-1" },
-  { key: "dormant", label: "Cold", dotColor: "bg-red-400", activeColor: "bg-red-50 text-red-700 border-red-200 ring-1 ring-red-300 ring-offset-1" },
+  { key: "strong", label: "Strong", dotColor: "bg-emerald-500", activeColor: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 ring-1 ring-emerald-300 ring-offset-1" },
+  { key: "active", label: "Warm", dotColor: "bg-amber-400", activeColor: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 ring-1 ring-amber-300 ring-offset-1" },
+  { key: "dormant", label: "Cold", dotColor: "bg-red-400", activeColor: "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 ring-1 ring-red-300 ring-offset-1" },
 ] as const;
 
 const datePresets = [
@@ -69,11 +69,11 @@ const sortColumns = [
 // ---------------------------------------------------------------------------
 
 function ScoreNumberBadge({ score }: { score: number }) {
-  let color = "bg-sky-50 text-sky-700 border-sky-100";
+  let color = "bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border-sky-100 dark:border-sky-900";
   let dotColor = "bg-sky-400";
-  if (score >= 8) { color = "bg-emerald-50 text-emerald-700 border-emerald-100"; dotColor = "bg-emerald-500"; }
-  else if (score >= 4) { color = "bg-amber-50 text-amber-700 border-amber-100"; dotColor = "bg-amber-400"; }
-  else if (score >= 1) { color = "bg-red-50 text-red-700 border-red-100"; dotColor = "bg-red-400"; }
+  if (score >= 8) { color = "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900"; dotColor = "bg-emerald-500"; }
+  else if (score >= 4) { color = "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900"; dotColor = "bg-amber-400"; }
+  else if (score >= 1) { color = "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-100 dark:border-red-900"; dotColor = "bg-red-400"; }
 
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${color}`}>
@@ -90,9 +90,9 @@ function ScoreNumberBadge({ score }: { score: number }) {
 function PriorityBadge({ level }: { level: string }) {
   const icons: Record<string, string> = { high: "\uD83D\uDD25", medium: "\u26A1", low: "\uD83D\uDCA4" };
   const icon = icons[level];
-  if (!icon) return <span className="text-stone-300">&mdash;</span>;
+  if (!icon) return <span className="text-stone-300 dark:text-stone-600">&mdash;</span>;
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-50 text-red-700 border border-red-100">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-900">
       {icon}
     </span>
   );
@@ -107,7 +107,7 @@ function PlatformIcons({ emails, telegram, twitter }: { emails: string[]; telegr
     <span className="inline-flex items-center gap-1.5">
       {emails.length > 0 && <span className="text-red-400" aria-label="Email"><Mail className="w-3 h-3" /></span>}
       {telegram && <span className="text-sky-400" aria-label="Telegram"><MessageCircle className="w-3 h-3" /></span>}
-      {twitter && <span className="text-stone-400" aria-label="Twitter/X"><Twitter className="w-3 h-3" /></span>}
+      {twitter && <span className="text-stone-400 dark:text-stone-500" aria-label="Twitter/X"><Twitter className="w-3 h-3" /></span>}
     </span>
   );
 }
@@ -117,11 +117,11 @@ function PlatformIcons({ emails, telegram, twitter }: { emails: string[]; telegr
 // ---------------------------------------------------------------------------
 
 function DaysAgo({ dateStr }: { dateStr?: string | null }) {
-  if (!dateStr) return <span className="text-stone-300">&mdash;</span>;
+  if (!dateStr) return <span className="text-stone-300 dark:text-stone-600">&mdash;</span>;
   const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
   const isOverdue = days > 30;
   return (
-    <span className={`font-mono-data text-xs ${isOverdue ? "font-medium text-red-500" : "text-stone-500"}`}>
+    <span className={`font-mono-data text-xs ${isOverdue ? "font-medium text-red-500" : "text-stone-500 dark:text-stone-400"}`}>
       {days}d
     </span>
   );
@@ -193,7 +193,7 @@ function BulkActionBar({
           </button>
         </div>
         {showTagDropdown && (
-          <div className="absolute left-0 bottom-full mb-1 w-56 bg-white rounded-lg border border-stone-200 shadow-lg z-50 p-2">
+          <div className="absolute left-0 bottom-full mb-1 w-56 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-lg z-50 p-2">
             <input
               type="text"
               placeholder={tagMode === "add" ? "Type tag name..." : "Select tag to remove..."}
@@ -206,7 +206,7 @@ function BulkActionBar({
                   setShowTagDropdown(false);
                 }
               }}
-              className="w-full px-2.5 py-1.5 text-sm text-stone-900 rounded-md border border-stone-300 focus:outline-none focus:ring-2 focus:ring-teal-400 mb-1"
+              className="w-full px-2.5 py-1.5 text-sm text-stone-900 dark:text-stone-100 rounded-md border border-stone-300 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-teal-400 mb-1 bg-white dark:bg-stone-800 placeholder:text-stone-400 dark:placeholder:text-stone-500"
               autoFocus
             />
             <div className="max-h-32 overflow-y-auto">
@@ -219,7 +219,7 @@ function BulkActionBar({
                     setTagInput("");
                     setShowTagDropdown(false);
                   }}
-                  className="w-full text-left px-2.5 py-1.5 text-sm text-stone-700 hover:bg-stone-100 rounded-md"
+                  className="w-full text-left px-2.5 py-1.5 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md"
                 >
                   {tagMode === "add" ? "+" : "-"} {tag}
                 </button>
@@ -231,7 +231,7 @@ function BulkActionBar({
                     setTagInput("");
                     setShowTagDropdown(false);
                   }}
-                  className="w-full text-left px-2.5 py-1.5 text-sm text-teal-600 hover:bg-teal-50 rounded-md font-medium"
+                  className="w-full text-left px-2.5 py-1.5 text-sm text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950 rounded-md font-medium"
                 >
                   + Create &quot;{tagInput.trim()}&quot;
                 </button>
@@ -251,16 +251,16 @@ function BulkActionBar({
           <SlidersHorizontal className="w-3.5 h-3.5" /> Priority
         </button>
         {showPriorityDropdown && (
-          <div className="absolute left-0 bottom-full mb-1 w-40 bg-white rounded-lg border border-stone-200 shadow-lg z-50 p-1">
+          <div className="absolute left-0 bottom-full mb-1 w-40 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-lg z-50 p-1">
             {[
-              { value: "high", label: "High", color: "text-red-600" },
-              { value: "normal", label: "Normal", color: "text-stone-700" },
-              { value: "low", label: "Low", color: "text-stone-400" },
+              { value: "high", label: "High", color: "text-red-600 dark:text-red-400" },
+              { value: "normal", label: "Normal", color: "text-stone-700 dark:text-stone-300" },
+              { value: "low", label: "Low", color: "text-stone-400 dark:text-stone-500" },
             ].map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => { onSetPriority(opt.value); setShowPriorityDropdown(false); }}
-                className={`w-full text-left px-2.5 py-1.5 text-sm ${opt.color} hover:bg-stone-100 rounded-md`}
+                className={`w-full text-left px-2.5 py-1.5 text-sm ${opt.color} hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md`}
               >
                 {opt.label}
               </button>
@@ -279,7 +279,7 @@ function BulkActionBar({
           <Building2 className="w-3.5 h-3.5" /> Company
         </button>
         {showCompanyInput && (
-          <div className="absolute left-0 bottom-full mb-1 w-56 bg-white rounded-lg border border-stone-200 shadow-lg z-50 p-2">
+          <div className="absolute left-0 bottom-full mb-1 w-56 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-lg z-50 p-2">
             <input
               type="text"
               placeholder="Set company name..."
@@ -292,7 +292,7 @@ function BulkActionBar({
                   setShowCompanyInput(false);
                 }
               }}
-              className="w-full px-2.5 py-1.5 text-sm text-stone-900 rounded-md border border-stone-300 focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="w-full px-2.5 py-1.5 text-sm text-stone-900 dark:text-stone-100 rounded-md border border-stone-300 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-stone-800 placeholder:text-stone-400 dark:placeholder:text-stone-500"
               autoFocus
             />
           </div>
@@ -369,20 +369,20 @@ function Pagination({
 
   return (
     <div className="flex items-center justify-between mt-4">
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-stone-500 dark:text-stone-400">
         Showing <strong>{from}-{to}</strong> of <strong>{total}</strong>
       </p>
       <div className="flex items-center gap-1.5">
         <button
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          className="px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:text-stone-300 disabled:bg-stone-50 disabled:cursor-not-allowed transition-colors"
+          className="px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:text-stone-300 dark:disabled:text-stone-600 disabled:bg-stone-50 dark:disabled:bg-stone-900 disabled:cursor-not-allowed transition-colors"
         >
           Previous
         </button>
         {pages.map((p, i) =>
           p === "..." ? (
-            <span key={`dots-${i}`} className="text-xs text-stone-400 px-1">...</span>
+            <span key={`dots-${i}`} className="text-xs text-stone-400 dark:text-stone-500 px-1">...</span>
           ) : (
             <button
               key={p}
@@ -390,7 +390,7 @@ function Pagination({
               className={`px-2.5 py-1.5 text-xs font-medium rounded-lg min-w-[32px] text-center transition-colors ${
                 p === page
                   ? "bg-teal-600 text-white"
-                  : "border border-stone-200 text-stone-600 hover:bg-stone-50"
+                  : "border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
               }`}
             >
               {p}
@@ -400,7 +400,7 @@ function Pagination({
         <button
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:text-stone-300 disabled:bg-stone-50 disabled:cursor-not-allowed transition-colors"
+          className="px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:text-stone-300 dark:disabled:text-stone-600 disabled:bg-stone-50 dark:disabled:bg-stone-900 disabled:cursor-not-allowed transition-colors"
         >
           Next
         </button>
@@ -577,14 +577,14 @@ function ContactsPageContent() {
   const isPending = bulkUpdate.isPending || mergeMutation.isPending || deleteMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-display font-bold text-stone-900">Contacts</h1>
+            <h1 className="text-2xl font-display font-bold text-stone-900 dark:text-stone-100">Contacts</h1>
             {stats && (
-              <p className="text-sm text-stone-500 mt-0.5">
+              <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
                 <span className="font-mono-data">{stats.total.toLocaleString()}</span> contacts
                 {" \u00B7 "}
                 <span className="font-mono-data">{activeRelationships}</span> active relationships
@@ -600,10 +600,10 @@ function ContactsPageContent() {
         </div>
 
         {/* Search + Filter bar */}
-        <div className="bg-white rounded-xl border border-stone-200 p-4 mb-4">
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-4 mb-4">
           <div className="flex gap-3 mb-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500" />
               <input
                 type="text"
                 placeholder="Search by name, email, company, or notes..."
@@ -616,21 +616,21 @@ function ContactsPageContent() {
                     setParams({ q: value || undefined });
                   }, 300);
                 }}
-                className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-teal-400 placeholder:text-stone-400"
+                className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-teal-400 placeholder:text-stone-400 dark:placeholder:text-stone-500 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100"
               />
             </div>
             <button
               onClick={() => setParams({ filters: showFilters ? undefined : "1", page: String(page) })}
               className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border transition-colors ${
                 showFilters || activeFilterCount > 0
-                  ? "bg-teal-50 border-teal-200 text-teal-700"
-                  : "border-stone-200 text-stone-600 hover:bg-stone-50"
+                  ? "bg-teal-50 dark:bg-teal-950 border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400"
+                  : "border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
               }`}
             >
               <SlidersHorizontal className="w-4 h-4" />
               Filters
               {activeFilterCount > 0 && (
-                <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-100 text-teal-700 text-[10px] font-bold">
+                <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-400 text-[10px] font-bold">
                   {activeFilterCount}
                 </span>
               )}
@@ -640,7 +640,7 @@ function ContactsPageContent() {
           {/* Quick filter chips with group labels */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mr-1">Priority</span>
+              <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider mr-1">Priority</span>
               {priorityConfig.map(({ key, label, icon, activeColor }) => {
                 const isActive = priorityFilter === key;
                 return (
@@ -648,7 +648,7 @@ function ContactsPageContent() {
                     key={key}
                     onClick={() => setParams({ priority: isActive ? undefined : key })}
                     className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full border transition-colors ${
-                      isActive ? activeColor : "bg-white border-stone-200 text-stone-500 hover:bg-stone-50"
+                      isActive ? activeColor : "bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800"
                     }`}
                   >
                     {icon} {label}
@@ -656,9 +656,9 @@ function ContactsPageContent() {
                 );
               })}
             </div>
-            <div className="w-px h-5 bg-stone-200" />
+            <div className="w-px h-5 bg-stone-200 dark:bg-stone-700" />
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mr-1">Score</span>
+              <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider mr-1">Score</span>
               {scoreConfig.map(({ key, label, dotColor, activeColor }) => {
                 const isActive = scoreFilter === key;
                 return (
@@ -666,7 +666,7 @@ function ContactsPageContent() {
                     key={key}
                     onClick={() => setParams({ score: isActive ? undefined : key })}
                     className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full border transition-colors ${
-                      isActive ? activeColor : "bg-white border-stone-200 text-stone-500 hover:bg-stone-50"
+                      isActive ? activeColor : "bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800"
                     }`}
                   >
                     <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} /> {label}
@@ -676,10 +676,10 @@ function ContactsPageContent() {
             </div>
             {activeFilterCount > 0 && (
               <div className="flex items-center gap-2 ml-auto">
-                <div className="w-px h-4 bg-stone-200" />
+                <div className="w-px h-4 bg-stone-200 dark:bg-stone-700" />
                 <button
                   onClick={() => router.replace("/contacts", { scroll: false })}
-                  className="text-xs text-stone-400 hover:text-stone-600 font-medium"
+                  className="text-xs text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 font-medium"
                 >
                   Clear all
                 </button>
@@ -689,26 +689,26 @@ function ContactsPageContent() {
 
           {/* Expanded filter panel */}
           {showFilters && (
-            <div className="border-t border-stone-200 pt-4 mt-4">
+            <div className="border-t border-stone-200 dark:border-stone-700 pt-4 mt-4">
               <div className="grid grid-cols-3 gap-4">
                 {/* Platform filter */}
                 <div>
-                  <label className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider mb-2 block">Platform</label>
+                  <label className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2 block">Platform</label>
                   <div className="space-y-2">
                     {[
                       { value: "gmail", label: "Gmail", icon: <Mail className="w-3.5 h-3.5 text-red-400" /> },
                       { value: "telegram", label: "Telegram", icon: <MessageCircle className="w-3.5 h-3.5 text-sky-500" /> },
-                      { value: "twitter", label: "Twitter / X", icon: <Twitter className="w-3.5 h-3.5 text-stone-500" /> },
+                      { value: "twitter", label: "Twitter / X", icon: <Twitter className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" /> },
                     ].map(({ value, label, icon }) => (
                       <label key={value} className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={sourceFilter === value}
                           onChange={() => setParams({ source: sourceFilter === value ? undefined : value })}
-                          className="w-3.5 h-3.5 rounded border-stone-300 text-teal-600"
+                          className="w-3.5 h-3.5 rounded border-stone-300 dark:border-stone-600 text-teal-600"
                         />
                         {icon}
-                        <span className="text-xs text-stone-700">{label}</span>
+                        <span className="text-xs text-stone-700 dark:text-stone-300">{label}</span>
                       </label>
                     ))}
                   </div>
@@ -716,11 +716,11 @@ function ContactsPageContent() {
 
                 {/* Tags filter */}
                 <div>
-                  <label className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider mb-2 block">Tags</label>
+                  <label className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2 block">Tags</label>
                   <select
                     value={tagFilter}
                     onChange={(e) => setParams({ tag: e.target.value || undefined })}
-                    className="w-full px-2.5 py-2 rounded-md border border-stone-200 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-teal-400 mb-2"
+                    className="w-full px-2.5 py-2 rounded-md border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-xs focus:outline-none focus:ring-2 focus:ring-teal-400 mb-2"
                   >
                     <option value="">All tags</option>
                     {allTags.map((t) => (
@@ -741,7 +741,7 @@ function ContactsPageContent() {
 
                 {/* Last Contact — date presets + range */}
                 <div>
-                  <label className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider mb-2 block">Last Contact</label>
+                  <label className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2 block">Last Contact</label>
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {datePresets.map(({ label, days }) => {
                       const presetDate = new Date(Date.now() - days * 86400000).toISOString().split("T")[0];
@@ -755,8 +755,8 @@ function ContactsPageContent() {
                           })}
                           className={`px-2 py-1 text-[11px] font-medium rounded-md border transition-colors ${
                             isActive
-                              ? "border-teal-200 bg-teal-50 text-teal-700"
-                              : "border-stone-200 text-stone-500 hover:bg-stone-50"
+                              ? "border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400"
+                              : "border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800"
                           }`}
                         >
                           {label}
@@ -766,31 +766,31 @@ function ContactsPageContent() {
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <label className="text-[10px] text-stone-400 mb-0.5 block">From</label>
+                      <label className="text-[10px] text-stone-400 dark:text-stone-500 mb-0.5 block">From</label>
                       <input
                         type="date"
                         value={dateFrom}
                         onChange={(e) => setParams({ date_from: e.target.value || undefined })}
-                        className="w-full text-xs border border-stone-200 rounded-lg px-2.5 py-1.5 text-stone-700 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                        className="w-full text-xs border border-stone-200 dark:border-stone-700 rounded-lg px-2.5 py-1.5 text-stone-700 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-stone-900"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-stone-400 mb-0.5 block">To</label>
+                      <label className="text-[10px] text-stone-400 dark:text-stone-500 mb-0.5 block">To</label>
                       <input
                         type="date"
                         value={dateTo}
                         onChange={(e) => setParams({ date_to: e.target.value || undefined })}
-                        className="w-full text-xs border border-stone-200 rounded-lg px-2.5 py-1.5 text-stone-700 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                        className="w-full text-xs border border-stone-200 dark:border-stone-700 rounded-lg px-2.5 py-1.5 text-stone-700 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-stone-900"
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-stone-100">
-                <p className="text-xs text-stone-400">
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-stone-100 dark:border-stone-800">
+                <p className="text-xs text-stone-400 dark:text-stone-500">
                   {meta ? (
-                    <>Showing <strong className="text-stone-600">{meta.total}</strong> contacts matching filters</>
+                    <>Showing <strong className="text-stone-600 dark:text-stone-300">{meta.total}</strong> contacts matching filters</>
                   ) : (
                     "Loading..."
                   )}
@@ -798,7 +798,7 @@ function ContactsPageContent() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => router.replace("/contacts", { scroll: false })}
-                    className="text-xs text-stone-500 hover:text-stone-700"
+                    className="text-xs text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-100"
                   >
                     Reset all
                   </button>
@@ -810,19 +810,19 @@ function ContactsPageContent() {
 
         {/* Empty state */}
         {!isLoading && !isError && contacts.length === 0 && (
-          <div className="bg-white rounded-xl border border-stone-200 p-12 text-center mb-4">
-            <div className="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-4">
-              <SearchX className="w-7 h-7 text-stone-400" />
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-12 text-center mb-4">
+            <div className="w-14 h-14 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-4">
+              <SearchX className="w-7 h-7 text-stone-400 dark:text-stone-500" />
             </div>
-            <h3 className="text-base font-display font-bold text-stone-900 mb-1">No contacts found</h3>
-            <p className="text-sm text-stone-500 mb-5 max-w-sm mx-auto">
+            <h3 className="text-base font-display font-bold text-stone-900 dark:text-stone-100 mb-1">No contacts found</h3>
+            <p className="text-sm text-stone-500 dark:text-stone-400 mb-5 max-w-sm mx-auto">
               Try adjusting your filters or search terms, or add a new contact.
             </p>
             <div className="flex items-center justify-center gap-3">
               {activeFilterCount > 0 && (
                 <button
                   onClick={() => router.replace("/contacts", { scroll: false })}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                 >
                   Clear filters
                 </button>
@@ -839,21 +839,21 @@ function ContactsPageContent() {
 
         {/* Loading skeleton */}
         {isLoading && (
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-            <div className="bg-stone-50 border-b border-stone-200 h-11" />
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+            <div className="bg-stone-50 dark:bg-stone-800 border-b border-stone-200 dark:border-stone-700 h-11" />
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-stone-100">
-                <div className="w-4 h-4 rounded bg-stone-100 animate-pulse" />
-                <div className="w-9 h-9 rounded-full bg-stone-100 animate-pulse" />
+              <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-stone-100 dark:border-stone-800">
+                <div className="w-4 h-4 rounded bg-stone-100 dark:bg-stone-800 animate-pulse" />
+                <div className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-800 animate-pulse" />
                 <div className="flex-1 space-y-1.5">
-                  <div className="h-3.5 w-32 bg-stone-100 rounded animate-pulse" />
-                  <div className="h-3 w-40 bg-stone-50 rounded animate-pulse" />
+                  <div className="h-3.5 w-32 bg-stone-100 dark:bg-stone-800 rounded animate-pulse" />
+                  <div className="h-3 w-40 bg-stone-50 dark:bg-stone-800 rounded animate-pulse" />
                 </div>
-                <div className="h-3.5 w-20 bg-stone-100 rounded animate-pulse" />
-                <div className="h-5 w-14 bg-stone-100 rounded-full animate-pulse" />
-                <div className="h-5 w-10 bg-stone-100 rounded-full animate-pulse" />
-                <div className="h-3.5 w-10 bg-stone-100 rounded animate-pulse" />
-                <div className="h-3.5 w-8 bg-stone-100 rounded animate-pulse" />
+                <div className="h-3.5 w-20 bg-stone-100 dark:bg-stone-800 rounded animate-pulse" />
+                <div className="h-5 w-14 bg-stone-100 dark:bg-stone-800 rounded-full animate-pulse" />
+                <div className="h-5 w-10 bg-stone-100 dark:bg-stone-800 rounded-full animate-pulse" />
+                <div className="h-3.5 w-10 bg-stone-100 dark:bg-stone-800 rounded animate-pulse" />
+                <div className="h-3.5 w-8 bg-stone-100 dark:bg-stone-800 rounded animate-pulse" />
               </div>
             ))}
           </div>
@@ -867,9 +867,9 @@ function ContactsPageContent() {
 
         {/* Table */}
         {contacts.length > 0 && (
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
             {/* Header row */}
-            <div className="grid grid-cols-[40px_1fr_120px_70px_70px_60px_100px] gap-2 px-4 py-3 bg-stone-50 border-b border-stone-200 items-center">
+            <div className="grid grid-cols-[40px_1fr_120px_70px_70px_60px_100px] gap-2 px-4 py-3 bg-stone-50 dark:bg-stone-800 border-b border-stone-200 dark:border-stone-700 items-center">
               <div>
                 <input
                   type="checkbox"
@@ -877,7 +877,7 @@ function ContactsPageContent() {
                   ref={(el) => { if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < totalCount; }}
                   onChange={toggleSelectAll}
                   disabled={selectingAll}
-                  className="w-3.5 h-3.5 rounded border-stone-300 text-teal-600"
+                  className="w-3.5 h-3.5 rounded border-stone-300 dark:border-stone-600 text-teal-600"
                   aria-label="Select all"
                 />
               </div>
@@ -888,8 +888,8 @@ function ContactsPageContent() {
                   <div
                     key={key}
                     onClick={() => setParams({ sort: sortParam === sortKey ? "score" : sortKey })}
-                    className={`flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none transition-colors hover:text-teal-600 ${
-                      isActive ? "text-teal-600" : "text-stone-500"
+                    className={`flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none transition-colors hover:text-teal-600 dark:hover:text-teal-400 ${
+                      isActive ? "text-teal-600 dark:text-teal-400" : "text-stone-500 dark:text-stone-400"
                     } ${key === "activity" || key === "interaction" ? "justify-end" : key === "score" || key === "priority" ? "justify-center" : ""}`}
                   >
                     {label}
@@ -914,8 +914,8 @@ function ContactsPageContent() {
               return (
                 <div
                   key={contact.id}
-                  className={`grid grid-cols-[40px_1fr_120px_70px_70px_60px_100px] gap-2 px-4 py-3 border-b border-stone-100 items-center transition-colors ${
-                    isSelected ? "bg-teal-50" : "hover:bg-stone-50/50"
+                  className={`grid grid-cols-[40px_1fr_120px_70px_70px_60px_100px] gap-2 px-4 py-3 border-b border-stone-100 dark:border-stone-800 items-center transition-colors ${
+                    isSelected ? "bg-teal-50 dark:bg-teal-950" : "hover:bg-stone-50/50 dark:hover:bg-stone-800/50"
                   }`}
                 >
                   <div>
@@ -923,7 +923,7 @@ function ContactsPageContent() {
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleSelect(contact.id)}
-                      className="w-3.5 h-3.5 rounded border-stone-300 text-teal-600"
+                      className="w-3.5 h-3.5 rounded border-stone-300 dark:border-stone-600 text-teal-600"
                       aria-label={`Select ${name}`}
                     />
                   </div>
@@ -934,13 +934,13 @@ function ContactsPageContent() {
                     <div className="min-w-0">
                       <Link
                         href={`/contacts/${contact.id}`}
-                        className="text-sm font-medium text-stone-900 hover:text-teal-700 truncate block"
+                        className="text-sm font-medium text-stone-900 dark:text-stone-100 hover:text-teal-700 dark:hover:text-teal-400 truncate block"
                       >
                         {name}
                       </Link>
                       <div className="flex items-center gap-1.5">
                         {primaryEmail && (
-                          <p className="text-xs text-stone-400 truncate">{primaryEmail}</p>
+                          <p className="text-xs text-stone-400 dark:text-stone-500 truncate">{primaryEmail}</p>
                         )}
                         <PlatformIcons
                           emails={contact.emails}
@@ -952,14 +952,14 @@ function ContactsPageContent() {
                   </div>
 
                   {/* Company */}
-                  <div className="text-xs text-stone-600 truncate flex items-center gap-1.5">
+                  <div className="text-xs text-stone-600 dark:text-stone-300 truncate flex items-center gap-1.5">
                     {contact.company ? (
                       <>
                         <CompanyFavicon emails={contact.emails} size="w-3.5 h-3.5" className="shrink-0" />
                         <span className="truncate">{contact.company}</span>
                       </>
                     ) : (
-                      <span className="text-stone-300">&mdash;</span>
+                      <span className="text-stone-300 dark:text-stone-600">&mdash;</span>
                     )}
                   </div>
 
@@ -974,7 +974,7 @@ function ContactsPageContent() {
                   </div>
 
                   {/* Activity count */}
-                  <div className="text-right font-mono-data text-xs text-stone-500">
+                  <div className="text-right font-mono-data text-xs text-stone-500 dark:text-stone-400">
                     {(contact as any).interaction_count ?? 0}
                   </div>
 
@@ -1030,14 +1030,14 @@ function ContactsPageContent() {
 
 function ContactsPageLoading() {
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="h-8 w-32 bg-stone-200 rounded animate-pulse mb-6" />
-        <div className="bg-white rounded-lg border border-stone-200 overflow-hidden">
+        <div className="h-8 w-32 bg-stone-200 dark:bg-stone-800 rounded animate-pulse mb-6" />
+        <div className="bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 overflow-hidden">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-stone-100">
-              <div className="w-7 h-7 rounded-full bg-stone-100 animate-pulse" />
-              <div className="flex-1 h-4 bg-stone-100 rounded animate-pulse" />
+            <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-stone-100 dark:border-stone-800">
+              <div className="w-7 h-7 rounded-full bg-stone-100 dark:bg-stone-800 animate-pulse" />
+              <div className="flex-1 h-4 bg-stone-100 dark:bg-stone-800 rounded animate-pulse" />
             </div>
           ))}
         </div>

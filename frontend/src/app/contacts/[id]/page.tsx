@@ -25,15 +25,15 @@ export default function ContactDetailPage() {
   /* ── Loading state ── */
   if (ctrl.isLoading) {
     return (
-      <div className="min-h-screen bg-stone-50">
+      <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
         <main className="max-w-6xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-xl border border-stone-200 p-6 mb-6 animate-pulse">
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-6 mb-6 animate-pulse">
             <div className="flex items-start gap-6">
-              <div className="w-20 h-20 rounded-full bg-stone-200" />
+              <div className="w-20 h-20 rounded-full bg-stone-200 dark:bg-stone-800" />
               <div className="flex-1 space-y-3">
-                <div className="h-6 w-48 bg-stone-200 rounded" />
-                <div className="h-4 w-72 bg-stone-100 rounded" />
-                <div className="h-4 w-32 bg-stone-100 rounded" />
+                <div className="h-6 w-48 bg-stone-200 dark:bg-stone-800 rounded" />
+                <div className="h-4 w-72 bg-stone-100 dark:bg-stone-800 rounded" />
+                <div className="h-4 w-32 bg-stone-100 dark:bg-stone-800 rounded" />
               </div>
             </div>
           </div>
@@ -45,10 +45,10 @@ export default function ContactDetailPage() {
   /* ── Not found / error state ── */
   if (ctrl.isError || !ctrl.contact) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+      <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 mb-4">Contact not found.</p>
-          <Link href="/contacts" className="text-teal-600 hover:underline">
+          <Link href="/contacts" className="text-teal-600 dark:text-teal-400 hover:underline">
             Back to contacts
           </Link>
         </div>
@@ -102,7 +102,7 @@ export default function ContactDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <main className="max-w-6xl mx-auto px-4 py-8">
 
         {/* Toast */}
@@ -111,8 +111,8 @@ export default function ContactDetailPage() {
             className={cn(
               "mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2",
               ctrl.toast.type === "success"
-                ? "bg-teal-50 border border-teal-200 text-teal-700"
-                : "bg-red-50 border border-red-200 text-red-700"
+                ? "bg-teal-50 dark:bg-teal-950 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400"
+                : "bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
             )}
           >
             {ctrl.toast.type === "success" ? (
@@ -152,16 +152,16 @@ export default function ContactDetailPage() {
             className="fixed inset-0 z-50 flex items-center justify-center"
             style={{ background: "rgba(28,25,23,0.4)", backdropFilter: "blur(2px)" }}
           >
-            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4">
-              <h3 className="text-lg font-bold text-stone-900 mb-2">Delete contact?</h3>
-              <p className="text-sm text-stone-600 mb-5">
+            <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4">
+              <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2">Delete contact?</h3>
+              <p className="text-sm text-stone-600 dark:text-stone-300 mb-5">
                 This will permanently delete <strong>{displayName}</strong> and all
                 associated interactions.
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="px-4 py-2 text-sm rounded-lg border border-stone-200 text-stone-700 hover:bg-stone-50 transition-colors"
+                  className="px-4 py-2 text-sm rounded-lg border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                 >
                   Cancel
                 </button>
@@ -203,11 +203,11 @@ export default function ContactDetailPage() {
 
             {/* Relationship Health */}
             {ctrl.activityLoading ? (
-              <div className="bg-white rounded-xl border border-stone-200 p-5 animate-pulse">
-                <div className="h-4 w-40 bg-stone-200 rounded mb-4" />
+              <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-5 animate-pulse">
+                <div className="h-4 w-40 bg-stone-200 dark:bg-stone-800 rounded mb-4" />
                 <div className="space-y-3">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-1.5 bg-stone-100 rounded-full" />
+                    <div key={i} className="h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full" />
                   ))}
                 </div>
               </div>

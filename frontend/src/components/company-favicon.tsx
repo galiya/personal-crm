@@ -68,7 +68,7 @@ export const CompanyFavicon = memo(function CompanyFavicon({
   }
 
   // Priority 3: Building2 placeholder
-  return <Building2 className={`${size} text-zinc-400 ${className ?? ""}`} />;
+  return <Building2 className={`${size} text-zinc-400 dark:text-zinc-500 ${className ?? ""}`} />;
 });
 
 export { domainFromEmails };

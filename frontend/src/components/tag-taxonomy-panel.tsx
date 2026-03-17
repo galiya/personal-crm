@@ -29,7 +29,7 @@ function ElapsedTimer({ running }: { running: boolean }) {
 
   if (!running || elapsed < 3) return null;
   return (
-    <span className="text-xs text-stone-400 mt-2 block">
+    <span className="text-xs text-stone-400 dark:text-stone-500 mt-2 block">
       {elapsed}s elapsed — this can take up to a minute for large contact lists
     </span>
   );
@@ -172,7 +172,7 @@ export function TagTaxonomyPanel() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-stone-400 dark:text-stone-500" />
       </div>
     );
   }
@@ -183,11 +183,11 @@ export function TagTaxonomyPanel() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-sm font-semibold text-stone-900 flex items-center gap-2">
-            <Tag className="w-4 h-4 text-teal-600" />
+          <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+            <Tag className="w-4 h-4 text-teal-600 dark:text-teal-400" />
             AI Tag Taxonomy
           </h3>
-          <p className="text-xs text-stone-500 mt-1">
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
             {hasTaxonomy && !isDiscovering
               ? `${totalTags} tags across ${Object.keys(categories).length} categories`
               : isDiscovering
@@ -204,7 +204,7 @@ export function TagTaxonomyPanel() {
                   discoverMutation.mutate();
                 }}
                 disabled={isDiscovering}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors disabled:opacity-50"
               >
                 <RotateCcw className="w-4 h-4" />
                 Re-discover
@@ -229,8 +229,8 @@ export function TagTaxonomyPanel() {
       {statusMsg && (
         <div className={`mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2 ${
           statusMsg.type === "success"
-            ? "bg-green-50 border border-green-200 text-green-700"
-            : "bg-red-50 border border-red-200 text-red-700"
+            ? "bg-green-50 dark:bg-emerald-950 border border-green-200 dark:border-emerald-800 text-green-700 dark:text-emerald-400"
+            : "bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
         }`}>
           {statusMsg.type === "success" ? <Check className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
           {statusMsg.text}
@@ -242,16 +242,16 @@ export function TagTaxonomyPanel() {
 
       {/* Discovery in progress */}
       {isDiscovering && (
-        <div className="bg-white rounded-xl border border-teal-200 p-12 text-center shadow-sm">
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-teal-200 dark:border-teal-800 p-12 text-center shadow-sm">
           <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 rounded-full border-4 border-teal-100" />
+            <div className="absolute inset-0 rounded-full border-4 border-teal-100 dark:border-teal-900" />
             <div className="absolute inset-0 rounded-full border-4 border-teal-500 border-t-transparent animate-spin" />
-            <Wand2 className="absolute inset-0 m-auto w-6 h-6 text-teal-600" />
+            <Wand2 className="absolute inset-0 m-auto w-6 h-6 text-teal-600 dark:text-teal-400" />
           </div>
-          <h2 className="text-lg font-display font-semibold text-stone-900 mb-1">
+          <h2 className="text-lg font-display font-semibold text-stone-900 dark:text-stone-100 mb-1">
             Analyzing your contacts...
           </h2>
-          <p className="text-sm text-stone-500">
+          <p className="text-sm text-stone-500 dark:text-stone-400">
             AI is scanning contact profiles, bios, and interaction history to discover common themes and propose tags.
           </p>
           <ElapsedTimer running={true} />
@@ -260,14 +260,14 @@ export function TagTaxonomyPanel() {
 
       {/* Empty state */}
       {!hasTaxonomy && !isDiscovering && (
-        <div className="bg-white rounded-xl border border-stone-200 p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-4">
-            <Wand2 className="w-8 h-8 text-teal-500" />
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-teal-50 dark:bg-teal-950 flex items-center justify-center mx-auto mb-4">
+            <Wand2 className="w-8 h-8 text-teal-500 dark:text-teal-400" />
           </div>
-          <h2 className="text-lg font-display font-semibold text-stone-900 mb-2">
+          <h2 className="text-lg font-display font-semibold text-stone-900 dark:text-stone-100 mb-2">
             Discover Tags with AI
           </h2>
-          <p className="text-sm text-stone-500 max-w-md mx-auto mb-6">
+          <p className="text-sm text-stone-500 dark:text-stone-400 max-w-md mx-auto mb-6">
             AI will analyze all your contacts — their titles, companies, bios, and interactions — to propose a categorized tag vocabulary.
           </p>
           <button
@@ -287,10 +287,10 @@ export function TagTaxonomyPanel() {
       {hasTaxonomy && !isDiscovering && (
         <div className="space-y-4">
           {taxonomy.status === "draft" && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-amber-800">Draft Taxonomy</p>
-                <p className="text-xs text-amber-600 mt-0.5">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-400">Draft Taxonomy</p>
+                <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
                   Review and edit the proposed tags, then approve to start tagging contacts.
                 </p>
               </div>
@@ -301,7 +301,7 @@ export function TagTaxonomyPanel() {
                     discoverMutation.mutate();
                   }}
                   disabled={isDiscovering}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border border-amber-300 text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors disabled:opacity-50"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Re-discover
@@ -309,7 +309,7 @@ export function TagTaxonomyPanel() {
                 {!isEditing && (
                   <button
                     onClick={startEditing}
-                    className="px-3 py-1.5 text-sm font-medium rounded-md border border-amber-300 text-amber-700 hover:bg-amber-100 transition-colors"
+                    className="px-3 py-1.5 text-sm font-medium rounded-md border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors"
                   >
                     Edit
                   </button>
@@ -329,14 +329,14 @@ export function TagTaxonomyPanel() {
           )}
 
           {taxonomy.status === "approved" && !isEditing && (
-            <div className="bg-teal-50 border border-teal-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="bg-teal-50 dark:bg-teal-950 border border-teal-200 dark:border-teal-800 rounded-lg p-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-teal-600" />
-                <p className="text-sm font-medium text-teal-800">Approved Taxonomy</p>
+                <Check className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <p className="text-sm font-medium text-teal-800 dark:text-teal-300">Approved Taxonomy</p>
               </div>
               <button
                 onClick={startEditing}
-                className="px-3 py-1.5 text-sm font-medium rounded-md border border-teal-300 text-teal-700 hover:bg-teal-100 transition-colors"
+                className="px-3 py-1.5 text-sm font-medium rounded-md border border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900 transition-colors"
               >
                 Edit
               </button>
@@ -347,7 +347,7 @@ export function TagTaxonomyPanel() {
             <div className="flex items-center gap-2 justify-end">
               <button
                 onClick={() => setEditCategories(null)}
-                className="px-3 py-1.5 text-sm rounded-md border border-stone-200 text-stone-600 hover:bg-stone-100 transition-colors"
+                className="px-3 py-1.5 text-sm rounded-md border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
               >
                 Cancel
               </button>
@@ -368,14 +368,14 @@ export function TagTaxonomyPanel() {
           {Object.entries(categories).map(([category, tags]) => (
             <div
               key={category}
-              className="bg-white rounded-lg border border-stone-200 p-5"
+              className="bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 p-5"
             >
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-stone-700">{category}</h3>
+                <h3 className="text-sm font-semibold text-stone-700 dark:text-stone-300">{category}</h3>
                 {isEditing && (
                   <button
                     onClick={() => removeCategory(category)}
-                    className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                    className="text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                   >
                     Remove category
                   </button>
@@ -387,15 +387,15 @@ export function TagTaxonomyPanel() {
                     key={tag}
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${
                       isEditing
-                        ? "bg-stone-100 text-stone-700 pr-1.5"
-                        : "bg-teal-50 text-teal-700 border border-teal-200"
+                        ? "bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 pr-1.5"
+                        : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800"
                     }`}
                   >
                     {tag}
                     {isEditing && (
                       <button
                         onClick={() => removeTag(category, tag)}
-                        className="p-0.5 rounded-full hover:bg-stone-200 transition-colors"
+                        className="p-0.5 rounded-full hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -417,11 +417,11 @@ export function TagTaxonomyPanel() {
                         setNewTagInputs({ ...newTagInputs, [category]: e.target.value })
                       }
                       placeholder="Add tag..."
-                      className="w-28 px-2 py-1 text-sm rounded-md border border-stone-200 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
+                      className="w-28 px-2 py-1 text-sm rounded-md border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
                     />
                     <button
                       type="submit"
-                      className="ml-1 p-1 rounded-md hover:bg-stone-100 text-stone-400 hover:text-teal-600 transition-colors"
+                      className="ml-1 p-1 rounded-md hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-400 dark:text-stone-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -444,12 +444,12 @@ export function TagTaxonomyPanel() {
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder="New category name..."
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-dashed border-stone-300 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-dashed border-stone-300 dark:border-stone-600 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
               />
               <button
                 type="submit"
                 disabled={!newCategoryName.trim()}
-                className="px-4 py-2 text-sm font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 disabled:opacity-50 transition-colors"
+                className="px-4 py-2 text-sm font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-50 transition-colors"
               >
                 <Plus className="w-4 h-4" />
               </button>

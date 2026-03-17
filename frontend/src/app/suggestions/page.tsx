@@ -56,10 +56,10 @@ function daysAgoLabel(days: number | null): string {
 
 /* ── Relationship strength badge ── */
 function strengthFromScore(score: number | null | undefined): { label: string; colors: string } {
-  if (score == null || score <= 0) return { label: "New", colors: "bg-sky-50 text-sky-600 border-sky-200" };
-  if (score >= 70) return { label: "Strong", colors: "bg-emerald-50 text-emerald-600 border-emerald-200" };
-  if (score >= 30) return { label: "Warm", colors: "bg-amber-50 text-amber-600 border-amber-200" };
-  return { label: "New", colors: "bg-sky-50 text-sky-600 border-sky-200" };
+  if (score == null || score <= 0) return { label: "New", colors: "bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800" };
+  if (score >= 70) return { label: "Strong", colors: "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800" };
+  if (score >= 30) return { label: "Warm", colors: "bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800" };
+  return { label: "New", colors: "bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800" };
 }
 
 function strengthDotColor(label: string): string {
@@ -82,12 +82,12 @@ function triggerConfig(triggerType: string, days: number | null): TriggerConfig 
     case "event_based":
       return { icon: <Calendar className="w-2.5 h-2.5" />, label: "New event detected", colors: "bg-blue-50 text-blue-500" };
     case "scheduled":
-      return { icon: <CalendarClock className="w-2.5 h-2.5" />, label: "Scheduled follow-up", colors: "bg-teal-50 text-teal-600" };
+      return { icon: <CalendarClock className="w-2.5 h-2.5" />, label: "Scheduled follow-up", colors: "bg-teal-50 dark:bg-teal-950 text-teal-600 dark:text-teal-400" };
     case "time_based":
     default: {
       const d = days ?? 0;
-      if (d >= 90) return { icon: <TimerOff className="w-2.5 h-2.5" />, label: `No interaction in 90+ days`, colors: "bg-red-50 text-red-500" };
-      return { icon: <Timer className="w-2.5 h-2.5" />, label: `No interaction in ${d} days`, colors: "bg-stone-100 text-stone-500" };
+      if (d >= 90) return { icon: <TimerOff className="w-2.5 h-2.5" />, label: `No interaction in 90+ days`, colors: "bg-red-50 dark:bg-red-950 text-red-500 dark:text-red-400" };
+      return { icon: <Timer className="w-2.5 h-2.5" />, label: `No interaction in ${d} days`, colors: "bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400" };
     }
   }
 }
@@ -184,10 +184,10 @@ function SuggestionCard({
   return (
     <div
       className={cn(
-        "bg-white rounded-xl border border-stone-200 p-4 transition-all duration-200",
+        "bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-4 transition-all duration-200",
         expanded
-          ? "border-teal-200 shadow-[0_2px_16px_rgba(13,148,136,0.08)]"
-          : "cursor-pointer hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:border-stone-300"
+          ? "border-teal-200 dark:border-teal-800 shadow-[0_2px_16px_rgba(13,148,136,0.08)]"
+          : "cursor-pointer hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:border-stone-300 dark:hover:border-stone-600"
       )}
       onClick={() => { if (!expanded) onToggle(); }}
     >
@@ -201,7 +201,7 @@ function SuggestionCard({
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href={`/contacts/${suggestion.contact_id}`}
-                className="text-sm font-medium text-stone-900 hover:text-teal-700"
+                className="text-sm font-medium text-stone-900 dark:text-stone-100 hover:text-teal-700 dark:hover:text-teal-300"
                 onClick={(e) => e.stopPropagation()}
               >
                 {name}
@@ -213,12 +213,12 @@ function SuggestionCard({
               </span>
               {/* Revival badge */}
               {isRevival && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-500 border border-stone-200">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-stone-700">
                   Revival
                 </span>
               )}
             </div>
-            <span className="text-[11px] text-stone-400 shrink-0">
+            <span className="text-[11px] text-stone-400 dark:text-stone-500 shrink-0">
               {suggestion.trigger_type === "birthday"
                 ? "🎂 Birthday soon"
                 : daysAgoLabel(days)}
@@ -233,21 +233,21 @@ function SuggestionCard({
           </div>
 
           {/* Message preview */}
-          <p className="text-xs text-stone-500 mt-1.5 line-clamp-2">
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-1.5 line-clamp-2">
             {suggestion.suggested_message}
           </p>
 
           {/* ── EXPANDED: Composer ── */}
           {expanded && (
-            <div className="mt-4 pt-4 border-t border-stone-100" onClick={(e) => e.stopPropagation()}>
+            <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800" onClick={(e) => e.stopPropagation()}>
               {sendConfirm && (
-                <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 mb-3">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-md px-3 py-2 mb-3">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   {sendConfirm}
                 </div>
               )}
               {sendError && (
-                <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-3">
+                <div className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md px-3 py-2 mb-3">
                   {sendError}
                 </div>
               )}
@@ -270,19 +270,19 @@ function SuggestionCard({
                   <div className="relative inline-block">
                     <button
                       onClick={() => setSnoozeOpen((v) => !v)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-md text-amber-600 border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-md text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors"
                     >
                       <Clock className="w-3 h-3" /> Snooze <ChevronDown className="w-2.5 h-2.5" />
                     </button>
                     {snoozeOpen && (
-                      <div className="absolute left-0 bottom-full mb-1 w-36 bg-white rounded-lg border border-stone-200 shadow-lg py-1 z-50">
+                      <div className="absolute left-0 bottom-full mb-1 w-36 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-lg py-1 z-50">
                         {snoozeOptions.map((opt) => (
                           <button
                             key={opt.days}
                             onClick={() => handleSnooze(opt.days)}
-                            className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50"
+                            className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
                           >
-                            <Clock className="w-3 h-3 text-stone-400" />
+                            <Clock className="w-3 h-3 text-stone-400 dark:text-stone-500" />
                             {opt.label}
                           </button>
                         ))}
@@ -293,7 +293,7 @@ function SuggestionCard({
                   <button
                     onClick={handleDismiss}
                     disabled={updateSuggestion.isPending}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-md text-stone-400 border border-stone-200 hover:bg-stone-50 transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-md text-stone-400 dark:text-stone-500 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                   >
                     <X className="w-3 h-3" /> Dismiss
                   </button>
@@ -324,12 +324,12 @@ export default function SuggestionsPage() {
     (genMeta as Record<string, number> | undefined)?.generated ?? (genResult as unknown[])?.length ?? 0;
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       {/* Success toast */}
       {generateSuggestions.isSuccess && !toastDismissed && (
         <div className="max-w-6xl mx-auto px-4 pt-4">
-          <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-xl text-sm text-emerald-800 dark:text-emerald-300">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>
               Generation complete —{" "}
               <strong>
@@ -339,7 +339,7 @@ export default function SuggestionsPage() {
               </strong>{" "}
               generated
             </span>
-            <button onClick={() => setToastDismissed(true)} className="ml-auto text-emerald-500 hover:text-emerald-700">
+            <button onClick={() => setToastDismissed(true)} className="ml-auto text-emerald-500 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -349,7 +349,7 @@ export default function SuggestionsPage() {
       {/* Generation error */}
       {generateSuggestions.isError && (
         <div className="max-w-6xl mx-auto px-4 pt-4">
-          <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
+          <div className="flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-800 dark:text-red-300">
             Failed to generate suggestions. Please try again.
           </div>
         </div>
@@ -359,15 +359,15 @@ export default function SuggestionsPage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-stone-900 flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2.5">
               Suggestions Digest
               {pendingSuggestions.length > 0 && (
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-bold font-mono">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 text-xs font-bold font-mono">
                   {pendingSuggestions.length}
                 </span>
               )}
             </h1>
-            <p className="text-sm text-stone-500 mt-1">AI-suggested follow-ups for your network</p>
+            <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">AI-suggested follow-ups for your network</p>
           </div>
           <button
             onClick={() => { setToastDismissed(false); generateSuggestions.mutate(); }}
@@ -381,17 +381,17 @@ export default function SuggestionsPage() {
 
         {/* Generation progress */}
         {generateSuggestions.isPending && (
-          <div className="bg-white rounded-xl border border-stone-200 p-6 mb-6">
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-6 mb-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-teal-600 animate-pulse" />
+              <div className="w-8 h-8 rounded-full bg-teal-50 dark:bg-teal-950 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400 animate-pulse" />
               </div>
               <div>
-                <p className="text-sm font-medium text-stone-900">Generating follow-up suggestions...</p>
-                <p className="text-xs text-stone-400 mt-0.5">Analyzing recent interactions, relationship scores, and upcoming events</p>
+                <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Generating follow-up suggestions...</p>
+                <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">Analyzing recent interactions, relationship scores, and upcoming events</p>
               </div>
             </div>
-            <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
               <div className="h-full rounded-full bg-teal-500 w-1/4" style={{ animation: "suggestionsIndeterminate 1.5s ease-in-out infinite" }} />
               <style>{`
                 @keyframes suggestionsIndeterminate {
@@ -407,17 +407,17 @@ export default function SuggestionsPage() {
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="h-28 rounded-xl bg-white border border-stone-200 animate-pulse" />
+              <div key={n} className="h-28 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 animate-pulse" />
             ))}
           </div>
         ) : pendingSuggestions.length === 0 ? (
           /* Empty state */
-          <div className="bg-white rounded-2xl border border-stone-200 p-14 text-center mt-6">
-            <div className="w-16 h-16 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-700 p-14 text-center mt-6">
+            <div className="w-16 h-16 rounded-full bg-teal-50 dark:bg-teal-950 flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-teal-400" />
             </div>
-            <h2 className="text-lg font-bold text-stone-900 mb-2">No pending suggestions</h2>
-            <p className="text-sm text-stone-500 mb-6">
+            <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2">No pending suggestions</h2>
+            <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">
               Generate new suggestions to get started, or check back later — Ping runs analysis daily.
             </p>
             <button

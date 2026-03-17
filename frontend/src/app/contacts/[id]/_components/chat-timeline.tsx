@@ -89,7 +89,7 @@ function NoteItem({
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              className="w-full text-[13px] text-stone-700 leading-relaxed border border-stone-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+              className="w-full text-[13px] text-stone-700 dark:text-stone-300 leading-relaxed border border-stone-300 dark:border-stone-700 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none bg-white dark:bg-stone-800"
               rows={2}
               autoFocus
               onKeyDown={(e) => {
@@ -116,7 +116,7 @@ function NoteItem({
                   setEditing(false);
                   setDraft(item.content_preview || "");
                 }}
-                className="text-[11px] px-2 py-0.5 text-stone-500 hover:text-stone-700"
+                className="text-[11px] px-2 py-0.5 text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-100"
               >
                 Cancel
               </button>
@@ -125,14 +125,14 @@ function NoteItem({
         ) : (
           <>
             {item.content_preview && (
-              <p className="text-[13px] text-stone-700 leading-relaxed flex-1">
+              <p className="text-[13px] text-stone-700 dark:text-stone-300 leading-relaxed flex-1">
                 <Linkify text={item.content_preview} className="text-amber-700 hover:text-amber-900" />
               </p>
             )}
             <div className="flex items-center gap-1 opacity-0 group-hover/note:opacity-100 transition-opacity shrink-0 ml-2">
               <button
                 onClick={() => setEditing(true)}
-                className="p-1 rounded text-stone-400 hover:text-stone-600 hover:bg-stone-100"
+                className="p-1 rounded text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
               >
                 <Pencil className="w-3 h-3" />
               </button>
@@ -140,7 +140,7 @@ function NoteItem({
                 onClick={() => {
                   if (confirm("Delete this note?")) deleteMutation.mutate();
                 }}
-                className="p-1 rounded text-stone-400 hover:text-red-500 hover:bg-red-50"
+                className="p-1 rounded text-stone-400 dark:text-stone-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
               >
                 <Trash2 className="w-3 h-3" />
               </button>
@@ -150,7 +150,7 @@ function NoteItem({
       </div>
       <div className="flex items-center gap-1.5 mt-1">
         {platformIconMap.manual}
-        <span className="text-[10px] text-stone-400">
+        <span className="text-[10px] text-stone-400 dark:text-stone-500">
           Note &middot; {format(new Date(item.occurred_at), "MMM d")}
         </span>
       </div>
@@ -175,12 +175,12 @@ export function ChatTimeline({
 
   if (interactions.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-stone-200 p-10 text-center">
-        <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-3">
-          <MessageCircle className="w-6 h-6 text-stone-400" />
+      <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-10 text-center">
+        <div className="w-12 h-12 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-3">
+          <MessageCircle className="w-6 h-6 text-stone-400 dark:text-stone-500" />
         </div>
-        <h3 className="text-sm font-semibold text-stone-900 mb-1">No interactions yet</h3>
-        <p className="text-xs text-stone-500 mb-4 max-w-xs mx-auto">
+        <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-1">No interactions yet</h3>
+        <p className="text-xs text-stone-500 dark:text-stone-400 mb-4 max-w-xs mx-auto">
           Connect an account to sync messages, or add a note to get started.
         </p>
       </div>
@@ -191,7 +191,7 @@ export function ChatTimeline({
   const contactAvatarCls = avatarColor(contactName);
 
   return (
-    <div className="bg-white rounded-xl border border-stone-200 p-4 space-y-1">
+    <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-4 space-y-1">
       {visible.map((item, idx) => {
         const prevItem = idx > 0 ? visible[idx - 1] : null;
         const showSeparator = needsSeparator(item.occurred_at, prevItem?.occurred_at ?? null);
@@ -210,11 +210,11 @@ export function ChatTimeline({
             {/* Date separator */}
             {showSeparator && (
               <div className="flex items-center gap-3 py-2 mt-1">
-                <div className="flex-1 h-px bg-stone-100" />
-                <span className="text-[10px] font-medium text-stone-400 uppercase tracking-wider">
+                <div className="flex-1 h-px bg-stone-100 dark:bg-stone-800" />
+                <span className="text-[10px] font-medium text-stone-400 dark:text-stone-500 uppercase tracking-wider">
                   {dateSeparatorLabel(item.occurred_at)}
                 </span>
-                <div className="flex-1 h-px bg-stone-100" />
+                <div className="flex-1 h-px bg-stone-100 dark:bg-stone-800" />
               </div>
             )}
 
@@ -224,9 +224,9 @@ export function ChatTimeline({
             {/* Meeting event */}
             {isMeeting && (
               <div className="flex justify-center py-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-50 border border-stone-100">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700">
                   <Calendar className="w-3.5 h-3.5 text-teal-500" />
-                  <span className="text-[11px] text-stone-500">
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400">
                     Meeting{item.content_preview ? ` · ${item.content_preview}` : ""}
                   </span>
                 </div>
@@ -236,13 +236,13 @@ export function ChatTimeline({
             {/* Call event */}
             {isCall && !isMeeting && !isEvent && (
               <div className="flex justify-center py-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-50 border border-stone-100">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-50 dark:bg-stone-800 border border-stone-100 dark:border-stone-700">
                   {isVideoCall ? (
                     <Video className="w-3.5 h-3.5 text-teal-500" />
                   ) : (
                     <Phone className="w-3.5 h-3.5 text-teal-500" />
                   )}
-                  <span className="text-[11px] text-stone-500">
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400">
                     {(() => {
                       const preview = item.content_preview ?? "";
                       const label = isVideoCall ? "Video Call" : "Call";
@@ -268,7 +268,7 @@ export function ChatTimeline({
                   <span className="text-[11px] text-violet-600">
                     {item.content_preview || "Profile updated"}
                   </span>
-                  <span className="text-[10px] text-stone-400">
+                  <span className="text-[10px] text-stone-400 dark:text-stone-500">
                     &middot; {format(new Date(item.occurred_at), "MMM d")}
                   </span>
                 </div>
@@ -279,7 +279,7 @@ export function ChatTimeline({
             {!isManual && !isMeeting && !isCall && !isEvent &&
               (isOutbound ? (
                 <div className="flex items-end gap-2 max-w-[85%] ml-auto flex-row-reverse">
-                  <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px] font-semibold shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 flex items-center justify-center text-[10px] font-semibold shrink-0">
                     You
                   </div>
                   <div>
@@ -294,7 +294,7 @@ export function ChatTimeline({
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 mt-1 mr-1 justify-end">
-                      <span className="text-[10px] text-stone-400">
+                      <span className="text-[10px] text-stone-400 dark:text-stone-500">
                         {time} &middot; {platformLabel(item.platform)}
                       </span>
                       {platformIconMap[item.platform]}
@@ -312,19 +312,19 @@ export function ChatTimeline({
                     {initials}
                   </div>
                   <div>
-                    <div className="bg-stone-100 rounded-2xl rounded-bl-md px-3.5 py-2.5">
+                    <div className="bg-stone-100 dark:bg-stone-800 rounded-2xl rounded-bl-md px-3.5 py-2.5">
                       {item.content_preview && (
-                        <p className="text-[13px] text-stone-800 leading-relaxed">
+                        <p className="text-[13px] text-stone-800 dark:text-stone-200 leading-relaxed">
                           <Linkify
                             text={item.content_preview}
-                            className="text-teal-600 hover:text-teal-800"
+                            className="text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300"
                           />
                         </p>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 mt-1 ml-1">
                       {platformIconMap[item.platform]}
-                      <span className="text-[10px] text-stone-400">
+                      <span className="text-[10px] text-stone-400 dark:text-stone-500">
                         {platformLabel(item.platform)} &middot; {time}
                       </span>
                     </div>
@@ -338,7 +338,7 @@ export function ChatTimeline({
       {hasMore && (
         <button
           onClick={() => setVisibleCount((c) => c + TIMELINE_PAGE_SIZE)}
-          className="w-full mt-3 py-2 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors"
+          className="w-full mt-3 py-2 text-xs font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950 rounded-lg transition-colors"
         >
           Load more interactions...
         </button>

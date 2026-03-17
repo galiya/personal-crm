@@ -49,7 +49,7 @@ function matchTypeStyle(method: string, score: number): MatchTypeStyle {
     return {
       label: "Exact match",
       icon: <CheckCircle className="w-3.5 h-3.5" />,
-      pillColors: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      pillColors: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
       barColor: "bg-emerald-500",
     };
   }
@@ -57,14 +57,14 @@ function matchTypeStyle(method: string, score: number): MatchTypeStyle {
     return {
       label: "Probabilistic",
       icon: <HelpCircle className="w-3.5 h-3.5" />,
-      pillColors: "bg-sky-50 text-sky-700 border-sky-200",
+      pillColors: "bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-800",
       barColor: "bg-sky-400",
     };
   }
   return {
     label: "Possible match",
     icon: <AlertCircle className="w-3.5 h-3.5" />,
-    pillColors: "bg-amber-50 text-amber-700 border-amber-200",
+    pillColors: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800",
     barColor: "bg-amber-400",
   };
 }
@@ -87,48 +87,48 @@ function ContactPanel({ contact }: { contact: IdentityMatchContact }) {
     contact.source;
 
   return (
-    <div className="bg-stone-50 rounded-lg p-4 border border-stone-100">
+    <div className="bg-stone-50 dark:bg-stone-800 rounded-lg p-4 border border-stone-100 dark:border-stone-700">
       {/* Avatar + name */}
       <div className="flex items-center gap-3 mb-3">
         <ContactAvatar avatarUrl={null} name={displayName} size="sm" />
         <div className="min-w-0 flex-1">
           <Link
             href={`/contacts/${contact.id}`}
-            className="text-sm font-semibold text-stone-900 hover:text-teal-700 transition-colors truncate block"
+            className="text-sm font-semibold text-stone-900 dark:text-stone-100 hover:text-teal-700 dark:hover:text-teal-400 transition-colors truncate block"
             onClick={(e) => e.stopPropagation()}
           >
             {displayName}
           </Link>
           {contact.source && (
-            <p className="text-xs text-stone-400">
+            <p className="text-xs text-stone-400 dark:text-stone-500">
               Added via {contact.source}
             </p>
           )}
         </div>
       </div>
 
-      <div className="space-y-1.5 text-xs text-stone-600">
+      <div className="space-y-1.5 text-xs text-stone-600 dark:text-stone-300">
         {contact.company && (
           <div className="flex items-center gap-2">
-            <Building2 className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+            <Building2 className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0" />
             <span>{contact.company}</span>
           </div>
         )}
         {primaryEmail && (
           <div className="flex items-center gap-2">
-            <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+            <Mail className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0" />
             <span className="font-mono truncate">{primaryEmail}</span>
           </div>
         )}
         {contact.twitter_handle ? (
           <div className="flex items-center gap-2">
-            <Twitter className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+            <Twitter className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0" />
             <span className="font-mono">@{contact.twitter_handle}</span>
           </div>
         ) : null}
         {contact.telegram_username ? (
           <div className="flex items-center gap-2">
-            <MessageCircle className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+            <MessageCircle className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0" />
             <span className="font-mono">@{contact.telegram_username}</span>
           </div>
         ) : null}
@@ -139,46 +139,46 @@ function ContactPanel({ contact }: { contact: IdentityMatchContact }) {
         <>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="mt-3 text-xs text-teal-600 hover:text-teal-800 transition-colors flex items-center gap-1"
+            className="mt-3 text-xs text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
           >
             {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             {expanded ? "Less" : "More details"}
           </button>
 
           {expanded && (
-            <div className="mt-2 pt-2 border-t border-stone-200 space-y-1.5 text-xs text-stone-600">
+            <div className="mt-2 pt-2 border-t border-stone-200 dark:border-stone-700 space-y-1.5 text-xs text-stone-600 dark:text-stone-300">
               {contact.title && (
                 <div className="flex items-center gap-2">
-                  <Briefcase className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                  <Briefcase className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0" />
                   <span className="truncate">{contact.title}</span>
                 </div>
               )}
               {extraEmails.map((email) => (
                 <div key={email} className="flex items-center gap-2 truncate">
-                  <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                  <Mail className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0" />
                   <span className="font-mono truncate">{email}</span>
                 </div>
               ))}
               {contact.phones.map((phone) => (
                 <div key={phone} className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                  <Phone className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0" />
                   <span className="font-mono">{phone}</span>
                 </div>
               ))}
               {contact.linkedin_url && (
                 <div className="flex items-center gap-2 truncate">
-                  <Globe className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                  <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:underline font-mono truncate">
+                  <Globe className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0" />
+                  <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-teal-600 dark:text-teal-400 hover:underline font-mono truncate">
                     LinkedIn
                   </a>
                 </div>
               )}
               {contact.tags.length > 0 && (
                 <div className="flex items-start gap-2">
-                  <Tag className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
+                  <Tag className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0 mt-0.5" />
                   <div className="flex flex-wrap gap-1">
                     {contact.tags.map((tag) => (
-                      <span key={tag} className="px-1.5 py-0.5 rounded text-xs bg-stone-200 text-stone-700">
+                      <span key={tag} className="px-1.5 py-0.5 rounded text-xs bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300">
                         {tag}
                       </span>
                     ))}
@@ -187,8 +187,8 @@ function ContactPanel({ contact }: { contact: IdentityMatchContact }) {
               )}
               {contact.notes && (
                 <div className="flex items-start gap-2">
-                  <FileText className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
-                  <span className="text-xs text-stone-500 line-clamp-3">{contact.notes}</span>
+                  <FileText className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 shrink-0 mt-0.5" />
+                  <span className="text-xs text-stone-500 dark:text-stone-400 line-clamp-3">{contact.notes}</span>
                 </div>
               )}
             </div>
@@ -222,7 +222,7 @@ function MatchCard({
   const isLowConfidence = score < 0.65;
 
   return (
-    <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+    <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
       <div className="p-5">
         {/* Card header */}
         <div className="flex items-center justify-between mb-4">
@@ -232,13 +232,13 @@ function MatchCard({
               {style.label}
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-mono font-medium text-stone-700">{pct}% match</span>
-              <div className="w-24 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+              <span className="text-sm font-mono font-medium text-stone-700 dark:text-stone-300">{pct}% match</span>
+              <div className="w-24 h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
                 <div className={cn("h-full rounded-full", style.barColor)} style={{ width: `${pct}%` }} />
               </div>
             </div>
             {isAutoMergeReady && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-teal-50 text-teal-700 border border-teal-200">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
                 <Zap className="w-3 h-3" />
                 Auto-merge ready
               </span>
@@ -246,7 +246,7 @@ function MatchCard({
           </div>
           <button
             onClick={() => setBreakdownOpen((v) => !v)}
-            className="text-xs text-stone-400 hover:text-stone-600 transition-colors flex items-center gap-1"
+            className="text-xs text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors flex items-center gap-1"
           >
             <BarChart2 className="w-3.5 h-3.5" />
             Match detail
@@ -256,8 +256,8 @@ function MatchCard({
         {/* Match breakdown (expandable) */}
         {breakdownOpen && (
           <div className="mb-4">
-            <div className="bg-stone-50 rounded-lg p-4 border border-stone-100">
-              <p className="text-xs font-medium text-stone-500 mb-3 uppercase tracking-wide">Match breakdown</p>
+            <div className="bg-stone-50 dark:bg-stone-800 rounded-lg p-4 border border-stone-100 dark:border-stone-700">
+              <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-3 uppercase tracking-wide">Match breakdown</p>
               <div className="space-y-2.5">
                 {[
                   { label: "Email domain", weight: 40 },
@@ -275,14 +275,14 @@ function MatchCard({
                       ) : (
                         <X className="w-4 h-4 text-red-400 shrink-0" />
                       )}
-                      <span className="text-xs text-stone-600 w-32 shrink-0">{item.label}</span>
-                      <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                      <span className="text-xs text-stone-600 dark:text-stone-300 w-32 shrink-0">{item.label}</span>
+                      <div className="flex-1 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
                         <div
-                          className={cn("h-full rounded-full", hasMatch ? style.barColor : "bg-stone-300")}
+                          className={cn("h-full rounded-full", hasMatch ? style.barColor : "bg-stone-300 dark:bg-stone-600")}
                           style={{ width: `${contribution}%` }}
                         />
                       </div>
-                      <span className="text-xs font-mono text-stone-400 w-8 text-right">{contribution}%</span>
+                      <span className="text-xs font-mono text-stone-400 dark:text-stone-500 w-8 text-right">{contribution}%</span>
                     </div>
                   );
                 })}
@@ -297,9 +297,9 @@ function MatchCard({
           {/* VS divider */}
           <div className="flex items-center justify-center">
             <div className="flex flex-col items-center gap-1">
-              <div className="w-px h-8 bg-stone-200" />
-              <span className="text-xs font-mono font-medium text-stone-400 bg-stone-100 rounded px-1.5 py-0.5">vs</span>
-              <div className="w-px h-8 bg-stone-200" />
+              <div className="w-px h-8 bg-stone-200 dark:bg-stone-700" />
+              <span className="text-xs font-mono font-medium text-stone-400 dark:text-stone-500 bg-stone-100 dark:bg-stone-800 rounded px-1.5 py-0.5">vs</span>
+              <div className="w-px h-8 bg-stone-200 dark:bg-stone-700" />
             </div>
           </div>
           <ContactPanel contact={match.contact_b as IdentityMatchContact} />
@@ -307,15 +307,15 @@ function MatchCard({
       </div>
 
       {/* Action footer */}
-      <div className="px-5 py-3 border-t border-stone-100 bg-stone-50 flex items-center justify-between">
+      <div className="px-5 py-3 border-t border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-800 flex items-center justify-between">
         {isLowConfidence && (
-          <p className="text-xs text-stone-400">Low confidence — manual review recommended</p>
+          <p className="text-xs text-stone-400 dark:text-stone-500">Low confidence — manual review recommended</p>
         )}
         <div className={cn("flex items-center gap-2", !isLowConfidence && "ml-auto")}>
           <button
             onClick={onReject}
             disabled={rejecting}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-stone-600 border border-stone-200 hover:bg-stone-100 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-50 transition-colors"
           >
             <X className="w-3.5 h-3.5" /> Not the same
           </button>
@@ -383,17 +383,17 @@ export default function IdentityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-stone-900">Identity Resolution</h1>
-            <p className="text-sm text-stone-500 mt-1">Review and merge duplicate contacts</p>
+            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Identity Resolution</h1>
+            <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">Review and merge duplicate contacts</p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {pendingMatches.length > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 {pendingMatches.length} pending review
               </span>
@@ -412,13 +412,13 @@ export default function IdentityPage() {
         {/* Scan progress */}
         {scanIdentity.isPending && (
           <div className="mb-5">
-            <div className="bg-teal-50 border border-teal-200 rounded-xl p-4">
+            <div className="bg-teal-50 dark:bg-teal-950 border border-teal-200 dark:border-teal-800 rounded-xl p-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-5 h-5 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin shrink-0" />
-                <span className="text-sm font-medium text-teal-800">Scanning contacts for duplicates...</span>
+                <span className="text-sm font-medium text-teal-800 dark:text-teal-300">Scanning contacts for duplicates...</span>
               </div>
-              <p className="text-xs text-teal-600 mb-3 ml-8">Comparing names, emails, companies, and social handles...</p>
-              <div className="h-1.5 bg-teal-100 rounded-full overflow-hidden">
+              <p className="text-xs text-teal-600 dark:text-teal-400 mb-3 ml-8">Comparing names, emails, companies, and social handles...</p>
+              <div className="h-1.5 bg-teal-100 dark:bg-teal-900 rounded-full overflow-hidden">
                 <div className="h-full bg-teal-500 rounded-full w-1/4" style={{ animation: "identityIndeterminate 1.5s ease-in-out infinite" }} />
                 <style>{`
                   @keyframes identityIndeterminate {
@@ -434,7 +434,7 @@ export default function IdentityPage() {
 
         {/* Scan error */}
         {scanIdentity.isError && (
-          <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+          <div className="mb-5 p-3 rounded-xl bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
             Scan failed. Please try again.
           </div>
         )}
@@ -442,14 +442,14 @@ export default function IdentityPage() {
         {/* Scan result */}
         {scanIdentity.isSuccess && scanResult && !scanDismissed && (
           <div className="mb-5">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-              <p className="text-sm text-emerald-800">
+            <div className="bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <p className="text-sm text-emerald-800 dark:text-emerald-300">
                 <strong>Scan complete</strong> — {scanResult.matches_found ?? 0} matches found
                 {(scanResult.auto_merged ?? 0) > 0 && `, ${scanResult.auto_merged} auto-merged`}
                 {(scanResult.pending_review ?? 0) > 0 && `, ${scanResult.pending_review} pending review`}
               </p>
-              <button onClick={() => setScanDismissed(true)} className="ml-auto p-1 rounded text-emerald-500 hover:text-emerald-700 hover:bg-emerald-100 transition-colors">
+              <button onClick={() => setScanDismissed(true)} className="ml-auto p-1 rounded text-emerald-500 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -460,17 +460,17 @@ export default function IdentityPage() {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="h-48 rounded-xl bg-white border border-stone-200 animate-pulse" />
+              <div key={n} className="h-48 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 animate-pulse" />
             ))}
           </div>
         ) : pendingMatches.length === 0 ? (
           /* Empty state */
-          <div className="bg-white rounded-xl border border-stone-200 p-12 text-center">
-            <div className="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-4">
-              <ScanSearch className="w-7 h-7 text-stone-400" />
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-12 text-center">
+            <div className="w-14 h-14 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-4">
+              <ScanSearch className="w-7 h-7 text-stone-400 dark:text-stone-500" />
             </div>
-            <h3 className="text-base font-semibold text-stone-700 mb-1">No pending matches</h3>
-            <p className="text-sm text-stone-400">Run a scan to detect potential duplicates</p>
+            <h3 className="text-base font-semibold text-stone-700 dark:text-stone-300 mb-1">No pending matches</h3>
+            <p className="text-sm text-stone-400 dark:text-stone-500">Run a scan to detect potential duplicates</p>
             <button
               onClick={() => scanIdentity.mutate()}
               disabled={scanIdentity.isPending}

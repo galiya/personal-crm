@@ -78,7 +78,7 @@ export function Timeline({ interactions, onAddNote, contactName, className }: Ti
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-display font-semibold text-stone-900">Interactions</h2>
+        <h2 className="text-lg font-display font-semibold text-stone-900 dark:text-stone-100">Interactions</h2>
         <button
           onClick={() => setShowNoteInput((v) => !v)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md bg-teal-600 text-white hover:bg-teal-700 transition-colors btn-press"
@@ -89,9 +89,9 @@ export function Timeline({ interactions, onAddNote, contactName, className }: Ti
       </div>
 
       {showNoteInput && (
-        <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 space-y-2">
+        <div className="rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 p-3 space-y-2">
           <textarea
-            className="w-full text-sm border border-stone-300 rounded-md p-2 resize-none focus:outline-none focus:ring-2 focus:ring-teal-400"
+            className="w-full text-sm border border-stone-300 dark:border-stone-600 rounded-md p-2 resize-none focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
             rows={3}
             placeholder="Write a note..."
             value={noteText}
@@ -100,7 +100,7 @@ export function Timeline({ interactions, onAddNote, contactName, className }: Ti
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => setShowNoteInput(false)}
-              className="text-sm text-stone-500 hover:text-stone-700"
+              className="text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300"
             >
               Cancel
             </button>
@@ -116,15 +116,15 @@ export function Timeline({ interactions, onAddNote, contactName, className }: Ti
 
       {interactions.length === 0 ? (
         <div className="text-center py-8">
-          <MessageCircle className="w-10 h-10 text-stone-200 mx-auto mb-2 animate-float" />
-          <p className="text-sm text-stone-400">
+          <MessageCircle className="w-10 h-10 text-stone-200 dark:text-stone-700 mx-auto mb-2 animate-float" />
+          <p className="text-sm text-stone-400 dark:text-stone-500">
             No interactions yet. Add a note to get started.
           </p>
         </div>
       ) : (
         <div className="relative">
           {/* Vertical connector line */}
-          <div className="absolute left-5 top-3 bottom-3 w-px bg-stone-200" />
+          <div className="absolute left-5 top-3 bottom-3 w-px bg-stone-200 dark:bg-stone-700" />
 
           <div className="space-y-3">
             {interactions.map((item, idx) => {
@@ -145,9 +145,9 @@ export function Timeline({ interactions, onAddNote, contactName, className }: Ti
                     style={{ animationDelay: `${idx * 30}ms` }}
                   >
                     {/* Timeline dot */}
-                    <div className="absolute left-3.5 top-3.5 w-3 h-3 rounded-full bg-amber-400 border-2 border-white z-10" />
-                    <div className="border border-amber-200 bg-amber-50 rounded-lg px-4 py-3">
-                      <div className="flex items-center gap-1.5 mb-1 text-amber-500">
+                    <div className="absolute left-3.5 top-3.5 w-3 h-3 rounded-full bg-amber-400 border-2 border-white dark:border-stone-900 z-10" />
+                    <div className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 rounded-lg px-4 py-3">
+                      <div className="flex items-center gap-1.5 mb-1 text-amber-500 dark:text-amber-400">
                         <FileText className="w-3.5 h-3.5" />
                         <span className="text-xs font-medium">Note</span>
                         <span className="text-xs">
@@ -158,8 +158,8 @@ export function Timeline({ interactions, onAddNote, contactName, className }: Ti
                         </span>
                       </div>
                       {item.content_preview && (
-                        <p className="text-sm text-amber-900 leading-relaxed">
-                          <Linkify text={item.content_preview} className="text-amber-700 hover:text-amber-900" />
+                        <p className="text-sm text-amber-900 dark:text-amber-200 leading-relaxed">
+                          <Linkify text={item.content_preview} className="text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200" />
                         </p>
                       )}
                     </div>
@@ -175,7 +175,7 @@ export function Timeline({ interactions, onAddNote, contactName, className }: Ti
                 >
                   {/* Timeline dot with platform color */}
                   <div className={cn(
-                    "absolute left-3.5 top-3.5 w-3 h-3 rounded-full border-2 border-white z-10",
+                    "absolute left-3.5 top-3.5 w-3 h-3 rounded-full border-2 border-white dark:border-stone-900 z-10",
                     platformColors[item.platform]
                   )} />
                   <div
@@ -189,12 +189,12 @@ export function Timeline({ interactions, onAddNote, contactName, className }: Ti
                         "max-w-[85%] rounded-2xl px-4 py-2.5",
                         isOutbound
                           ? "bg-teal-600 text-white rounded-br-md"
-                          : "bg-stone-100 text-stone-900 rounded-bl-md"
+                          : "bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 rounded-bl-md"
                       )}
                     >
                       <div className={cn(
                         "flex items-center gap-1.5 mb-1",
-                        isOutbound ? "text-teal-100" : "text-stone-400"
+                        isOutbound ? "text-teal-100" : "text-stone-400 dark:text-stone-500"
                       )}>
                         <span className="flex-shrink-0">{platformIcons[item.platform]}</span>
                         <span className="text-xs font-medium">
@@ -210,11 +210,11 @@ export function Timeline({ interactions, onAddNote, contactName, className }: Ti
                       {item.content_preview && (
                         <p className={cn(
                           "text-sm leading-relaxed",
-                          isOutbound ? "text-white" : "text-stone-700"
+                          isOutbound ? "text-white" : "text-stone-700 dark:text-stone-300"
                         )}>
                           <Linkify
                             text={item.content_preview}
-                            className={isOutbound ? "text-teal-100 hover:text-white" : "text-teal-600 hover:text-teal-800"}
+                            className={isOutbound ? "text-teal-100 hover:text-white" : "text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300"}
                           />
                         </p>
                       )}

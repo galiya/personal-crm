@@ -30,23 +30,23 @@ export function GoogleCard({
   handleGoogleSyncAll,
 }: GoogleCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-stone-200 p-5 hover:shadow-sm transition-shadow">
+    <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-5 hover:shadow-sm transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-4">
           <div
             className={cn(
               "w-11 h-11 rounded-lg flex items-center justify-center shrink-0",
-              connected.google ? "bg-red-50" : "bg-stone-100"
+              connected.google ? "bg-red-50 dark:bg-red-950" : "bg-stone-100 dark:bg-stone-800"
             )}
           >
             <GmailIcon />
           </div>
           <div>
             <div className="flex items-center gap-2.5">
-              <h3 className="text-sm font-semibold text-stone-900">Gmail</h3>
+              <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Gmail</h3>
               <ConnectionBadge connected={connected.google} />
             </div>
-            <p className="text-xs text-stone-500 mt-0.5">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
               Sync email threads, contacts, and calendar from Google.
             </p>
             {connected.google && (
@@ -55,7 +55,7 @@ export function GoogleCard({
                   <div className="mt-1 space-y-0.5">
                     {connected.google_accounts.map((ga) => (
                       <div key={ga.id} className="flex items-center gap-2 text-xs">
-                        <span className="text-teal-600 font-medium flex items-center gap-1">
+                        <span className="text-teal-600 dark:text-teal-400 font-medium flex items-center gap-1">
                           <Check className="w-3 h-3" />
                           {ga.email}
                         </span>
@@ -67,7 +67,7 @@ export function GoogleCard({
                             );
                             await fetchConnectionStatus();
                           }}
-                          className="text-stone-400 hover:text-red-500 transition-colors"
+                          className="text-stone-400 dark:text-stone-500 hover:text-red-500 transition-colors"
                           title="Remove account"
                         >
                           <X className="w-3 h-3" />
@@ -76,7 +76,7 @@ export function GoogleCard({
                     ))}
                   </div>
                 ) : connected.google_email ? (
-                  <p className="text-xs text-teal-600 mt-1">
+                  <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">
                     Connected as <strong>{connected.google_email}</strong>
                   </p>
                 ) : null}
@@ -91,12 +91,12 @@ export function GoogleCard({
                 <button
                   onClick={() => void handleGoogleSyncAll()}
                   disabled={googleSync.status === "loading"}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors disabled:opacity-50"
                 >
                   {googleSync.status === "loading" ? (
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                   ) : googleSync.status === "success" ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   ) : (
                     <RefreshCw className="w-3.5 h-3.5" />
                   )}
@@ -141,7 +141,7 @@ export function GoogleCard({
         <p
           className={cn(
             "text-xs mt-3 flex items-center gap-1",
-            googleConnect.status === "error" ? "text-red-500" : "text-emerald-600"
+            googleConnect.status === "error" ? "text-red-500" : "text-emerald-600 dark:text-emerald-400"
           )}
         >
           {googleConnect.status === "error" ? (
@@ -156,7 +156,7 @@ export function GoogleCard({
         <p
           className={cn(
             "text-xs mt-3 flex items-center gap-1",
-            googleSync.status === "error" ? "text-red-500" : "text-emerald-600"
+            googleSync.status === "error" ? "text-red-500" : "text-emerald-600 dark:text-emerald-400"
           )}
         >
           {googleSync.status === "error" ? (

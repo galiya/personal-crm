@@ -68,16 +68,16 @@ export function EditableField({
     <div
       className={cn(
         "group flex items-start gap-3 py-2.5 px-3 -mx-3 rounded-lg transition-colors",
-        !editing && "hover:bg-gray-50 cursor-pointer",
+        !editing && "hover:bg-gray-50 dark:hover:bg-stone-800 cursor-pointer",
         className
       )}
       onClick={() => !editing && setEditing(true)}
     >
       {icon && (
-        <span className="mt-0.5 text-gray-400 flex-shrink-0">{icon}</span>
+        <span className="mt-0.5 text-gray-400 dark:text-stone-500 flex-shrink-0">{icon}</span>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+        <p className="text-xs font-medium text-gray-400 dark:text-stone-500 uppercase tracking-wide mb-0.5">
           {label}
         </p>
         {editing ? (
@@ -90,7 +90,7 @@ export function EditableField({
                 onKeyDown={handleKeyDown}
                 onBlur={handleSave}
                 rows={3}
-                className="w-full text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                className="w-full text-sm border border-gray-300 dark:border-stone-600 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
                 placeholder={placeholder}
               />
             ) : (
@@ -101,7 +101,7 @@ export function EditableField({
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onBlur={handleSave}
-                className="w-full text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full text-sm border border-gray-300 dark:border-stone-600 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
                 placeholder={placeholder}
               />
             )}
@@ -114,20 +114,20 @@ export function EditableField({
                   href={`${linkPrefix}${displayValue}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline truncate"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {displayValue}
                 </a>
               ) : (
-                <span className="text-sm text-gray-900 truncate">
+                <span className="text-sm text-gray-900 dark:text-stone-100 truncate">
                   {displayValue}
                 </span>
               )
             ) : (
-              <span className="text-sm text-gray-300 italic">{placeholder}</span>
+              <span className="text-sm text-gray-300 dark:text-stone-600 italic">{placeholder}</span>
             )}
-            <Pencil className="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+            <Pencil className="w-3 h-3 text-gray-300 dark:text-stone-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
           </div>
         )}
       </div>
@@ -182,15 +182,15 @@ export function EditableListField({
     <div
       className={cn(
         "group flex items-start gap-3 py-2.5 px-3 -mx-3 rounded-lg transition-colors",
-        !editing && "hover:bg-gray-50 cursor-pointer"
+        !editing && "hover:bg-gray-50 dark:hover:bg-stone-800 cursor-pointer"
       )}
       onClick={() => !editing && setEditing(true)}
     >
       {icon && (
-        <span className="mt-0.5 text-gray-400 flex-shrink-0">{icon}</span>
+        <span className="mt-0.5 text-gray-400 dark:text-stone-500 flex-shrink-0">{icon}</span>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+        <p className="text-xs font-medium text-gray-400 dark:text-stone-500 uppercase tracking-wide mb-0.5">
           {label}
         </p>
         {editing ? (
@@ -207,7 +207,7 @@ export function EditableListField({
                 if (e.key === "Escape") handleCancel();
               }}
               onBlur={handleSave}
-              className="w-full text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full text-sm border border-gray-300 dark:border-stone-600 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
               placeholder="Comma-separated values"
             />
           </div>
@@ -220,22 +220,22 @@ export function EditableListField({
                     <a
                       key={v}
                       href={`${linkPrefix}${v}`}
-                      className="text-sm text-blue-600 hover:underline"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {v}
                     </a>
                   ) : (
-                    <span key={v} className="text-sm text-gray-900">
+                    <span key={v} className="text-sm text-gray-900 dark:text-stone-100">
                       {v}
                     </span>
                   )
                 )}
               </div>
             ) : (
-              <span className="text-sm text-gray-300 italic">{placeholder}</span>
+              <span className="text-sm text-gray-300 dark:text-stone-600 italic">{placeholder}</span>
             )}
-            <Pencil className="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+            <Pencil className="w-3 h-3 text-gray-300 dark:text-stone-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
           </div>
         )}
       </div>
@@ -332,15 +332,15 @@ export function EditableTagsField({
     <div
       className={cn(
         "group flex items-start gap-3 py-2.5 px-3 -mx-3 rounded-lg transition-colors",
-        !editing && "hover:bg-gray-50 cursor-pointer"
+        !editing && "hover:bg-gray-50 dark:hover:bg-stone-800 cursor-pointer"
       )}
       onClick={() => !editing && handleOpen()}
     >
       {icon && (
-        <span className="mt-0.5 text-gray-400 flex-shrink-0">{icon}</span>
+        <span className="mt-0.5 text-gray-400 dark:text-stone-500 flex-shrink-0">{icon}</span>
       )}
       <div className="flex-1 min-w-0" ref={containerRef}>
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+        <p className="text-xs font-medium text-gray-400 dark:text-stone-500 uppercase tracking-wide mb-0.5">
           {label}
         </p>
         {editing ? (
@@ -355,7 +355,7 @@ export function EditableTagsField({
                     e.stopPropagation();
                     toggleTag(tag);
                   }}
-                  className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700 border border-blue-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                  className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-800 transition-colors"
                 >
                   {tag}
                   <span className="text-[10px]">×</span>
@@ -369,12 +369,12 @@ export function EditableTagsField({
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               onBlur={handleClose}
-              className="w-full text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full text-sm border border-gray-300 dark:border-stone-600 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500"
               placeholder={selectedTags.length > 0 ? "Add more..." : "Type to add tag..."}
             />
             {/* Suggestions dropdown */}
             {(suggestions.length > 0 || (inputValue.trim() && !allTags.includes(inputValue.trim()) && !selectedTags.includes(inputValue.trim()))) && (
-              <div className="mt-1 border border-gray-200 rounded-md bg-white shadow-sm max-h-32 overflow-y-auto">
+              <div className="mt-1 border border-gray-200 dark:border-stone-700 rounded-md bg-white dark:bg-stone-900 shadow-sm max-h-32 overflow-y-auto">
                 {suggestions.map((tag) => (
                   <button
                     key={tag}
@@ -384,7 +384,7 @@ export function EditableTagsField({
                       toggleTag(tag);
                       setInputValue("");
                     }}
-                    className="w-full text-left px-2 py-1.5 text-sm hover:bg-blue-50 text-gray-700"
+                    className="w-full text-left px-2 py-1.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-950 text-gray-700 dark:text-stone-300"
                   >
                     {tag}
                   </button>
@@ -396,7 +396,7 @@ export function EditableTagsField({
                       e.preventDefault();
                       addNewTag();
                     }}
-                    className="w-full text-left px-2 py-1.5 text-sm hover:bg-green-50 text-green-700"
+                    className="w-full text-left px-2 py-1.5 text-sm hover:bg-green-50 dark:hover:bg-emerald-950 text-green-700 dark:text-emerald-400"
                   >
                     Create &quot;{inputValue.trim()}&quot;
                   </button>
@@ -411,16 +411,16 @@ export function EditableTagsField({
                 {values.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-block px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-100"
+                    className="inline-block px-2 py-0.5 rounded-full text-xs bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800"
                   >
                     {tag}
                   </span>
                 ))}
               </div>
             ) : (
-              <span className="text-sm text-gray-300 italic">Add tags...</span>
+              <span className="text-sm text-gray-300 dark:text-stone-600 italic">Add tags...</span>
             )}
-            <Pencil className="w-3 h-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+            <Pencil className="w-3 h-3 text-gray-300 dark:text-stone-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
           </div>
         )}
       </div>

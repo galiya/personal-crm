@@ -40,7 +40,7 @@ function TabBar({ activeTab, onChange }: { activeTab: TabId; onChange: (tab: Tab
   );
 
   return (
-    <div ref={barRef} className="relative border-b border-stone-200 mb-8">
+    <div ref={barRef} className="relative border-b border-stone-200 dark:border-stone-700 mb-8">
       <div className="flex gap-1">
         {TABS.map((tab) => (
           <button
@@ -49,7 +49,7 @@ function TabBar({ activeTab, onChange }: { activeTab: TabId; onChange: (tab: Tab
             onClick={() => onChange(tab.id)}
             className={cn(
               "relative px-4 py-3 text-sm font-medium transition-colors",
-              activeTab === tab.id ? "text-teal-700" : "text-stone-500 hover:text-stone-700"
+              activeTab === tab.id ? "text-teal-700 dark:text-teal-400" : "text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300"
             )}
           >
             <span className="flex items-center gap-2">
@@ -70,7 +70,7 @@ function TabBar({ activeTab, onChange }: { activeTab: TabId; onChange: (tab: Tab
 /* ── Loading fallback ── */
 function Loading() {
   return (
-    <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
       <div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full" />
     </div>
   );
@@ -89,13 +89,13 @@ function SettingsContent() {
 
   if (ctrl.isLoading) {
     return (
-      <div className="min-h-screen bg-stone-50">
+      <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
         <div className="max-w-3xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold text-stone-900 mb-1">Settings</h1>
-          <p className="text-sm text-stone-500 mb-8">
+          <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-1">Settings</h1>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mb-8">
             Manage integrations, imports, follow-up rules, tags, and your account.
           </p>
-          <div className="flex items-center gap-2 text-sm text-stone-400 mt-12 justify-center">
+          <div className="flex items-center gap-2 text-sm text-stone-400 dark:text-stone-500 mt-12 justify-center">
             <RefreshCw className="w-4 h-4 animate-spin" />
             Loading accounts...
           </div>
@@ -105,11 +105,11 @@ function SettingsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-stone-900">Settings</h1>
-          <p className="text-sm text-stone-500 mt-1">
+          <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Settings</h1>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
             Manage integrations, imports, follow-up rules, tags, and your account.
           </p>
         </div>

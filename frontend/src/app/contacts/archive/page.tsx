@@ -23,7 +23,7 @@ function ScorePill({ score }: { score: number | null | undefined }) {
   const s = score ?? 0;
   if (s >= 70) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
         <span className="font-mono">{Math.round(s / 10)}</span> Strong
       </span>
@@ -31,14 +31,14 @@ function ScorePill({ score }: { score: number | null | undefined }) {
   }
   if (s >= 30) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
         <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
         <span className="font-mono">{Math.round(s / 10)}</span> Warm
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
       <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
       <span className="font-mono">{Math.round(s / 10)}</span> Cold
     </span>
@@ -49,7 +49,7 @@ function ScorePill({ score }: { score: number | null | undefined }) {
 
 export default function ArchivedContactsPage() {
   return (
-    <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-8"><div className="h-8 w-48 bg-stone-100 rounded animate-pulse" /></div>}>
+    <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-8"><div className="h-8 w-48 bg-stone-100 dark:bg-stone-800 rounded animate-pulse" /></div>}>
       <ArchivedContactsInner />
     </Suspense>
   );
@@ -149,12 +149,12 @@ function ArchivedContactsInner() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Back link */}
         <Link
           href="/contacts"
-          className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700 transition-colors mb-4 group"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-100 transition-colors mb-4 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           Back to Contacts
@@ -162,75 +162,75 @@ function ArchivedContactsInner() {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center">
-            <Archive className="w-5 h-5 text-stone-500" />
+          <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
+            <Archive className="w-5 h-5 text-stone-500 dark:text-stone-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-stone-900 leading-tight">Archived Contacts</h1>
-            <p className="text-sm text-stone-500 mt-0.5">Contacts you&apos;ve archived from your active network</p>
+            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 leading-tight">Archived Contacts</h1>
+            <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">Contacts you&apos;ve archived from your active network</p>
           </div>
           {meta && (
-            <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-stone-100 text-stone-600 border border-stone-200">
+            <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700">
               {meta.total} contacts
             </span>
           )}
         </div>
 
         {/* Search bar */}
-        <div className="bg-white rounded-xl border border-stone-200 p-4 mb-4">
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-4 mb-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500" />
             <input
               type="text"
               placeholder="Search archived contacts..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-teal-400 placeholder:text-stone-400"
+              className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-teal-400 placeholder:text-stone-400 dark:placeholder:text-stone-500 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100"
             />
           </div>
         </div>
 
         {/* Content */}
         {isLoading ? (
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-14 border-b border-stone-100 animate-pulse" />
+              <div key={i} className="h-14 border-b border-stone-100 dark:border-stone-800 animate-pulse" />
             ))}
           </div>
         ) : isError ? (
-          <div className="bg-white rounded-xl border border-stone-200 p-6 text-center">
-            <p className="text-sm text-red-600">Failed to load archived contacts.</p>
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-6 text-center">
+            <p className="text-sm text-red-600 dark:text-red-400">Failed to load archived contacts.</p>
           </div>
         ) : contacts.length === 0 ? (
           /* Empty state */
-          <div className="bg-white rounded-xl border border-stone-200 p-12 text-center">
-            <div className="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center mx-auto mb-4">
-              <Archive className="w-7 h-7 text-stone-400" />
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-12 text-center">
+            <div className="w-14 h-14 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-4">
+              <Archive className="w-7 h-7 text-stone-400 dark:text-stone-500" />
             </div>
-            <h3 className="text-base font-bold text-stone-900 mb-1">No archived contacts</h3>
-            <p className="text-sm text-stone-500 max-w-sm mx-auto">
+            <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 mb-1">No archived contacts</h3>
+            <p className="text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
               Contacts you archive will appear here. Archive contacts to keep your active list focused.
             </p>
           </div>
         ) : (
           /* Table */
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+          <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
             {/* Header row */}
-            <div className="grid grid-cols-[40px_1fr_140px_100px_140px_140px] gap-2 px-4 py-3 bg-stone-50 border-b border-stone-200 items-center">
+            <div className="grid grid-cols-[40px_1fr_140px_100px_140px_140px] gap-2 px-4 py-3 bg-stone-50 dark:bg-stone-800 border-b border-stone-200 dark:border-stone-700 items-center">
               <div>
                 <input
                   type="checkbox"
                   checked={allSelected}
                   ref={(el) => { if (el) el.indeterminate = someSelected; }}
                   onChange={toggleSelectAll}
-                  className="w-3.5 h-3.5 rounded border-stone-300 text-teal-600 cursor-pointer"
+                  className="w-3.5 h-3.5 rounded border-stone-300 dark:border-stone-600 text-teal-600 cursor-pointer"
                 />
               </div>
-              <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Name</div>
-              <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Company</div>
-              <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider text-center">Score</div>
-              <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Last Interaction</div>
-              <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Actions</div>
+              <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Name</div>
+              <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Company</div>
+              <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider text-center">Score</div>
+              <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Last Interaction</div>
+              <div className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Actions</div>
             </div>
 
             {/* Rows */}
@@ -239,14 +239,14 @@ function ArchivedContactsInner() {
               return (
                 <div
                   key={c.id}
-                  className="grid grid-cols-[40px_1fr_140px_100px_140px_140px] gap-2 px-4 py-3.5 border-b border-stone-100 items-center hover:bg-stone-50 transition-colors"
+                  className="grid grid-cols-[40px_1fr_140px_100px_140px_140px] gap-2 px-4 py-3.5 border-b border-stone-100 dark:border-stone-800 items-center hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                 >
                   <div>
                     <input
                       type="checkbox"
                       checked={selected.has(c.id)}
                       onChange={() => toggleSelect(c.id)}
-                      className="w-3.5 h-3.5 rounded border-stone-300 text-teal-600 cursor-pointer"
+                      className="w-3.5 h-3.5 rounded border-stone-300 dark:border-stone-600 text-teal-600 cursor-pointer"
                     />
                   </div>
                   <div className="flex items-center gap-3 min-w-0">
@@ -254,20 +254,20 @@ function ArchivedContactsInner() {
                     <div className="min-w-0">
                       <Link
                         href={`/contacts/${c.id}`}
-                        className="text-sm font-medium text-stone-900 truncate block hover:text-teal-700 transition-colors"
+                        className="text-sm font-medium text-stone-900 dark:text-stone-100 truncate block hover:text-teal-700 dark:hover:text-teal-400 transition-colors"
                       >
                         {displayName}
                       </Link>
                       {c.emails?.[0] && c.full_name && (
-                        <p className="text-xs text-stone-400 truncate">{c.emails[0]}</p>
+                        <p className="text-xs text-stone-400 dark:text-stone-500 truncate">{c.emails[0]}</p>
                       )}
                     </div>
                   </div>
-                  <div className="text-xs text-stone-600 truncate">{c.company || "—"}</div>
+                  <div className="text-xs text-stone-600 dark:text-stone-300 truncate">{c.company || "—"}</div>
                   <div className="text-center">
                     <ScorePill score={c.relationship_score} />
                   </div>
-                  <div className="text-xs text-stone-500">
+                  <div className="text-xs text-stone-500 dark:text-stone-400">
                     {c.last_interaction_at
                       ? formatDistanceToNow(new Date(c.last_interaction_at), { addSuffix: true })
                       : "Never"}
@@ -276,7 +276,7 @@ function ArchivedContactsInner() {
                     <button
                       onClick={() => handleUnarchive(c.id)}
                       disabled={updateContact.isPending}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-stone-200 text-stone-600 hover:border-teal-300 hover:text-teal-700 hover:bg-teal-50 disabled:opacity-50 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950 disabled:opacity-50 transition-colors"
                     >
                       <ArchiveRestore className="w-3.5 h-3.5" />
                       Unarchive
@@ -288,22 +288,22 @@ function ArchivedContactsInner() {
 
             {/* Pagination */}
             {meta && totalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-stone-200 bg-stone-50">
-                <p className="text-xs text-stone-500 font-mono">
-                  Page <strong className="text-stone-700">{currentPage}</strong> of {totalPages} — <strong className="text-stone-700">{meta.total}</strong> archived contacts
+              <div className="flex items-center justify-between px-4 py-3 border-t border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800">
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-mono">
+                  Page <strong className="text-stone-700 dark:text-stone-300">{currentPage}</strong> of {totalPages} — <strong className="text-stone-700 dark:text-stone-300">{meta.total}</strong> archived contacts
                 </p>
                 <div className="flex items-center gap-2">
                   <button
                     disabled={currentPage <= 1}
                     onClick={() => updateUrl({ page: String(currentPage - 1) })}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-stone-200 text-stone-500 hover:bg-stone-100 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-700 dark:hover:text-stone-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" /> Previous
                   </button>
                   <div className="flex items-center gap-1">
                     {pageNumbers.map((p, i) =>
                       p === "..." ? (
-                        <span key={`ellipsis-${i}`} className="w-7 h-7 flex items-center justify-center text-xs text-stone-400">...</span>
+                        <span key={`ellipsis-${i}`} className="w-7 h-7 flex items-center justify-center text-xs text-stone-400 dark:text-stone-500">...</span>
                       ) : (
                         <button
                           key={p}
@@ -312,7 +312,7 @@ function ArchivedContactsInner() {
                             "w-7 h-7 rounded-md text-xs font-medium transition-colors",
                             p === currentPage
                               ? "bg-teal-600 text-white"
-                              : "text-stone-600 hover:bg-stone-100"
+                              : "text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
                           )}
                         >
                           {p}
@@ -323,7 +323,7 @@ function ArchivedContactsInner() {
                   <button
                     disabled={currentPage >= totalPages}
                     onClick={() => updateUrl({ page: String(currentPage + 1) })}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-700 dark:hover:text-stone-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Next <ChevronRight className="w-3.5 h-3.5" />
                   </button>

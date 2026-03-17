@@ -16,14 +16,14 @@ import type { SyncDetails, SyncStatus } from "../_hooks/use-settings-controller"
 export function ConnectionBadge({ connected }: { connected: boolean }) {
   if (connected) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
         Connected
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-stone-100 text-stone-500 border border-stone-200">
+    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-stone-700">
       Not connected
     </span>
   );
@@ -33,12 +33,12 @@ export function ConnectionBadge({ connected }: { connected: boolean }) {
 export function SuccessModal({ platform, onClose }: { platform: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl text-center">
-        <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
-          <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+      <div className="bg-white dark:bg-stone-900 rounded-xl p-6 w-full max-w-sm shadow-xl text-center">
+        <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center mb-4">
+          <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
         </div>
-        <h3 className="text-lg font-semibold text-stone-900 mb-1">{platform} Connected</h3>
-        <p className="text-sm text-stone-500 mb-5">
+        <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1">{platform} Connected</h3>
+        <p className="text-sm text-stone-500 dark:text-stone-400 mb-5">
           Your {platform} account has been successfully linked. You can now sync your data.
         </p>
         <button
@@ -125,38 +125,38 @@ export function SyncResultPanel({
     <div
       className={`mt-3 rounded-lg p-3 text-xs ${
         status === "error"
-          ? "bg-red-50 border border-red-100"
-          : "bg-emerald-50 border border-emerald-100"
+          ? "bg-red-50 dark:bg-red-950 border border-red-100 dark:border-red-800"
+          : "bg-emerald-50 dark:bg-emerald-950 border border-emerald-100 dark:border-emerald-800"
       }`}
     >
       {hasStats && (
         <div className="flex items-center gap-3 mb-1">
           {details.new_interactions !== undefined && (
-            <span className="text-emerald-700">
+            <span className="text-emerald-700 dark:text-emerald-400">
               {details.new_interactions} new interaction
               {details.new_interactions !== 1 ? "s" : ""}
             </span>
           )}
           {details.created !== undefined && details.created > 0 && (
-            <span className="text-teal-700">
+            <span className="text-teal-700 dark:text-teal-400">
               +{details.created} new contact{details.created !== 1 ? "s" : ""}
             </span>
           )}
           {details.updated !== undefined && details.updated > 0 && (
-            <span className="text-teal-700">{details.updated} updated</span>
+            <span className="text-teal-700 dark:text-teal-400">{details.updated} updated</span>
           )}
           {details.elapsed !== undefined && (
-            <span className="text-stone-500 ml-auto">{details.elapsed}s</span>
+            <span className="text-stone-500 dark:text-stone-400 ml-auto">{details.elapsed}s</span>
           )}
         </div>
       )}
       {hasErrors && (
         <div className="mt-2 space-y-1">
-          <p className="font-medium text-red-600 flex items-center gap-1">
+          <p className="font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
             <AlertCircle className="w-3 h-3" />
             {details.errors!.length} error{details.errors!.length > 1 ? "s" : ""}
           </p>
-          <ul className="text-red-500 space-y-0.5 max-h-20 overflow-y-auto">
+          <ul className="text-red-500 dark:text-red-400 space-y-0.5 max-h-20 overflow-y-auto">
             {details.errors!.map((err, i) => (
               <li key={i} className="truncate">
                 {err}
@@ -166,7 +166,7 @@ export function SyncResultPanel({
         </div>
       )}
       {!hasStats && !hasErrors && status === "error" && (
-        <p className="text-red-600">{details.message || "Sync failed"}</p>
+        <p className="text-red-600 dark:text-red-400">{details.message || "Sync failed"}</p>
       )}
     </div>
   );
@@ -220,14 +220,16 @@ export function TelegramSyncProgressCard({
     <div
       className={cn(
         "mt-3 rounded-lg border p-3 text-xs transition-all",
-        isDone ? "bg-emerald-50 border-emerald-100" : "bg-sky-50 border-sky-100"
+        isDone
+          ? "bg-emerald-50 dark:bg-emerald-950 border-emerald-100 dark:border-emerald-800"
+          : "bg-sky-50 dark:bg-sky-950 border-sky-100 dark:border-sky-800"
       )}
     >
       <div className="flex items-center justify-between mb-2">
         <span
           className={cn(
             "font-medium flex items-center gap-1.5",
-            isDone ? "text-emerald-700" : "text-sky-700"
+            isDone ? "text-emerald-700 dark:text-emerald-400" : "text-sky-700 dark:text-sky-400"
           )}
         >
           {isDone ? (
@@ -237,17 +239,17 @@ export function TelegramSyncProgressCard({
           )}
           {phaseLabel}
         </span>
-        {progress.started_at && <span className="text-stone-400">{elapsedStr}</span>}
+        {progress.started_at && <span className="text-stone-400 dark:text-stone-500">{elapsedStr}</span>}
       </div>
       {total > 0 && (
         <div className="mb-2">
-          <div className="flex justify-between text-stone-500 mb-1">
+          <div className="flex justify-between text-stone-500 dark:text-stone-400 mb-1">
             <span>
               {processed} / {total} dialogs
             </span>
             <span>{pct}%</span>
           </div>
-          <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
             <div
               className={cn(
                 "h-full rounded-full transition-all duration-500",
@@ -258,9 +260,9 @@ export function TelegramSyncProgressCard({
           </div>
         </div>
       )}
-      <div className="flex items-center gap-3 text-stone-500">
+      <div className="flex items-center gap-3 text-stone-500 dark:text-stone-400">
         <span>{progress.contacts_found ?? 0} contacts</span>
-        <span className="text-stone-300">·</span>
+        <span className="text-stone-300 dark:text-stone-600">·</span>
         <span>{progress.messages_synced ?? 0} messages</span>
       </div>
     </div>
@@ -283,7 +285,7 @@ export function Toggle({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-[22px] w-10 shrink-0 cursor-pointer rounded-full transition-colors duration-200",
-        checked ? "bg-teal-600" : "bg-stone-300"
+        checked ? "bg-teal-600" : "bg-stone-300 dark:bg-stone-600"
       )}
     >
       <span
@@ -323,15 +325,15 @@ export function KebabMenu({
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="p-1.5 rounded-md text-stone-400 hover:bg-stone-100 transition-colors"
+        className="p-1.5 rounded-md text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
       >
         <MoreVertical className="w-4 h-4" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-52 bg-white rounded-lg border border-stone-200 shadow-lg py-1 z-50">
+        <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-lg py-1 z-50">
           {items.map((item, i) =>
             item.label === "---" ? (
-              <div key={i} className="my-1 h-px bg-stone-100" />
+              <div key={i} className="my-1 h-px bg-stone-100 dark:bg-stone-800" />
             ) : (
               <button
                 key={i}
@@ -342,12 +344,12 @@ export function KebabMenu({
                 className={cn(
                   "flex items-center gap-2.5 px-3 py-2 text-sm w-full text-left",
                   item.danger
-                    ? "text-red-600 hover:bg-red-50"
-                    : "text-stone-700 hover:bg-stone-50"
+                    ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950"
+                    : "text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
                 )}
               >
                 <item.icon
-                  className={cn("w-4 h-4", item.danger ? "" : "text-stone-400")}
+                  className={cn("w-4 h-4", item.danger ? "" : "text-stone-400 dark:text-stone-500")}
                 />
                 {item.label}
               </button>
