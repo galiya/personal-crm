@@ -129,10 +129,11 @@ async def poll_contacts_activity(
 
         current_bio = profile.get("description", "")
 
-        # Update location from Twitter profile
+        # Update location from Twitter profile (respects user-edited fields)
         twitter_location = profile.get("location", "")
-        if twitter_location and not contact.location:
-            contact.location = twitter_location
+        if twitter_location:
+            from app.services.sync_utils import sync_set_field
+            sync_set_field(contact, "location", twitter_location)
 
         # Download Twitter avatar if the contact doesn't have one yet
         if not contact.avatar_url:

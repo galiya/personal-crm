@@ -132,23 +132,19 @@ async def push_linkedin_data(
             contact = result.scalar_one_or_none()
 
         if contact:
-            # Update non-empty fields
-            if profile.full_name:
-                contact.full_name = profile.full_name
+            # Update fields — respect user-edited field protection
+            from app.services.sync_utils import sync_set_field
+            sync_set_field(contact, "full_name", profile.full_name)
             if profile.headline:
-                contact.linkedin_headline = profile.headline
+                contact.linkedin_headline = profile.headline  # platform-owned
                 # Extract title from headline if contact has no title
-                if not contact.title:
-                    # "Title @ Company" or "Title at Company" → extract title part
-                    title_part = profile.headline.split(" @ ")[0].split(" at ")[0].strip()
-                    if title_part and len(title_part) < 100:
-                        contact.title = title_part
-            if profile.company:
-                contact.company = profile.company
-            if profile.location:
-                contact.location = profile.location
+                title_part = profile.headline.split(" @ ")[0].split(" at ")[0].strip()
+                if title_part and len(title_part) < 100:
+                    sync_set_field(contact, "title", title_part)
+            sync_set_field(contact, "company", profile.company)
+            sync_set_field(contact, "location", profile.location)
             if profile.about:
-                contact.linkedin_bio = profile.about
+                contact.linkedin_bio = profile.about  # platform-owned
             if profile.profile_url:
                 contact.linkedin_url = profile_url_normalized
             if not contact.linkedin_profile_id:

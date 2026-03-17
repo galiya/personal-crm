@@ -212,6 +212,14 @@ async def update_contact(
     for field, value in update_data.items():
         setattr(contact, field, value)
 
+    # Track user-edited fields for sync protection
+    from app.services.sync_utils import PROTECTABLE_FIELDS
+    edited = set(contact.user_edited_fields or [])
+    for field in update_data:
+        if field in PROTECTABLE_FIELDS:
+            edited.add(field)
+    contact.user_edited_fields = sorted(edited)
+
     # Re-assign organization if company name changed
     if company_changed:
         contact.organization_id = None  # clear old assignment

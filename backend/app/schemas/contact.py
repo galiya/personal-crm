@@ -114,10 +114,16 @@ class ContactResponse(ContactBase):
     interaction_count: int = 0
     last_interaction_at: datetime | None = None
     last_followup_at: datetime | None = None
+    user_edited_fields: list[str] = []
     created_at: datetime
     updated_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("user_edited_fields", mode="before")
+    @classmethod
+    def coerce_user_edited_fields(cls, v: list[str] | None) -> list[str]:
+        return v or []
 
 
 class PaginationMeta(BaseModel):

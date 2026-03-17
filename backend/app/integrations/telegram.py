@@ -1308,6 +1308,7 @@ async def sync_telegram_bios(
                     contact.avatar_url = avatar_path
 
             # Extract birthday if available and not already set
+            from app.services.sync_utils import sync_set_field
             if not contact.birthday:
                 bday = getattr(full.full_user, "birthday", None)
                 if bday:
@@ -1315,16 +1316,17 @@ async def sync_telegram_bios(
                     month = getattr(bday, "month", None)
                     year = getattr(bday, "year", None)
                     if day and month:
-                        contact.birthday = (
+                        bday_str = (
                             f"{year}-{month:02d}-{day:02d}" if year
                             else f"{month:02d}-{day:02d}"
                         )
+                        sync_set_field(contact, "birthday", bday_str)
 
             # Extract Twitter handle from bio if not already set
-            if not contact.twitter_handle and current_bio:
+            if current_bio:
                 twitter_handle = _extract_twitter_handle(current_bio)
                 if twitter_handle:
-                    contact.twitter_handle = twitter_handle
+                    sync_set_field(contact, "twitter_handle", twitter_handle)
 
             if not current_bio:
                 continue

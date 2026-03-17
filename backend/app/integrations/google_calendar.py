@@ -244,13 +244,14 @@ async def sync_calendar_events(user: User, db: AsyncSession) -> dict[str, int]:
                 if existing:
                     contact = existing
                     # Backfill name from calendar if contact has no name yet
+                    from app.services.sync_utils import sync_set_field
                     if not contact.full_name:
                         cal_name = attendee_names.get(att_email)
                         if cal_name:
                             parts = cal_name.strip().split(None, 1)
-                            contact.full_name = cal_name
-                            contact.given_name = parts[0] if parts else None
-                            contact.family_name = parts[1] if len(parts) > 1 else None
+                            sync_set_field(contact, "full_name", cal_name)
+                            sync_set_field(contact, "given_name", parts[0] if parts else None)
+                            sync_set_field(contact, "family_name", parts[1] if len(parts) > 1 else None)
                         else:
                             # Only use event summary for 1:1 meetings to avoid
                             # assigning the same name to all unnamed guests
@@ -259,15 +260,15 @@ async def sync_calendar_events(user: User, db: AsyncSession) -> dict[str, int]:
                                 extracted = _extract_name_from_summary(summary, user.full_name)
                             if extracted:
                                 parts = extracted.strip().split(None, 1)
-                                contact.full_name = extracted
-                                contact.given_name = parts[0] if parts else None
-                                contact.family_name = parts[1] if len(parts) > 1 else None
+                                sync_set_field(contact, "full_name", extracted)
+                                sync_set_field(contact, "given_name", parts[0] if parts else None)
+                                sync_set_field(contact, "family_name", parts[1] if len(parts) > 1 else None)
                             else:
                                 gn, fn = _extract_name_from_email(att_email)
                                 if gn:
-                                    contact.given_name = gn
-                                    contact.family_name = fn
-                                    contact.full_name = f"{gn} {fn}".strip() if fn else gn
+                                    sync_set_field(contact, "given_name", gn)
+                                    sync_set_field(contact, "family_name", fn)
+                                    sync_set_field(contact, "full_name", f"{gn} {fn}".strip() if fn else gn)
                 else:
                     contact = await _find_or_create_contact(
                         att_email,

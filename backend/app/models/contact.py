@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func
-from sqlalchemy.dialects.postgresql import ARRAY, JSON, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSON, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -66,6 +66,7 @@ class Contact(Base):
 
     priority_level: Mapped[str] = mapped_column(String, default="medium", nullable=False)
     source: Mapped[str | None] = mapped_column(String, nullable=True)
+    user_edited_fields: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
     google_resource_name: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
 
     created_at: Mapped[datetime] = mapped_column(
