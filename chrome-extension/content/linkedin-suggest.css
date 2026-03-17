@@ -1,0 +1,39 @@
+/* chrome-extension/content/linkedin-suggest.css */
+.pingcrm-suggest-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #0d9488;
+  background: white;
+  color: #0d9488;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  margin: 0 2px;
+  padding: 0;
+  line-height: 1;
+}
+.pingcrm-suggest-btn:hover {
+  background: #0d9488;
+  color: white;
+}
+.pingcrm-suggest-btn:focus-visible {
+  outline: 2px solid #0d9488;
+  outline-offset: 2px;
+}
+.pingcrm-suggest-btn--loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.pingcrm-suggest-btn--error {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+.pingcrm-suggest-btn--hidden {
+  display: none;
+}

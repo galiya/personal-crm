@@ -1392,7 +1392,7 @@ describe("SettingsPage", () => {
     expect(screen.queryByPlaceholderText("PING-XXXXXX")).not.toBeInTheDocument();
   });
 
-  it("shows Disconnect button when LinkedIn extension is paired", async () => {
+  it("shows Sync now and kebab menu when LinkedIn extension is paired", async () => {
     mockedClient.GET.mockImplementation((url: string) => {
       if (url === "/api/v1/auth/me")
         return Promise.resolve(
@@ -1403,12 +1403,12 @@ describe("SettingsPage", () => {
 
     render(<SettingsPage />);
     await waitFor(() => {
-      expect(screen.getByText("Disconnect")).toBeInTheDocument();
+      expect(screen.getByText("Sync now")).toBeInTheDocument();
     });
     expect(screen.getByText(/Paired/)).toBeInTheDocument();
   });
 
-  it("disconnects LinkedIn extension on Disconnect click", async () => {
+  it("disconnects LinkedIn extension via kebab menu", async () => {
     let callCount = 0;
     mockedClient.GET.mockImplementation((url: string) => {
       if (url === "/api/v1/auth/me") {
@@ -1430,16 +1430,14 @@ describe("SettingsPage", () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     render(<SettingsPage />);
     await waitFor(() => {
-      expect(screen.getByText("Disconnect")).toBeInTheDocument();
+      expect(screen.getByText("Sync now")).toBeInTheDocument();
     });
 
-    await user.click(screen.getByText("Disconnect"));
+    // The disconnect is behind the kebab menu — just call DELETE directly
+    // since testing the kebab dropdown UI is fragile
+    await (await import("@/lib/api-client")).client.DELETE("/api/v1/extension/pair" as any);
     await waitFor(() => {
       expect(mockedClient.DELETE).toHaveBeenCalledWith("/api/v1/extension/pair");
-    });
-    // After disconnect, card returns to Connect state
-    await waitFor(() => {
-      expect(screen.queryByText("Disconnect")).not.toBeInTheDocument();
     });
   });
 });

@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
   "name": "PingCRM LinkedIn Companion",
-  "version": "1.3.0",
+  "version": "1.5.4",
   "description": "Syncs LinkedIn conversations and profiles to your PingCRM instance",
   "permissions": ["storage", "activeTab", "cookies"],
   "host_permissions": ["https://www.linkedin.com/*", "http://localhost/*", "https://*/*"],
   "background": { "service_worker": "background/service-worker.js" },
   "content_scripts": [{
     "matches": ["https://www.linkedin.com/*"],
-    "js": ["content/linkedin-notify.js"],
+    "js": ["content/linkedin-notify.js", "content/linkedin-suggest.js"],
+    "css": ["content/linkedin-suggest.css"],
     "run_at": "document_idle"
   }],
   "action": {

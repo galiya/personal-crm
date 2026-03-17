@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { X, Link2, AlertCircle, Check, Unplug } from "lucide-react";
+import { X, Link2, AlertCircle, RefreshCw, Check, Unplug, Key } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { client } from "@/lib/api-client";
-import { ConnectionBadge } from "../shared";
+import { ConnectionBadge, KebabMenu, SyncButtonWrapper } from "../shared";
 import type { ConnectedAccounts } from "../../_hooks/use-settings-controller";
+import type { SyncPhase } from "../shared";
 
 function LinkedInIcon() {
   return (
@@ -34,9 +35,7 @@ function formatTimeAgo(dateStr: string): string {
 }
 
 function formatCode(raw: string): string {
-  // Allow only alphanumeric chars, uppercase, max 6 after prefix
   const upper = raw.toUpperCase().replace(/[^A-Z0-9-]/g, "");
-  // If user typed the prefix already, keep it; otherwise auto-prefix
   if (upper.startsWith("PING-")) {
     const suffix = upper.slice(5).replace(/-/g, "").slice(0, 6);
     return suffix.length > 0 ? `PING-${suffix}` : "PING-";
@@ -54,13 +53,9 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
   const [showModal, setShowModal] = useState(false);
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [disconnectStatus, setDisconnectStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [syncStatus, setSyncStatus] = useState<SyncPhase>("idle");
 
   const isPaired = !!connected.linkedin_extension_paired_at;
-
-  function handleCodeChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setCode(formatCode(e.target.value));
-  }
 
   function openModal() {
     setCode("");
@@ -93,18 +88,22 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
   }
 
   async function handleDisconnect() {
-    setDisconnectStatus("loading");
     try {
-      const result = await (client as any).DELETE("/api/v1/extension/pair");
-      if (result.error) {
-        setDisconnectStatus("error");
-        return;
-      }
-      setDisconnectStatus("idle");
+      await (client as any).DELETE("/api/v1/extension/pair");
       await fetchConnectionStatus();
     } catch {
-      setDisconnectStatus("error");
+      // ignore
     }
+  }
+
+  // Sync is handled by the extension, not the backend — this is a placeholder
+  // that shows the paired timestamp as "last sync"
+  function handleSync() {
+    setSyncStatus("loading");
+    setTimeout(() => {
+      setSyncStatus("success");
+      setTimeout(() => setSyncStatus("idle"), 2000);
+    }, 500);
   }
 
   const pairButtonDisabled =
@@ -133,7 +132,7 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
               </p>
               {isPaired && connected.linkedin_extension_paired_at && (
                 <p className="text-xs text-teal-600 mt-1">
-                  Paired {formatTimeAgo(connected.linkedin_extension_paired_at)}
+                  Connected via extension &middot; Paired {formatTimeAgo(connected.linkedin_extension_paired_at)}
                 </p>
               )}
             </div>
@@ -141,18 +140,42 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
 
           <div className="flex items-center gap-2">
             {isPaired ? (
-              <button
-                onClick={() => void handleDisconnect()}
-                disabled={disconnectStatus === "loading"}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-              >
-                <Unplug className="w-3.5 h-3.5" />
-                {disconnectStatus === "loading" ? "Disconnecting..." : "Disconnect"}
-              </button>
+              <>
+                <SyncButtonWrapper phase={syncStatus}>
+                  <button
+                    onClick={handleSync}
+                    disabled={syncStatus === "loading"}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors disabled:opacity-50"
+                  >
+                    {syncStatus === "loading" ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : syncStatus === "success" ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    )}
+                    {syncStatus === "loading"
+                      ? "Syncing..."
+                      : syncStatus === "success"
+                      ? "Done"
+                      : "Sync now"}
+                  </button>
+                </SyncButtonWrapper>
+                <KebabMenu
+                  items={[
+                    {
+                      icon: Unplug,
+                      label: "Disconnect LinkedIn",
+                      danger: true,
+                      onClick: () => void handleDisconnect(),
+                    },
+                  ]}
+                />
+              </>
             ) : (
               <button
                 onClick={openModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"
               >
                 <Link2 className="w-3.5 h-3.5" />
                 Connect
@@ -160,13 +183,6 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
             )}
           </div>
         </div>
-
-        {disconnectStatus === "error" && (
-          <p className="text-xs mt-3 flex items-center gap-1 text-red-500">
-            <AlertCircle className="w-3 h-3" />
-            Failed to disconnect. Please try again.
-          </p>
-        )}
       </div>
 
       {showModal && (
@@ -197,7 +213,7 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
               id="linkedin-pair-code"
               type="text"
               value={code}
-              onChange={handleCodeChange}
+              onChange={(e) => setCode(formatCode(e.target.value))}
               placeholder="PING-XXXXXX"
               className="w-full px-3 py-2 rounded-lg border border-stone-300 text-sm mb-4 font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-teal-400"
             />
@@ -206,12 +222,6 @@ export function LinkedInCard({ connected, fetchConnectionStatus }: LinkedInCardP
               <p className="text-xs mb-3 flex items-center gap-1 text-red-500">
                 <AlertCircle className="w-3 h-3" />
                 Invalid or expired code — check the extension and try again
-              </p>
-            )}
-
-            {status === "loading" && (
-              <p className="text-xs mb-3 flex items-center gap-1 text-stone-400">
-                Pairing...
               </p>
             )}
 

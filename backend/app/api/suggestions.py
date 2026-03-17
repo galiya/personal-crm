@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, get_extension_or_web_user
 from app.core.database import get_db
 from app.models.contact import Contact
 from app.models.follow_up import FollowUpSuggestion
@@ -56,6 +56,8 @@ async def _enrich_suggestions_with_contacts(
                 "avatar_url": contact.avatar_url,
                 "telegram_username": contact.telegram_username,
                 "twitter_handle": contact.twitter_handle,
+                "linkedin_profile_id": contact.linkedin_profile_id,
+                "linkedin_url": contact.linkedin_url,
                 "last_interaction_at": (
                     contact.last_interaction_at.isoformat()
                     if contact.last_interaction_at
@@ -77,7 +79,7 @@ async def _enrich_suggestions_with_contacts(
 @router.get("", response_model=Envelope[list[dict]])
 async def list_suggestions(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_extension_or_web_user),
 ) -> Envelope[list[dict]]:
     """List pending follow-up suggestions for the current user, with contact info."""
     result = await db.execute(
@@ -261,7 +263,7 @@ async def regenerate_suggestion(
     suggestion_id: uuid.UUID,
     body: RegenerateBody | None = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_extension_or_web_user),
 ) -> Envelope[RegenerateResult]:
     """Re-generate the AI-drafted message for an existing suggestion."""
     result = await db.execute(
