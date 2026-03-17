@@ -42,7 +42,7 @@ The colleague guard prevents false merges between coworkers. When two contacts s
 Candidates that score below the auto-merge threshold appear in the manual review queue. Each candidate pair is displayed as a **side-by-side comparison card** showing:
 
 - Names, emails, and phone numbers from both records.
-- Platform sources (Gmail, Telegram, Twitter).
+- Platform sources (Gmail, Telegram, Twitter, LinkedIn).
 - Company and title information.
 - Interaction history summaries.
 

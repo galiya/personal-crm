@@ -40,18 +40,25 @@ All endpoints except registration, login, and OAuth URL generation require authe
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/v1/contacts` | List contacts (paginated, searchable, filterable) |
+| GET | `/api/v1/contacts/ids` | Bulk contact IDs for select-all |
 | POST | `/api/v1/contacts` | Create a new contact |
-| GET | `/api/v1/contacts/tags` | Get all unique tags across contacts |
-| GET | `/api/v1/contacts/stats` | Get dashboard statistics |
+| POST | `/api/v1/contacts/bulk-update` | Bulk update tags, priority |
 | GET | `/api/v1/contacts/{id}` | Get contact detail |
 | PUT | `/api/v1/contacts/{id}` | Update a contact |
 | DELETE | `/api/v1/contacts/{id}` | Delete a contact |
-| GET | `/api/v1/contacts/{id}/duplicates` | Find potential duplicate contacts |
-| POST | `/api/v1/contacts/{id}/merge/{other_id}` | Merge two contacts |
-| POST | `/api/v1/contacts/{id}/refresh-bios` | Refresh social bios for a contact |
-| POST | `/api/v1/contacts/{id}/send-message` | Send a message to a contact (returns 429 on rate limit) |
+| GET | `/api/v1/contacts/{id}/enrich` | Enrich contact via Apollo |
+| POST | `/api/v1/contacts/{id}/send` | Send a message via channel (email, Telegram, Twitter, LinkedIn) |
 | POST | `/api/v1/contacts/import/csv` | Import contacts from a CSV file |
-| POST | `/api/v1/contacts/scores/recalculate` | Recalculate relationship scores for all contacts |
+| POST | `/api/v1/contacts/import/linkedin` | Import from LinkedIn CSV export |
+| POST | `/api/v1/contacts/import/linkedin/messages` | Import LinkedIn message export |
+| POST | `/api/v1/contacts/import/linkedin/backfill` | Backfill avatar + enrichment for LinkedIn contacts |
+| GET | `/api/v1/contacts/tags/taxonomy` | Get tag taxonomy structure |
+| POST | `/api/v1/contacts/tags/approve` | Approve draft tag taxonomy |
+| POST | `/api/v1/contacts/tags/auto-tag-all` | Auto-tag all contacts via LLM |
+| PUT | `/api/v1/contacts/tags/apply` | Apply taxonomy to contacts |
+| POST | `/api/v1/contacts/scan-duplicates` | Scan for duplicate contacts |
+| GET | `/api/v1/contacts/identity-matches` | List pending identity matches |
+| POST | `/api/v1/contacts/identity-matches/{id}/merge` | Merge matched contacts |
 
 ---
 
@@ -61,10 +68,10 @@ All sync endpoints return immediately. A notification is created upon completion
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/contacts/sync/google` | Sync Google Contacts |
-| POST | `/api/v1/contacts/sync/google-calendar` | Sync Google Calendar events |
+| POST | `/api/v1/contacts/sync/gmail` | Sync Gmail email threads |
 | POST | `/api/v1/contacts/sync/telegram` | Sync Telegram chats, groups, and bios |
-| POST | `/api/v1/contacts/sync/twitter` | Sync Twitter DMs, mentions, and bios |
+| POST | `/api/v1/contacts/sync/contacts-from-gmail` | Import from Google Contacts |
+| GET | `/api/v1/contacts/sync-progress` | Poll Telegram sync progress |
 
 ---
 
@@ -97,6 +104,7 @@ All sync endpoints return immediately. A notification is created upon completion
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/v1/suggestions` | List follow-up suggestions |
+| GET | `/api/v1/suggestions/digest` | Weekly digest of suggestions |
 | PUT | `/api/v1/suggestions/{id}` | Update suggestion status |
 | POST | `/api/v1/suggestions/generate` | Generate new follow-up suggestions |
 | POST | `/api/v1/suggestions/{id}/regenerate` | Regenerate the AI-drafted message for a suggestion |
@@ -107,10 +115,9 @@ All sync endpoints return immediately. A notification is created upon completion
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/identity/matches` | List potential identity matches |
+| GET | `/api/v1/identity/matches` | List potential identity matches with contact details |
 | POST | `/api/v1/identity/scan` | Trigger an identity resolution scan |
-| POST | `/api/v1/identity/matches/{id}/merge` | Merge a matched identity pair |
-| POST | `/api/v1/identity/matches/{id}/reject` | Reject a matched identity pair |
+| POST | `/api/v1/identity/matches/{id}/resolve` | Merge or dismiss a matched identity pair |
 
 ---
 
@@ -134,3 +141,38 @@ All sync endpoints return immediately. A notification is created upon completion
 | GET | `/api/v1/organizations/{id}` | Get organization detail |
 | PATCH | `/api/v1/organizations/{id}` | Update an organization |
 | DELETE | `/api/v1/organizations/{id}` | Delete an organization |
+
+---
+
+## LinkedIn (Extension)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/linkedin/push` | Push profiles and messages from the Chrome extension |
+
+---
+
+## Extension Pairing
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/extension/pair` | Submit a pairing code from the extension popup |
+| GET | `/api/v1/extension/pair` | Poll for token (unauthenticated, used by extension) |
+| DELETE | `/api/v1/extension/pair` | Disconnect the extension |
+
+---
+
+## Activity
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/activity/recent` | Recent interactions (last 7 days, deduped per contact) |
+
+---
+
+## Settings
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/settings/priority` | Get follow-up interval settings (high, medium, low) |
+| PUT | `/api/v1/settings/priority` | Update follow-up intervals (7-365 days) |

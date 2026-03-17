@@ -13,7 +13,7 @@ The top of the dashboard displays key metrics at a glance:
 
 - **Total Contacts** -- the number of contacts in your CRM.
 - **Pending Suggestions** -- follow-up suggestions awaiting your review.
-- **Identity Matches** -- cross-platform identity matches detected across Gmail, Telegram, and Twitter.
+- **Identity Matches** -- cross-platform identity matches detected across Gmail, Telegram, Twitter, and LinkedIn.
 
 ## Reach Out This Week
 
@@ -25,7 +25,7 @@ This section surfaces the top 3 contacts you should reach out to. Each entry inc
 
 ## Recent Activity
 
-A chronological feed of the latest interactions across all connected platforms. This includes sent and received emails, Telegram messages, Twitter DMs, manually logged notes, and meeting records.
+A chronological feed of the latest interactions across all connected platforms. This includes sent and received emails, Telegram messages, Twitter DMs, LinkedIn messages, manually logged notes, and meeting records.
 
 ## Relationship Health
 

@@ -14,7 +14,7 @@ const FEATURES = [
     ),
     title: "Multi-Platform Sync",
     description:
-      "Connect Gmail, Telegram, and Twitter/X. Every conversation, every DM, every thread — unified into one timeline per contact.",
+      "Connect Gmail, Telegram, Twitter/X, and LinkedIn. Every conversation, every DM, every thread — unified into one timeline per contact.",
   },
   {
     icon: (
@@ -59,7 +59,7 @@ const FEATURES = [
     ),
     title: "Identity Resolution",
     description:
-      "Automatically merges alex@startup.com, @alexbuilds on Twitter, and @alexr on Telegram into one unified profile.",
+      "Automatically merges alex@startup.com, @alexbuilds on Twitter, Alex R. on LinkedIn, and @alexr on Telegram into one unified profile.",
   },
   {
     icon: (
@@ -73,7 +73,7 @@ const FEATURES = [
     ),
     title: "Weekly Digest",
     description:
-      "Every week: 3\u20135 people worth reaching out to, and why. Bio changes, job moves, long silences — nothing slips through.",
+      "Every week: 3\u20135 people worth reaching out to, and why. Bio changes, job moves, long silences — nothing slips through. Need more? Ask Ping to surface additional contacts anytime.",
   },
 ];
 
@@ -81,10 +81,10 @@ const STEPS = [
   {
     number: "01",
     label: "Connect",
-    description: "Link your Gmail, Telegram, and Twitter accounts. Import contacts via CSV or Google Contacts.",
+    description: "Link your Gmail, Telegram, Twitter, and LinkedIn accounts. Import contacts via CSV or Google Contacts.",
     visual: (
       <div className="flex gap-3 items-center justify-center">
-        {["Gmail", "Telegram", "Twitter"].map((p) => (
+        {["Gmail", "Telegram", "Twitter", "LinkedIn"].map((p) => (
           <span
             key={p}
             className="px-3 py-1.5 rounded text-xs tracking-wider"
@@ -197,14 +197,16 @@ export default function LandingPage() {
             className="animate-fade-up delay-3 text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto mb-10"
             style={{ color: "var(--text-muted)", fontFamily: "'Newsreader', Georgia, serif" }}
           >
-            Ping watches your relationships across Gmail, Telegram, and Twitter — tells you{" "}
+            Ping watches your relationships across Gmail, Telegram, Twitter, and LinkedIn — tells you{" "}
             <em style={{ color: "var(--text)", fontStyle: "italic" }}>who&apos;s slipping away</em>, and{" "}
             <em style={{ color: "var(--text)", fontStyle: "italic" }}>writes the message</em> to bring them back.
           </p>
 
           <div className="animate-fade-up delay-4 flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
-              href="#waitlist"
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2.5 px-6 py-3 rounded-lg text-sm font-bold tracking-wide transition-all duration-200 hover:shadow-[0_0_24px_var(--accent-glow-strong)] hover:-translate-y-0.5"
               style={{
                 fontFamily: "'Space Mono', monospace",
@@ -213,15 +215,11 @@ export default function LandingPage() {
                 fontSize: "14px",
               }}
             >
-              Get Early Access
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <path d="M7 1v12M1 7l6 6 6-6" />
-              </svg>
+              <GitHubIcon size={18} />
+              Self-Host Now
             </a>
             <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#waitlist"
               className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm tracking-wide transition-all duration-200 hover:border-[var(--border-bright)] hover:-translate-y-0.5"
               style={{
                 fontFamily: "'Space Mono', monospace",
@@ -231,8 +229,7 @@ export default function LandingPage() {
                 fontSize: "14px",
               }}
             >
-              <GitHubIcon size={18} />
-              View on GitHub
+              Join Hosted Waitlist
             </a>
           </div>
 

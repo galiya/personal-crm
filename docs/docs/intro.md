@@ -17,10 +17,11 @@ Ping CRM is a single-player networking tool designed for professionals who want 
 ## Key Capabilities
 
 - **Contact Management** -- import from CSV, Google Contacts, or add manually. Full-text search across names, emails, bios, and message content.
-- **Multi-Platform Sync** -- Gmail threads, Telegram DMs, Twitter DMs and mentions are automatically imported as interactions.
+- **Multi-Platform Sync** -- Gmail threads, Telegram DMs, Twitter DMs and mentions, and LinkedIn messages are automatically imported as interactions.
 - **AI Follow-Up Suggestions** -- Claude analyzes your interaction patterns and generates contextual draft messages when it's time to reconnect.
-- **Identity Resolution** -- automatically detects when contacts across different platforms are the same person and merges them.
+- **Identity Resolution** -- automatically detects when contacts across different platforms (Gmail, Telegram, Twitter, LinkedIn) are the same person and merges them.
 - **Organization Tracking** -- group contacts by company, track relationship health per org.
+- **LinkedIn Extension** -- Chrome extension syncs LinkedIn messages and profiles via the Voyager API, with AI suggestion buttons injected into the LinkedIn composer.
 - **Bio Monitoring** -- detects Twitter and Telegram bio changes (job changes, milestones) and surfaces them as events.
 - **Relationship Scoring** -- automatic scoring based on interaction recency, frequency, and reciprocity.
 
@@ -31,7 +32,7 @@ Ping CRM is a single-player networking tool designed for professionals who want 
 | Backend | Python 3.12, FastAPI, SQLAlchemy 2.x (async) |
 | Database | PostgreSQL |
 | Task Queue | Redis + Celery |
-| AI | Anthropic Claude 3.5 Haiku |
+| AI | Anthropic Claude |
 | Frontend | Next.js 15, React 19, Tailwind CSS v4 |
 | Telegram | Telethon (MTProto) |
 | State Management | TanStack React Query v5 |

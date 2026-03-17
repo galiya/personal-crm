@@ -15,7 +15,7 @@ The `/contacts` page displays all contacts in a searchable, sortable, paginated 
 
 - **Full-text search** across contact names, emails, companies, and notes.
 - **Filter by tags** to narrow results to specific groups.
-- **Filter by source** (Gmail, Telegram, Twitter, CSV import, manual entry).
+- **Filter by source** (Gmail, Telegram, Twitter, LinkedIn, CSV import, manual entry).
 - **Filter by relationship score** range.
 - **Filter by priority level** (high, medium, low, archived).
 
@@ -74,6 +74,7 @@ Send messages directly from the contact detail page. Supported channels:
 - **Email** (via connected Gmail account)
 - **Telegram**
 - **Twitter DM**
+- **LinkedIn** (via Chrome extension)
 
 The composer uses AI to draft context-aware messages based on the contact's profile and interaction history.
 
@@ -84,7 +85,7 @@ A chronological timeline of all interactions with the contact, including:
 - Sent and received messages across all platforms.
 - Manually added notes.
 - Logged meetings.
-- Bio change events (detected from Twitter).
+- Bio change events (detected from Twitter and Telegram).
 
 Notes added manually can be edited or deleted directly from the timeline by hovering over the entry to reveal inline action buttons.
 
@@ -108,8 +109,11 @@ If the API returns a 429 (rate limit) response, the UI displays a countdown time
 
 ## Importing Contacts
 
-Three methods are available for adding contacts:
+Four methods are available for adding contacts:
 
 - **CSV Upload** -- bulk import from a CSV file with column mapping.
+- **LinkedIn CSV Import** -- upload `Connections.csv` from LinkedIn's data export.
 - **Google Contacts Sync** -- import contacts from your connected Google account.
 - **Manual Entry** -- add contacts one at a time through the UI.
+
+Additionally, the LinkedIn Chrome extension automatically creates contacts from your LinkedIn conversations during message sync.

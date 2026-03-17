@@ -27,6 +27,7 @@ const sidebars: SidebarsConfig = {
         'features/gmail',
         'features/telegram',
         'features/twitter',
+        'features/linkedin',
       ],
     },
     'api-reference',

@@ -46,7 +46,7 @@ The FastAPI application lives under `backend/app/` and follows a layered structu
 backend/app/
 ├── main.py              # FastAPI app factory, CORS, router mounting
 ├── api/                 # Route handlers (REST endpoints)
-│   ├── contacts.py      # CRUD, CSV import, merge, search
+│   ├── contacts_routes/ # Contacts: CRUD, imports, sync, taxonomy, messaging
 │   ├── interactions.py  # Interaction timeline
 │   ├── suggestions.py   # Follow-up suggestions, snooze, dismiss
 │   ├── identity.py      # Identity resolution scan, review, merge
@@ -55,6 +55,9 @@ backend/app/
 │   ├── auth.py          # Login, register, OAuth callbacks
 │   ├── telegram.py      # Connect, sync, send messages
 │   ├── twitter.py       # OAuth PKCE flow, polling
+│   ├── linkedin.py      # Extension data push (profiles + messages)
+│   ├── extension.py     # Chrome extension pairing
+│   ├── activity.py      # Recent activity feed
 │   └── settings.py      # User preferences
 ├── models/              # SQLAlchemy 2.x async ORM models
 ├── schemas/             # Pydantic request/response schemas
@@ -148,7 +151,7 @@ PostgreSQL with UUID primary keys throughout. Key models and their relationships
 
 **Contact** -- `full_name`, `emails[]` (PostgreSQL ARRAY with GIN index), `phones[]`, `company`, `organization_id`, `twitter_handle`, `twitter_bio`, `telegram_username`, `telegram_bio`, `linkedin_url`, `relationship_score` (0-10), `interaction_count`, `priority_level` (high/medium/low/archived), `tags[]`, `last_interaction_at`, `last_followup_at`, `birthday`.
 
-**Interaction** -- `contact_id`, `platform` (email/telegram/twitter), `direction` (inbound/outbound), `content_preview`, `occurred_at`.
+**Interaction** -- `contact_id`, `platform` (email/telegram/twitter/linkedin), `direction` (inbound/outbound), `content_preview`, `occurred_at`.
 
 **FollowUpSuggestion** -- `contact_id`, `trigger_type` (time_based/event_based/scheduled/birthday/dormant_*), `suggested_message`, `suggested_channel`, `status` (pending/snoozed/dismissed/completed), `pool` (A/B), `snooze_until`.
 
@@ -184,6 +187,8 @@ Celery with Redis as both broker and result backend. Tasks use JSON serializatio
 | `refresh_org_stats` | Hourly (:30) | Refresh `organization_stats_mv` materialized view |
 | `reactivate_snoozed_suggestions` | Hourly (:00) | Un-snooze suggestions past their `snooze_until` |
 | `send_weekly_digests` | Monday 09:00 UTC | Email weekly networking digest |
+| `recheck_telegram_bios` | Every 3 days | Re-check Telegram bios for changes |
+| `cleanup_stale_telegram_locks` | Hourly (:15) | Remove stale Telegram rate-limit locks |
 
 ### Task Safety
 
@@ -201,7 +206,7 @@ def sync_gmail_all() -> dict:
 
 ## AI Pipeline
 
-All AI features use the Anthropic Claude API (currently `claude-sonnet-4-20250514`).
+All AI features use the Anthropic Claude API.
 
 ### Event Classification
 
@@ -430,3 +435,4 @@ A class-based error boundary (`error.tsx`, `global-error.tsx`) wraps the applica
 | `useDashboard` | Dashboard stats and activity data |
 | `useNotifications` | Notification feed with unread count |
 | `useIdentity` | Identity match review and resolution |
+| `useTelegramSync` | Monitor Telegram sync progress |

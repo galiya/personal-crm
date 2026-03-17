@@ -26,11 +26,27 @@ The **Settings** page (`/settings`) manages platform connections, data imports, 
 - **OAuth Connect / Disconnect** -- initiates or revokes the Twitter OAuth 2.0 PKCE flow.
 - **Sync DMs and Mentions** -- imports direct message conversations and @mention interactions.
 
+## LinkedIn (Chrome Extension)
+
+- **Connect via pairing code** -- install the Chrome extension, generate a code in its popup, and enter it in Settings to pair.
+- **Connected status** -- shows extension connection status and sync statistics (profiles synced, messages synced, last sync time).
+- **Disconnect** -- revokes the extension token and clears pairing state.
+
+See [LinkedIn Integration](./linkedin.md) for full details on the extension, Voyager sync, and suggestion buttons.
+
 ## CSV Import
 
 - **Drag-and-drop upload** -- drop a CSV file onto the import area or click to browse.
 - **LinkedIn CSV import** -- supports the export format from LinkedIn's "Download your data" feature. Columns are mapped automatically to Ping CRM contact fields.
 - Imported contacts appear in the contacts list immediately and are eligible for identity resolution matching.
+
+## Follow-up Rules
+
+Configure the follow-up intervals per priority level. These control how often the suggestion engine recommends reaching out to contacts at each priority tier (default: high=30 days, medium=60 days, low=180 days). Values can range from 7 to 365 days.
+
+## Tags
+
+Manage the tag taxonomy used for organizing contacts. Tags can be generated automatically via LLM or applied manually. The taxonomy supports hierarchical categories.
 
 ## Connection Status Badges
 
