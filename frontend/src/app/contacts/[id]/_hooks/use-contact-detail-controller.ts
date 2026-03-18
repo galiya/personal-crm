@@ -31,6 +31,7 @@ export function useContactDetailController(id: string) {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
   const [isAutoTagging, setIsAutoTagging] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -211,6 +212,31 @@ export function useContactDetailController(id: string) {
     }
   };
 
+  const handleExtractBio = async () => {
+    if (!id || isExtracting) return;
+    setIsExtracting(true);
+    setToast(null);
+    try {
+      const res = await client.POST("/api/v1/contacts/{contact_id}/extract-bio" as any, {
+        params: { path: { contact_id: id } },
+      });
+      const data = (res.data as any)?.data;
+      const fields: string[] = data?.fields_updated ?? [];
+      setToast({
+        type: "success",
+        text: fields.length > 0 ? `Updated: ${fields.join(", ")}` : "No new data extracted",
+      });
+      void queryClient.invalidateQueries({ queryKey: ["contacts", id] });
+      void queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    } catch (err: any) {
+      const detail = (err as any)?.detail;
+      setToast({ type: "error", text: detail || err?.message || "Bio extraction failed" });
+    } finally {
+      setIsExtracting(false);
+      setTimeout(() => setToast(null), 5000);
+    }
+  };
+
   const handleAutoTag = async () => {
     if (!id || isAutoTagging) return;
     setIsAutoTagging(true);
@@ -269,11 +295,13 @@ export function useContactDetailController(id: string) {
     isError,
     isRefreshing,
     isEnriching,
+    isExtracting,
     isAutoTagging,
     toast,
     setToast,
     handleRefreshDetails,
     handleEnrich,
+    handleExtractBio,
     handleAutoTag,
     handleDelete,
     addNoteMutation,

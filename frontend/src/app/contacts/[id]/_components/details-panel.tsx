@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Building2, Check, Pencil, Plus } from "lucide-react";
+import { Building2, Check, Pencil, Plus, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { InlineListField } from "@/components/inline-list-field";
@@ -335,14 +335,39 @@ export function DetailsPanel({
   contact,
   onSaveField,
   onLinkOrg,
+  onExtractBio,
+  isExtracting,
 }: {
   contact: Contact;
   onSaveField: (field: string, value: string | string[]) => void;
   onLinkOrg: (orgId: string, orgName: string) => void;
+  onExtractBio?: () => void;
+  isExtracting?: boolean;
 }) {
+  const hasBios = Boolean(
+    contact.twitter_bio || contact.telegram_bio || contact.full_name
+  );
+
   return (
     <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-5">
-      <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-4">Contact Details</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Contact Details</h3>
+        {hasBios && onExtractBio && (
+          <button
+            onClick={onExtractBio}
+            disabled={isExtracting}
+            title="Extract details from bios"
+            className={cn(
+              "p-1.5 rounded-lg transition-all",
+              isExtracting
+                ? "text-amber-500 animate-pulse"
+                : "text-stone-400 dark:text-stone-500 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950"
+            )}
+          >
+            <Wand2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
       <div className="space-y-0.5">
         <InlineField
           label="First name"

@@ -82,6 +82,7 @@ def test_contacts_route_inventory() -> None:
             ("POST",   "/api/v1/contacts/{contact_id}/dismiss-duplicate/{other_id}"),
             ("GET",    "/api/v1/contacts/{contact_id}/duplicates"),
             ("POST",   "/api/v1/contacts/{contact_id}/enrich"),
+            ("POST",   "/api/v1/contacts/{contact_id}/extract-bio"),
             ("GET",    "/api/v1/contacts/{contact_id}/interactions"),
             ("POST",   "/api/v1/contacts/{contact_id}/interactions"),
             ("DELETE", "/api/v1/contacts/{contact_id}/interactions/{interaction_id}"),

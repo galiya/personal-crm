@@ -199,6 +199,8 @@ export default function ContactDetailPage() {
               contact={contact}
               onSaveField={saveField}
               onLinkOrg={handleLinkOrg}
+              onExtractBio={ctrl.handleExtractBio}
+              isExtracting={ctrl.isExtracting}
             />
 
             {/* Relationship Health */}

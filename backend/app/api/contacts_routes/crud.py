@@ -455,3 +455,107 @@ async def enrich_contact(
         await db.refresh(contact)
 
     return envelope({"fields_updated": fields_updated, "source": "apollo"})
+
+
+@router.post("/{contact_id}/extract-bio", response_model=Envelope[EnrichData])
+async def extract_bio(
+    contact_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Envelope[EnrichData]:
+    """Extract structured data from contact bios using AI.
+
+    Parses twitter_bio, telegram_bio, linkedin_bio/headline and the contact's
+    name fields through Haiku to extract title, company, website, and
+    normalize name fields (e.g. "Anders | LoopFi" -> first: Anders, company: LoopFi).
+    Also updates the linked Organization record with extracted company details.
+    """
+    result = await db.execute(
+        select(Contact).where(Contact.id == contact_id, Contact.user_id == current_user.id)
+    )
+    contact = result.scalar_one_or_none()
+    if not contact:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
+
+    has_bios = any([
+        contact.twitter_bio, contact.telegram_bio,
+        contact.linkedin_bio, contact.linkedin_headline,
+    ])
+    if not has_bios and not contact.full_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Contact has no bios or name to extract from.",
+        )
+
+    from app.services.bio_extractor import extract_from_bios
+
+    extracted = await extract_from_bios(
+        full_name=contact.full_name,
+        given_name=contact.given_name,
+        family_name=contact.family_name,
+        title=contact.title,
+        company=contact.company,
+        twitter_bio=contact.twitter_bio,
+        telegram_bio=contact.telegram_bio,
+        linkedin_bio=contact.linkedin_bio,
+        linkedin_headline=contact.linkedin_headline,
+    )
+
+    if not extracted:
+        return envelope({"fields_updated": [], "source": "ai_bio"})
+
+    # Apply contact-level fields (only if currently empty OR if name was normalized)
+    fields_updated: list[str] = []
+    contact_fields = ["given_name", "family_name", "title", "company"]
+    for field in contact_fields:
+        new_val = extracted.get(field)
+        if not new_val:
+            continue
+        old_val = getattr(contact, field, None) or ""
+        # Always apply name fields (normalization), others only if empty
+        if field in ("given_name", "family_name") or not old_val:
+            if new_val != old_val:
+                setattr(contact, field, new_val)
+                fields_updated.append(field)
+
+    # Update full_name if name fields changed
+    if "given_name" in fields_updated or "family_name" in fields_updated:
+        new_full = " ".join(
+            filter(None, [contact.given_name, contact.family_name])
+        ) or contact.full_name
+        if new_full != contact.full_name:
+            contact.full_name = new_full
+            if "full_name" not in fields_updated:
+                fields_updated.append("full_name")
+
+    # Update or create Organization with extracted company details
+    if extracted.get("company"):
+        from app.services.organization_service import auto_create_organization
+
+        org = await auto_create_organization(contact, current_user.id, db)
+        if org:
+            org_updated = False
+            if extracted.get("company_website") and not org.website:
+                org.website = extracted["company_website"]
+                org_updated = True
+                fields_updated.append("company_website")
+            if extracted.get("company_industry") and not org.industry:
+                org.industry = extracted["company_industry"]
+                org_updated = True
+                fields_updated.append("company_industry")
+            if extracted.get("company_location") and not org.location:
+                org.location = extracted["company_location"]
+                org_updated = True
+                fields_updated.append("company_location")
+            # Download logo if we got a website and org has no logo yet
+            if org_updated and org.website and not org.logo_url:
+                from app.services.organization_service import download_org_logo
+                logo_url = await download_org_logo(org.website, org.id)
+                if logo_url:
+                    org.logo_url = logo_url
+
+    if fields_updated:
+        await db.flush()
+        await db.refresh(contact)
+
+    return envelope({"fields_updated": fields_updated, "source": "ai_bio"})
