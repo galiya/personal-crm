@@ -346,11 +346,17 @@ async def fetch_dm_conversations(headers: dict[str, str]) -> list[dict[str, Any]
                 headers=headers,
                 params=params,
             )
-            body = resp.json()
             if resp.status_code != 200:
+                body = resp.json()
                 error_detail = body.get("detail") or body.get("title") or str(body)
                 logger.warning("fetch_dm_conversations: HTTP %s — %s", resp.status_code, error_detail)
-                raise RuntimeError(f"Twitter DM API error ({resp.status_code}): {error_detail}")
+                # Raise HTTPStatusError so the task's 401 handler can catch and refresh
+                raise httpx.HTTPStatusError(
+                    message=f"Twitter DM API error ({resp.status_code}): {error_detail}",
+                    request=resp.request,
+                    response=resp,
+                )
+            body = resp.json()
 
             events = body.get("data", [])
             all_events.extend(events)
