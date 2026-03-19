@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Archive,
+  ArchiveRestore,
   MessageCircle,
   MoreVertical,
   Pencil,
@@ -255,14 +256,24 @@ export function HeaderCard({
             ))}
           </div>
 
-          {/* Archive */}
-          <button
-            onClick={onArchive}
-            className="p-2 rounded-lg text-stone-400 dark:text-stone-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950 transition-colors"
-            title="Archive contact"
-          >
-            <Archive className="w-4 h-4" />
-          </button>
+          {/* Archive / Unarchive */}
+          {contact.priority_level === "archived" ? (
+            <button
+              onClick={onArchive}
+              className="p-2 rounded-lg text-amber-500 bg-amber-50 dark:bg-amber-950 hover:text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors"
+              title="Unarchive contact"
+            >
+              <ArchiveRestore className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={onArchive}
+              className="p-2 rounded-lg text-stone-400 dark:text-stone-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950 transition-colors"
+              title="Archive contact"
+            >
+              <Archive className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Kebab menu */}
           <div className="relative" ref={menuRef}>

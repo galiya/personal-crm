@@ -97,8 +97,12 @@ export default function ContactDetailPage() {
   };
 
   const handleArchive = () => {
-    ctrl.updateContact.mutate({ id, input: { priority_level: "archived" } });
-    router.back();
+    if (contact.priority_level === "archived") {
+      ctrl.updateContact.mutate({ id, input: { priority_level: "normal" } });
+    } else {
+      ctrl.updateContact.mutate({ id, input: { priority_level: "archived" } });
+      router.back();
+    }
   };
 
   return (
