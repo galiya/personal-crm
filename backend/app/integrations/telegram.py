@@ -1158,16 +1158,16 @@ async def sync_telegram_group_members(user: User, db: AsyncSession) -> dict[str,
 
 async def fetch_common_groups(
     user: User, telegram_username: str | None = None, telegram_user_id: str | None = None,
-) -> list[dict[str, Any]]:
+) -> tuple[list[dict[str, Any]], str | None]:
     """Return groups/channels in common between *user* and a target.
 
     The target can be identified by *telegram_username* or *telegram_user_id*.
-    Each element is a dict with ``id``, ``title``, and ``participants_count``.
+    Returns a tuple of (groups_list, resolved_user_id).
     """
     if not user.telegram_session:
-        return []
+        return [], None
     if not telegram_username and not telegram_user_id:
-        return []
+        return [], None
 
     from telethon.tl.functions.messages import GetCommonChatsRequest
 
@@ -1181,11 +1181,15 @@ async def fetch_common_groups(
         if telegram_user_id:
             target = await client.get_input_entity(int(telegram_user_id))
         elif telegram_username:
-            target = await client.get_input_entity(telegram_username)
-            # Cache the resolved numeric ID for future calls
-            resolved_user_id = str(getattr(target, "user_id", None) or "")
+            # get_entity does a full ResolveUsername — more reliable than
+            # get_input_entity which may fail on usernames not in the
+            # StringSession's entity cache.
+            handle = telegram_username.lstrip("@")
+            entity = await client.get_entity(handle)
+            target = InputPeerUser(entity.id, entity.access_hash or 0)
+            resolved_user_id = str(entity.id)
         else:
-            return []
+            return [], None
         result = await client(GetCommonChatsRequest(
             user_id=target,
             max_id=0,
@@ -1203,6 +1207,13 @@ async def fetch_common_groups(
                 "participants_count": getattr(chat, "participants_count", None),
             })
         return groups, resolved_user_id
+    except FloodWaitError as e:
+        logger.warning(
+            "fetch_common_groups: FloodWait %ds for user %s / @%s",
+            e.seconds, user.id, telegram_username,
+        )
+        await _set_rate_gate(str(user.id), e.seconds)
+        return [], None
     except Exception as exc:
         logger.exception(
             "fetch_common_groups: failed for user %s / @%s: %s",
