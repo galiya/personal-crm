@@ -214,6 +214,15 @@ export default function ContactDetailPage() {
 
             {/* Sidebar content — collapsed on mobile by default */}
             <div className={cn("space-y-4", !sidebarOpen && "hidden lg:block")}>
+              {/* Contact Details */}
+              <DetailsPanel
+                contact={contact}
+                onSaveField={saveField}
+                onLinkOrg={handleLinkOrg}
+                onExtractBio={ctrl.handleExtractBio}
+                isExtracting={ctrl.isExtracting}
+              />
+
               {/* Relationship Health */}
               {ctrl.activityLoading ? (
                 <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-700 p-5 animate-pulse">
@@ -227,15 +236,6 @@ export default function ContactDetailPage() {
               ) : ctrl.activityData ? (
                 <RelationshipHealth activityData={ctrl.activityData} contact={contact} />
               ) : null}
-
-              {/* Contact Details */}
-              <DetailsPanel
-                contact={contact}
-                onSaveField={saveField}
-                onLinkOrg={handleLinkOrg}
-                onExtractBio={ctrl.handleExtractBio}
-                isExtracting={ctrl.isExtracting}
-              />
 
               {/* Common Telegram Groups */}
               <CommonGroupsCard
