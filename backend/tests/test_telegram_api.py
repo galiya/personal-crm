@@ -254,8 +254,8 @@ async def test_sync_telegram_dispatches_task(
     token = create_access_token(data={"sub": str(test_user.id)})
     headers = {"Authorization": f"Bearer {token}"}
 
-    with patch("app.services.tasks.sync_telegram_for_user") as mock_task:
-        mock_task.return_value = None
+    with patch("app.services.tasks.sync_telegram_chats_for_user") as mock_task:
+        mock_task.delay.return_value = None
         response = await client.post(
             "/api/v1/contacts/sync/telegram",
             headers=headers,
@@ -265,7 +265,7 @@ async def test_sync_telegram_dispatches_task(
     body = response.json()
     assert body["error"] is None
     assert body["data"]["status"] == "started"
-    mock_task.assert_called_once_with(str(test_user.id))
+    mock_task.delay.assert_called_once_with(str(test_user.id), 100, "")
 
 
 @pytest.mark.asyncio
@@ -433,7 +433,7 @@ async def test_sync_telegram_dispatches_even_with_valid_session(
     token = create_access_token(data={"sub": str(test_user.id)})
     headers = {"Authorization": f"Bearer {token}"}
 
-    with patch("app.services.tasks.sync_telegram_for_user") as mock_task:
+    with patch("app.services.tasks.sync_telegram_chats_for_user") as mock_task:
         mock_task.delay.return_value = None
         response = await client.post(
             "/api/v1/contacts/sync/telegram",

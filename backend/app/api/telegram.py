@@ -233,9 +233,8 @@ async def sync_telegram(
             detail="Telegram account not connected. Use /api/v1/auth/telegram/connect first.",
         )
 
-    import asyncio
-    from app.services.tasks import sync_telegram_for_user
-    asyncio.get_event_loop().run_in_executor(None, sync_telegram_for_user, str(current_user.id))
+    from app.services.tasks import sync_telegram_chats_for_user
+    sync_telegram_chats_for_user.delay(str(current_user.id), 100, "")
 
     return {"data": {"status": "started"}, "error": None}
 
