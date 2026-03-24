@@ -292,6 +292,7 @@ class UserWithAccountsData(BaseModel):
     id: uuid.UUID
     email: str
     full_name: str | None = None
+    avatar_url: str | None = None
     created_at: datetime
     google_connected: bool = False
     google_email: str | None = None
