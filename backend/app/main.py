@@ -33,6 +33,29 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
+async def seed_admin_user() -> None:
+    """Create the admin user on startup if ADMIN_EMAIL and ADMIN_PASSWORD are set."""
+    if not settings.ADMIN_EMAIL or not settings.ADMIN_PASSWORD:
+        return
+    from sqlalchemy import select
+    from app.core.auth import hash_password
+    from app.core.database import AsyncSessionLocal
+    from app.models.user import User
+
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(User).where(User.email == settings.ADMIN_EMAIL))
+        if result.scalar_one_or_none() is not None:
+            return
+        user = User(
+            email=settings.ADMIN_EMAIL,
+            hashed_password=hash_password(settings.ADMIN_PASSWORD),
+            full_name=settings.ADMIN_NAME,
+        )
+        db.add(user)
+        await db.commit()
+        logger.info("Admin user created: %s", settings.ADMIN_EMAIL)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if (
@@ -56,6 +79,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 "ENCRYPTION_KEY is not set. Encrypted fields will not work. "
                 "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
             )
+    await seed_admin_user()
     logger.info("PingCRM API starting up...")
     yield
     logger.info("PingCRM API shutting down.")
