@@ -18,6 +18,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     full_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
     google_refresh_token: Mapped[str | None] = mapped_column(EncryptedString, nullable=True)
     twitter_access_token: Mapped[str | None] = mapped_column(EncryptedString, nullable=True)
     twitter_refresh_token: Mapped[str | None] = mapped_column(EncryptedString, nullable=True)

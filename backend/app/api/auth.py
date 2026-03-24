@@ -1,7 +1,9 @@
 import logging
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from fastapi.security import OAuth2PasswordRequestForm
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
@@ -131,6 +133,38 @@ async def update_me(
 ) -> Envelope[UserResponse]:
     if update.full_name is not None:
         current_user.full_name = update.full_name
+    await db.flush()
+    await db.refresh(current_user)
+    return {"data": UserResponse.from_user(current_user).model_dump(), "error": None}
+
+
+_ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+_MAX_AVATAR_BYTES = 5 * 1024 * 1024  # 5 MB
+
+
+@router.post("/me/avatar", response_model=Envelope[UserResponse])
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Envelope[UserResponse]:
+    if file.content_type not in _ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="Unsupported image type")
+
+    data = await file.read()
+    if len(data) > _MAX_AVATAR_BYTES:
+        raise HTTPException(status_code=400, detail="Image exceeds 5 MB limit")
+
+    ext = (file.filename or "").rsplit(".", 1)[-1].lower() or "jpg"
+    if ext not in {"jpg", "jpeg", "png", "webp", "gif"}:
+        ext = "jpg"
+
+    avatars_dir = Path(__file__).resolve().parent.parent.parent / "static" / "avatars"
+    avatars_dir.mkdir(parents=True, exist_ok=True)
+    dest = avatars_dir / f"user_{current_user.id}.{ext}"
+    dest.write_bytes(data)
+
+    current_user.avatar_url = f"/static/avatars/user_{current_user.id}.{ext}"
     await db.flush()
     await db.refresh(current_user)
     return {"data": UserResponse.from_user(current_user).model_dump(), "error": None}
