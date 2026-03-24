@@ -43,27 +43,41 @@ async def _pop_google_state(state: str) -> str | None:
     return val  # None if not found/expired
 
 
-@router.post("/register", response_model=Envelope[UserResponse], status_code=status.HTTP_201_CREATED)
-async def register(
-    user_in: UserCreate,
-    db: AsyncSession = Depends(get_db),
-) -> Envelope[UserResponse]:
-    result = await db.execute(select(User).where(User.email == user_in.email))
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
-        )
-
-    user = User(
-        email=user_in.email,
-        hashed_password=hash_password(user_in.password),
-        full_name=user_in.full_name,
+@router.post("/register", status_code=status.HTTP_410_GONE)
+async def register() -> dict:
+    """Registration is disabled — this is a single-user self-hosted instance."""
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="Registration is disabled. This is a single-user instance.",
     )
-    db.add(user)
-    await db.flush()
-    await db.refresh(user)
-    return {"data": UserResponse.model_validate(user).model_dump(), "error": None}
+
+
+async def seed_admin_user(db: AsyncSession) -> None:
+    """Upsert the admin user from ADMIN_EMAIL / ADMIN_PASSWORD env vars on startup."""
+    if not settings.ADMIN_EMAIL or not settings.ADMIN_PASSWORD:
+        logger.warning(
+            "ADMIN_EMAIL or ADMIN_PASSWORD not set — skipping admin seed. "
+            "Set both in .env to auto-create the admin account."
+        )
+        return
+
+    result = await db.execute(select(User).where(User.email == settings.ADMIN_EMAIL))
+    user = result.scalar_one_or_none()
+    if user is None:
+        user = User(
+            email=settings.ADMIN_EMAIL,
+            hashed_password=hash_password(settings.ADMIN_PASSWORD),
+            full_name=settings.ADMIN_NAME or "Admin",
+        )
+        db.add(user)
+        await db.flush()
+        logger.info("Admin user created: %s", settings.ADMIN_EMAIL)
+    else:
+        # Update password in case it changed in .env
+        user.hashed_password = hash_password(settings.ADMIN_PASSWORD)
+        if settings.ADMIN_NAME:
+            user.full_name = settings.ADMIN_NAME
+        logger.info("Admin user already exists, password refreshed: %s", settings.ADMIN_EMAIL)
 
 
 @router.post("/login", response_model=Envelope[TokenData])

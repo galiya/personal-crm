@@ -14,7 +14,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.config import settings
 from app.core.logging_config import setup_logging
 from app.core.middleware import RequestCorrelationMiddleware
-from app.api.auth import router as auth_router
+from app.api.auth import router as auth_router, seed_admin_user
 from app.api.contacts import router as contacts_router
 from app.api.identity import router as identity_router
 from app.api.interactions import router as interactions_router
@@ -57,6 +57,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
             )
     logger.info("PingCRM API starting up...")
+    from app.core.database import AsyncSessionLocal
+    async with AsyncSessionLocal() as db:
+        async with db.begin():
+            await seed_admin_user(db)
     yield
     logger.info("PingCRM API shutting down.")
 
