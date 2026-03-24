@@ -43,7 +43,7 @@ export function AccountTab() {
   const uploadAvatar = async (file: File) => {
     setUploadingAvatar(true);
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
       const form = new FormData();
       form.append("file", file);
       const res = await fetch(`${BACKEND}/api/v1/auth/me/avatar`, {
