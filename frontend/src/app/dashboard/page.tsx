@@ -31,6 +31,7 @@ import {
   type OverdueContact,
   type ActivityEvent,
 } from "@/hooks/use-dashboard";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 type Channel = "email" | "telegram" | "twitter";
 
@@ -350,6 +351,13 @@ function OverdueRow({ contact }: { contact: OverdueContact }) {
 export default function DashboardPage() {
   const { suggestions, stats, overdueContacts, recentActivity, isLoading } =
     useDashboardStats();
+  const currentUser = useCurrentUser();
+
+  const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const firstName = currentUser?.full_name?.split(" ")[0] ?? null;
+  const initials = currentUser?.full_name
+    ? currentUser.full_name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
+    : currentUser?.email?.[0]?.toUpperCase() ?? "?";
 
   const pendingSuggestions = suggestions
     .filter((s) => s.status === "pending")
@@ -361,9 +369,12 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950 overflow-x-hidden">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-display font-bold text-stone-900 dark:text-stone-100">Dashboard</h1>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-stone-900 dark:text-stone-100">
+              {firstName ? `Welcome back, ${firstName}!` : "Dashboard"}
+            </h1>
+            <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
             {pendingSuggestions.length > 0 || overdueContacts.length > 0 ? (
               <>
                 You have{" "}
@@ -384,6 +395,24 @@ export default function DashboardPage() {
               "Your networking overview"
             )}
           </p>
+          </div>
+          {/* User avatar */}
+          {currentUser && (
+            <div className="shrink-0">
+              {currentUser.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={BACKEND + currentUser.avatar_url}
+                  alt={currentUser.full_name ?? "Avatar"}
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-white dark:ring-stone-800 shadow-sm"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 flex items-center justify-center text-sm font-bold ring-2 ring-white dark:ring-stone-800 shadow-sm">
+                  {initials}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Empty state */}
