@@ -21,6 +21,7 @@ class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
     full_name: str | None = None
+    avatar_url: str | None = None
     created_at: datetime
     google_connected: bool = False
     google_email: str | None = None
@@ -41,6 +42,7 @@ class UserResponse(BaseModel):
             id=user.id,
             email=user.email,
             full_name=user.full_name,
+            avatar_url=getattr(user, "avatar_url", None),
             created_at=user.created_at,
             google_connected=bool(user.google_refresh_token),
             google_email=user.email if user.google_refresh_token else None,

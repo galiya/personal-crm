@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AlertTriangle, Camera, Download, Trash2 } from "lucide-react";
 import { client } from "@/lib/api-client";
 
 export function AccountTab() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   // Load profile
   useEffect(() => {
@@ -18,6 +23,7 @@ export function AccountTab() {
         if (user) {
           setDisplayName(user.full_name || "");
           setEmail(user.email || "");
+          if (user.avatar_url) setAvatarUrl(BACKEND + user.avatar_url);
         }
       } catch {
         // ignore
@@ -31,6 +37,27 @@ export function AccountTab() {
       await client.PATCH("/api/v1/auth/me", { body: { full_name: displayName } });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const uploadAvatar = async (file: File) => {
+    setUploadingAvatar(true);
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(`${BACKEND}/api/v1/auth/me/avatar`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const url = json?.data?.avatar_url;
+        if (url) setAvatarUrl(BACKEND + url);
+      }
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -53,13 +80,40 @@ export function AccountTab() {
         </p>
 
         <div className="flex items-start gap-5 mb-6">
-          <div className="relative group/avatar shrink-0">
-            <div className="w-16 h-16 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xl font-bold">
-              {initials}
+          <div
+            className="relative group/avatar shrink-0 cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt="Avatar"
+                className="w-16 h-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xl font-bold">
+                {initials}
+              </div>
+            )}
+            <div className="absolute inset-0 w-16 h-16 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+              {uploadingAvatar ? (
+                <span className="text-white text-xs">…</span>
+              ) : (
+                <Camera className="w-4 h-4 text-white" />
+              )}
             </div>
-            <div className="absolute inset-0 w-16 h-16 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer">
-              <Camera className="w-4 h-4 text-white" />
-            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadAvatar(f);
+                e.target.value = "";
+              }}
+            />
           </div>
           <div className="flex-1 space-y-3">
             <div>
