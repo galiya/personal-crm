@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
     CHROME_EXTENSION_ID: str = ""
 
+    ADMIN_EMAIL: str = ""
+    ADMIN_PASSWORD: str = ""
+    ADMIN_NAME: str = "Admin"
+
     class Config:
         env_file = ".env"
 
