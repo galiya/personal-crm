@@ -7,6 +7,7 @@ import { client } from "@/lib/api-client";
 export function AccountTab() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Load profile
   useEffect(() => {
@@ -15,7 +16,7 @@ export function AccountTab() {
         const result = await client.GET("/api/v1/auth/me", {});
         const user = (result.data as any)?.data;
         if (user) {
-          setDisplayName(user.display_name || user.email || "");
+          setDisplayName(user.full_name || "");
           setEmail(user.email || "");
         }
       } catch {
@@ -23,6 +24,15 @@ export function AccountTab() {
       }
     })();
   }, []);
+
+  const saveProfile = async () => {
+    setSaving(true);
+    try {
+      await client.PATCH("/api/v1/auth/me", { body: { full_name: displayName } });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const initials = displayName
     ? displayName
@@ -76,8 +86,12 @@ export function AccountTab() {
         </div>
 
         <div className="flex justify-end pt-4 border-t border-stone-100 dark:border-stone-800">
-          <button className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm">
-            Save profile
+          <button
+            onClick={saveProfile}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save profile"}
           </button>
         </div>
       </div>

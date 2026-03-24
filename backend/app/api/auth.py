@@ -88,6 +88,22 @@ async def login(
     return Envelope(data=TokenData(access_token=access_token, token_type="bearer"))
 
 
+class UserUpdate(BaseModel):
+    full_name: str | None = None
+
+
+@router.patch("/me", response_model=Envelope[UserResponse])
+async def update_me(
+    user_in: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Envelope[UserResponse]:
+    if user_in.full_name is not None:
+        current_user.full_name = user_in.full_name
+        await db.flush()
+    return {"data": UserResponse.from_user(current_user).model_dump(), "error": None}
+
+
 @router.get("/me", response_model=Envelope[UserWithAccountsData])
 async def me(
     current_user: User = Depends(get_current_user),
