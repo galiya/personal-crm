@@ -23,7 +23,7 @@ from app.schemas.responses import (
     TokenData,
     UserWithAccountsData,
 )
-from app.schemas.user import Token, UserCreate, UserResponse
+from app.schemas.user import Token, UserCreate, UserResponse, UserUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +121,19 @@ async def me(
     user_data = UserResponse.from_user(current_user).model_dump()
     user_data["google_accounts"] = google_accounts
     return {"data": user_data, "error": None}
+
+
+@router.patch("/me", response_model=Envelope[UserResponse])
+async def update_me(
+    update: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Envelope[UserResponse]:
+    if update.full_name is not None:
+        current_user.full_name = update.full_name
+    await db.flush()
+    await db.refresh(current_user)
+    return {"data": UserResponse.from_user(current_user).model_dump(), "error": None}
 
 
 @router.get("/google/accounts", response_model=Envelope[list[GoogleAccountData]])

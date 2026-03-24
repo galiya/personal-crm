@@ -7,6 +7,8 @@ import { client } from "@/lib/api-client";
 export function AccountTab() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
   // Load profile
   useEffect(() => {
@@ -15,7 +17,7 @@ export function AccountTab() {
         const result = await client.GET("/api/v1/auth/me", {});
         const user = (result.data as any)?.data;
         if (user) {
-          setDisplayName(user.display_name || user.email || "");
+          setDisplayName(user.full_name || user.email || "");
           setEmail(user.email || "");
         }
       } catch {
@@ -23,6 +25,22 @@ export function AccountTab() {
       }
     })();
   }, []);
+
+  const saveProfile = async () => {
+    setSaving(true);
+    setSaveMsg(null);
+    try {
+      await (client as any).PATCH("/api/v1/auth/me", {
+        body: { full_name: displayName },
+      });
+      setSaveMsg("Saved");
+    } catch {
+      setSaveMsg("Error saving");
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMsg(null), 2000);
+    }
+  };
 
   const initials = displayName
     ? displayName
@@ -75,9 +93,14 @@ export function AccountTab() {
           </div>
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-stone-100 dark:border-stone-800">
-          <button className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm">
-            Save profile
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-100 dark:border-stone-800">
+          {saveMsg && <span className="text-xs text-stone-500 dark:text-stone-400">{saveMsg}</span>}
+          <button
+            onClick={saveProfile}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-sm disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save profile"}
           </button>
         </div>
       </div>
