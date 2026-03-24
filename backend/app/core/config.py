@@ -30,6 +30,10 @@ class Settings(BaseSettings):
 
     ENCRYPTION_KEY: str = ""
 
+    ADMIN_EMAIL: str = ""
+    ADMIN_PASSWORD: str = ""
+    ADMIN_NAME: str = "Admin"
+
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
     CHROME_EXTENSION_ID: str = ""
 
