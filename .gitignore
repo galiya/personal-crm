@@ -49,7 +49,8 @@ backend/static/
 
 # Logs
 *.log
-logs/
+logs/*
+!logs/.gitkeep
 /tmp/
 
 # Planning artifacts & mockups

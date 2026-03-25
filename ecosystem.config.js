@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "backend",
+      name: "crm-backend",
       script: ".venv/bin/uvicorn",
       args: "app.main:app --host 0.0.0.0 --port 8000",
       cwd: "/Users/galiyawarrier/claude/personal-crm/backend",
@@ -9,21 +9,23 @@ module.exports = {
       autorestart: true,
       max_restarts: 10,
       watch: false,
-      out_file: "/Users/galiyawarrier/claude/personal-crm/logs/backend-out.log",
-      error_file: "/Users/galiyawarrier/claude/personal-crm/logs/backend-err.log",
-      merge_logs: false,
+      merge_logs: true,
+      log_date_format: "YYYY-MM-DD HH:mm:ss",
+      env: {
+        DOTENV_PATH: ".env",
+      },
     },
     {
-      name: "frontend",
+      name: "crm-frontend",
       script: "npm",
       args: "run dev",
       cwd: "/Users/galiyawarrier/claude/personal-crm/frontend",
+      interpreter: "none",
       autorestart: true,
       max_restarts: 10,
       watch: false,
-      out_file: "/Users/galiyawarrier/claude/personal-crm/logs/frontend-out.log",
-      error_file: "/Users/galiyawarrier/claude/personal-crm/logs/frontend-err.log",
-      merge_logs: false,
+      merge_logs: true,
+      log_date_format: "YYYY-MM-DD HH:mm:ss",
     },
   ],
 };
